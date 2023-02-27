@@ -1,8 +1,33 @@
+import uuid
+
 from django.contrib.auth import authenticate, get_user_model
 from djoser.conf import settings
-from djoser.serializers import TokenCreateSerializer
+from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
+
+from .models import Organization, Workspace
 
 User = get_user_model()
+
+
+class CustomerUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # validated_data["username"] = validated_data["email"]
+        user = super().create(validated_data)
+        if user:
+            # ext = tldextract.extract(self.user.email)
+            # organization = ext.domain + "." + ext.suffix
+
+            org = Organization(name="Default Organization", id=uuid.uuid4())
+            org.save()
+            workspace = Workspace(name="Default Workspace", id=uuid.uuid4(), organization=org)
+            workspace.save()
+            user.save()
+            user.organizations.add(org)
+        return user
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):

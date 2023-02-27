@@ -31,6 +31,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=[], cast=Csv())
 # SECURITY WARNING: keep the secret key used in production secret!
 
+AUTH_USER_MODEL = "core.User"
 
 # configure Djoser
 DJOSER = {
@@ -41,18 +42,27 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "reset_password/{uid}/{token}",
     "SERIALIZERS": {
         "token_create": "core.serializers.CustomTokenCreateSerializer",
+        "user_create": "core.serializers.CustomerUserCreateSerializer",
     },
 }
 
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("JWT",),
+}
 
 # configure DRF
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.TokenAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
 
+
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_NAME = "valmi.io"
@@ -77,6 +87,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
