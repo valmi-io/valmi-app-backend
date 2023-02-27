@@ -6,3 +6,9 @@ pydantic==1.7.4
 python-decouple==3.7
 pytz==2022.7.1
 sqlparse==0.4.3
+psycopg2-binary 
+djoser==2.0.5
+django_cors_headers==3.5.0
+django-filter==2.4.0
+markdown==3.3 
+djangorestframework==3.11.2
