@@ -1,0 +1,2 @@
+curl -o - -v  -d '{"type":"SRC_POSTGRES"}' -X POST --header "Content-Type: application/json" --header "Authorization: Bearer b88344cf801c2820ead65a513987d995fffc72cf" "http://localhost:8000/api/v1/connectors/create"
+curl -o - -v  -d '{"type":"DEST_WEBHOOK"}' -X POST --header "Content-Type: application/json" --header "Authorization: Bearer b88344cf801c2820ead65a513987d995fffc72cf" "http://localhost:8000/api/v1/connectors/create"
