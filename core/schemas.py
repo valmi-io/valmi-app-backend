@@ -1,46 +1,60 @@
 from django.contrib.auth import get_user_model
-from ninja import ModelSchema, Schema
-from pydantic import UUID4
+from ninja import Field, ModelSchema, Schema
+from pydantic import UUID4, Json
 
-from .models import Credential, Destination, Organization, Source, Sync, Workspace
+from .models import Connector, Credential, Destination, Organization, Source, Sync, Workspace
 
 User = get_user_model()
 
 
-def to_camel(string: str) -> str:
-    return "".join(word.capitalize() for word in string.split("_"))
+def camel_to_snake(s):
+    return "".join(["_" + c.lower() if c.isupper() else c for c in s]).lstrip("_")
 
 
-class OrganizationSchema(ModelSchema):
-    class Config:
-        alias_generator = to_camel
-        model = Organization
-        model_fields = "__all__"
+class CamelSchemaConfig(Schema.Config):
+    alias_generator = camel_to_snake
+    allow_population_by_field_name = True
 
 
 class WorkspaceSchema(ModelSchema):
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = Workspace
         model_fields = "__all__"
 
-    organization: list[OrganizationSchema] = None
+
+class OrganizationSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Organization
+        model_fields = "__all__"
+
+    workspaces: list[WorkspaceSchema] = None
 
 
 class UserSchemaOut(ModelSchema):
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = User
-        model_fields = "__all__"
+        model_fields = ["first_name", "email"]
 
     organizations: list[OrganizationSchema] = None
 
 
+class ConnectorSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Connector
+        model_fields = ["type"]
+
+
+class CredentialSchemaIn(Schema):
+    connector_type: str
+    connector_config: Json
+
+
 class CredentialSchema(ModelSchema):
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = Credential
-        model_fields = "__all__"
+        model_fields = ["connector_config", "id"]
+
+    connector_type: str = Field(None, alias="connector.type")
 
 
 class BaseSchemaIn(Schema):
@@ -50,8 +64,7 @@ class BaseSchemaIn(Schema):
 class SourceSchema(ModelSchema):
     credential: CredentialSchema = None  # ! None - to mark it as optional
 
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = Source
         model_fields = "__all__"
 
@@ -59,8 +72,7 @@ class SourceSchema(ModelSchema):
 class DestinationSchema(ModelSchema):
     credential: CredentialSchema = None  # ! None - to mark it as optional
 
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = Destination
         model_fields = "__all__"
 
@@ -69,7 +81,10 @@ class SyncSchema(ModelSchema):
     source: SourceSchema = None  # ! None - to mark it as optional
     destination: DestinationSchema = None
 
-    class Config:
-        alias_generator = to_camel
+    class Config(CamelSchemaConfig):
         model = Sync
         model_fields = "__all__"
+
+
+class DetailSchema(Schema):
+    detail: str
