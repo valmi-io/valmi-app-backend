@@ -50,9 +50,10 @@ class Credential(models.Model):
     connector_config = models.JSONField(blank=False, null=False)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="credentials")
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False, default="DUMMY_CREDENTIAL_NAME")
 
     def __str__(self):
-        return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id}"
+        return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id} : {self.name}"
 
 
 class Source(models.Model):
@@ -80,7 +81,7 @@ class Sync(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=256, null=False, blank=False)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
-    source_id = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="syncs")
+    source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="syncs")
     destination = models.ForeignKey(to=Destination, on_delete=models.CASCADE, related_name="syncs")
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="syncs")
     schedule = models.JSONField(blank=False, null=False)

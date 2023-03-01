@@ -2,8 +2,6 @@ import logging
 import uuid
 from typing import List
 
-from django.core import serializers
-from django.http import HttpResponse
 from ninja import Router
 
 from core.schemas import (
@@ -11,9 +9,12 @@ from core.schemas import (
     CredentialSchema,
     CredentialSchemaIn,
     DestinationSchema,
+    DestinationSchemaIn,
     DetailSchema,
     SourceSchema,
+    SourceSchemaIn,
     SyncSchema,
+    SyncSchemaIn,
     UserSchemaOut,
 )
 
@@ -32,24 +33,6 @@ def list_spaces(request):
     queryset = User.objects.prefetch_related("organizations").get(id=user_id)
     logger.debug(queryset)
     return queryset
-
-
-@router.get("/workspaces/{workspace_id}/syncs/", response=List[SyncSchema])
-def list_syncs(request, workspace_id):
-    # use request.user_id to check access control in the middleware
-    workspace = Workspace.objects.get(id=workspace_id)
-    syncs = Sync.objects.filter(workspace=workspace)
-    queryset = syncs.select_related("source", "destination")
-    for e in queryset:
-        logger.info(e)
-    return queryset
-
-
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}", response=SyncSchema)
-def get_sync(request, workspace_id, sync_id):
-    sync = Sync.objects.get(id=sync_id)
-    qs_json = serializers.serialize("json", sync)
-    return HttpResponse(qs_json, content_type="application/json")
 
 
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
@@ -83,30 +66,19 @@ def list_sources(request, workspace_id):
     return queryset
 
 
-@router.post("/workspaces/{workspace_id}/sources/create", response=SourceSchema)
-def create_source(request, payload: SourceSchema):
+@router.post("/workspaces/{workspace_id}/sources/create", response={200: SourceSchema, 400: DetailSchema})
+def create_source(request, workspace_id, payload: SourceSchemaIn):
     data = payload.dict()
+    logger.debug(dict)
     try:
+        data["id"] = uuid.uuid4()
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["credential"] = Credential.objects.get(id=payload.credential_id)
+        del data["credential_id"]
         source = Source.objects.create(**data)
-        return {
-            "detail": "Source has been successfully created.",
-            "id": source.id,
-        }
+        return source
     except Exception:
         return {"detail": "The specific source cannot be created."}
-
-
-@router.post("/workspaces/{workspace_id}/destinations/create", response=DestinationSchema)
-def create_destination(request, payload: DestinationSchema):
-    data = payload.dict()
-    try:
-        destination = Destination.objects.create(**data)
-        return {
-            "detail": "Destination has been successfully created.",
-            "id": destination.id,
-        }
-    except Exception:
-        return {"detail": "The specific Destination cannot be created."}
 
 
 @router.get("/workspaces/{workspace_id}/destinations/", response=List[DestinationSchema])
@@ -114,6 +86,60 @@ def list_definitions(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
     queryset = Destination.objects.filter(workspace=workspace)
     return queryset
+
+
+@router.post("/workspaces/{workspace_id}/destinations/create", response={200: DestinationSchema, 400: DetailSchema})
+def create_destination(request, workspace_id, payload: DestinationSchemaIn):
+    data = payload.dict()
+    logger.debug(dict)
+    try:
+        data["id"] = uuid.uuid4()
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["credential"] = Credential.objects.get(id=payload.credential_id)
+        del data["credential_id"]
+        destination = Destination.objects.create(**data)
+        return destination
+    except Exception:
+        return {"detail": "The specific destination cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/syncs/create", response={200: SyncSchema, 400: DetailSchema})
+def create_sync(request, workspace_id, payload: SyncSchemaIn):
+    data = payload.dict()
+    try:
+        logger.debug(dict)
+        logger.debug(payload.source_id)
+        logger.debug(payload.destination_id)
+        data["id"] = uuid.uuid4()
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["source"] = Source.objects.get(id=payload.source_id)
+        data["destination"] = Destination.objects.get(id=payload.destination_id)
+
+        del data["source_id"]
+        del data["destination_id"]
+        logger.debug(data["schedule"])
+        sync = Sync.objects.create(**data)
+        return sync
+    except Exception:
+        logger.exception("Sync error")
+        return {"detail": "The specific sync cannot be created."}
+
+
+@router.get("/workspaces/{workspace_id}/syncs/", response=List[SyncSchema])
+def list_syncs(request, workspace_id):
+    # use request.user_id to check access control in the middleware
+    workspace = Workspace.objects.get(id=workspace_id)
+    syncs = Sync.objects.filter(workspace=workspace)
+    queryset = syncs.select_related("source", "destination")
+    for e in queryset:
+        logger.info(e)
+    return queryset
+
+
+@router.get("/workspaces/{workspace_id}/syncs/{sync_id}", response=SyncSchema)
+def get_sync(request, workspace_id, sync_id):
+    sync = Sync.objects.get(id=sync_id)
+    return sync
 
 
 ################################# ADMIN API #######################

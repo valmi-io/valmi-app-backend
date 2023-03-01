@@ -22,8 +22,8 @@ class AuthBearer(HttpBearer):
 api = NinjaAPI(
     version="1.0",
     csrf=False,
-    title="Title API project",
-    description="Description API project",
+    title="Valmi App Backend API",
+    description="App Backend API Serves the Valmi App Frontend",
     urls_namespace="public_api",
 )
 api.add_router("v1/", valmi_app_backend_router, auth=AuthBearer())

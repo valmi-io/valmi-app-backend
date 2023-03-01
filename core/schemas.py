@@ -47,6 +47,7 @@ class ConnectorSchema(ModelSchema):
 class CredentialSchemaIn(Schema):
     connector_type: str
     connector_config: Json
+    name: str
 
 
 class CredentialSchema(ModelSchema):
@@ -61,12 +62,24 @@ class BaseSchemaIn(Schema):
     workspace_id: UUID4
 
 
+class SourceSchemaIn(Schema):
+    credential_id: UUID4
+    name: str
+    catalog: Json
+
+
 class SourceSchema(ModelSchema):
     credential: CredentialSchema = None  # ! None - to mark it as optional
 
     class Config(CamelSchemaConfig):
         model = Source
-        model_fields = "__all__"
+        model_fields = ["name", "catalog", "id"]
+
+
+class DestinationSchemaIn(Schema):
+    credential_id: UUID4
+    name: str
+    catalog: Json
 
 
 class DestinationSchema(ModelSchema):
@@ -74,16 +87,23 @@ class DestinationSchema(ModelSchema):
 
     class Config(CamelSchemaConfig):
         model = Destination
-        model_fields = "__all__"
+        model_fields = ["name", "catalog", "id"]
+
+
+class SyncSchemaIn(Schema):
+    name: str
+    source_id: UUID4
+    destination_id: UUID4
+    schedule: Json
 
 
 class SyncSchema(ModelSchema):
-    source: SourceSchema = None  # ! None - to mark it as optional
-    destination: DestinationSchema = None
+    # source: SourceSchema = None  # ! None - to mark it as optional
+    # destination: DestinationSchema = None
 
     class Config(CamelSchemaConfig):
         model = Sync
-        model_fields = "__all__"
+        model_fields = ["name", "id", "source", "destination", "schedule"]
 
 
 class DetailSchema(Schema):
