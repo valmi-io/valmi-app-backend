@@ -145,6 +145,17 @@ def get_sync(request, workspace_id, sync_id):
 ################################# ADMIN API #######################
 
 
+@router.get("/syncs/", response={200: List[SyncSchema], 400: DetailSchema})
+def get_all_syncs(request):
+    # check for admin permissions
+    try:
+        syncs = Sync.objects.all()
+        return syncs
+    except Exception:
+        logger.exception("syncs all error")
+        return (400, {"detail": "The syncs cannot be fetched."})
+
+
 @router.post("/connectors/create", response={200: ConnectorSchema, 400: DetailSchema})
 def create_connector(request, payload: ConnectorSchema):
     # check for admin permissions
