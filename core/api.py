@@ -149,7 +149,7 @@ def get_sync(request, workspace_id, sync_id):
 def get_all_syncs(request):
     # check for admin permissions
     try:
-        syncs = Sync.objects.all()
+        syncs = Sync.objects.select_related("source", "destination")
         return syncs
     except Exception:
         logger.exception("syncs all error")

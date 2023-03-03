@@ -37,7 +37,7 @@ AUTH_USER_MODEL = "core.User"
 DJOSER = {
     "USER_ID_FIELD": "username",
     "LOGIN_FIELD": "email",
-    "SEND_ACTIVATION_EMAIL": True,
+    "SEND_ACTIVATION_EMAIL": False,
     "ACTIVATION_URL": "activate/{uid}/{token}",
     "PASSWORD_RESET_CONFIRM_URL": "reset_password/{uid}/{token}",
     "SERIALIZERS": {
@@ -92,7 +92,7 @@ REST_FRAMEWORK = {
 if config("AUTHENTICATION", default=True, cast=bool) is False:
     # configure DRF
     REST_FRAMEWORK = {
-        "DEFAULT_AUTHENTICATION_CLASSES": [],
+        "DEFAULT_AUTHENTICATION_CLASSES": (),
         "DEFAULT_PERMISSION_CLASSES": [],
     }
 

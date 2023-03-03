@@ -1,5 +1,6 @@
 import logging
 
+from decouple import config
 from django.contrib import admin
 from django.urls import path
 from ninja import NinjaAPI
@@ -30,7 +31,11 @@ api = NinjaAPI(
     description="App Backend API Serves the Valmi App Frontend",
     urls_namespace="public_api",
 )
-api.add_router("v1/", valmi_app_backend_router, auth=AuthBearer())
+
+if config("AUTHENTICATION", default=True, cast=bool):
+    api.add_router("v1/", valmi_app_backend_router, auth=AuthBearer())
+else:
+    api.add_router("v1/", valmi_app_backend_router)
 
 
 urlpatterns = [

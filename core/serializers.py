@@ -1,6 +1,10 @@
+import binascii
+import os
 import uuid
 
+import tldextract
 from django.contrib.auth import authenticate, get_user_model
+from django.db import connection
 from djoser.conf import settings
 from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
 
@@ -14,12 +18,21 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
         model = User
         fields = "__all__"
 
+    def generate_key(self):
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    def update_token_for_dummy_user(self, user_id):
+        with connection.cursor() as cursor:
+            timestamp = "NOW()"
+            token = self.generate_key()
+            cursor.execute("INSERT INTO authtoken_token values (%s,%s,%s)", [token, timestamp, user_id])
+
     def create(self, validated_data):
         # validated_data["username"] = validated_data["email"]
         user = super().create(validated_data)
         if user:
-            # ext = tldextract.extract(self.user.email)
-            # organization = ext.domain + "." + ext.suffix
+            ext = tldextract.extract(user.email)
+            organization = ext.domain + "." + ext.suffix
 
             org = Organization(name="Default Organization", id=uuid.uuid4())
             org.save()
@@ -27,6 +40,18 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             workspace.save()
             user.save()
             user.organizations.add(org)
+
+            # Create Access Token for Engine
+            engineUser = User(
+                email=f"{org.id}@{organization}",
+                username=str(org.id),
+                first_name="Engine User",
+                last_name=str(org.id),
+                is_active=True,
+            )
+            engineUser.set_password(self.generate_key())
+            engineUser.save()
+            self.update_token_for_dummy_user(engineUser.id)
         return user
 
 

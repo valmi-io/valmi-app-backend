@@ -98,8 +98,8 @@ class SyncSchemaIn(Schema):
 
 
 class SyncSchema(ModelSchema):
-    # source: SourceSchema = None  # ! None - to mark it as optional
-    # destination: DestinationSchema = None
+    source: SourceSchema = None  # ! None - to mark it as optional
+    destination: DestinationSchema = None
 
     class Config(CamelSchemaConfig):
         model = Sync
