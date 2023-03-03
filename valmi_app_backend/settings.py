@@ -37,7 +37,7 @@ AUTH_USER_MODEL = "core.User"
 DJOSER = {
     "USER_ID_FIELD": "username",
     "LOGIN_FIELD": "email",
-    "SEND_ACTIVATION_EMAIL": False,
+    "SEND_ACTIVATION_EMAIL": config("ACTIVATION_EMAIL", cast=bool),
     "ACTIVATION_URL": "activate/{uid}/{token}",
     "PASSWORD_RESET_CONFIRM_URL": "reset_password/{uid}/{token}",
     "SERIALIZERS": {
@@ -99,7 +99,16 @@ if config("AUTHENTICATION", default=True, cast=bool) is False:
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_NAME = "valmi.io"
 
 # Application definition
