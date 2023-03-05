@@ -1,0 +1,14 @@
+version: "3"
+services:
+  database:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: valmi_app
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:
