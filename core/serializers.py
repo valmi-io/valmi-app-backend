@@ -2,7 +2,6 @@ import binascii
 import os
 import uuid
 
-import tldextract
 from django.contrib.auth import authenticate, get_user_model
 from django.db import connection
 from djoser.conf import settings
@@ -31,9 +30,6 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
         # validated_data["username"] = validated_data["email"]
         user = super().create(validated_data)
         if user:
-            ext = tldextract.extract(user.email)
-            organization = ext.domain + "." + ext.suffix
-
             org = Organization(name="Default Organization", id=uuid.uuid4())
             org.save()
             workspace = Workspace(name="Default Workspace", id=uuid.uuid4(), organization=org)
@@ -41,6 +37,9 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             user.save()
             user.organizations.add(org)
 
+            """
+            ext = tldextract.extract(user.email)
+            organization = ext.domain + "." + ext.suffix
             # Create Access Token for Engine :: TODO: User Exisiting Organization if available
             engineUser = User(
                 email=f"{org.id}@{organization}",
@@ -52,6 +51,7 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             engineUser.set_password(self.generate_key())
             engineUser.save()
             self.update_token_for_dummy_user(engineUser.id)
+            """
         return user
 
 

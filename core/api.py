@@ -1,9 +1,10 @@
 import logging
 import uuid
 from typing import List
-
 from ninja import Router
-
+from pydantic import Json
+from decouple import config
+import requests
 from core.schemas import (
     CredentialSchema,
     CredentialSchemaIn,
@@ -21,6 +22,7 @@ from .models import Connector, Credential, Destination, Source, Sync, User, Work
 
 router = Router()
 
+CONNECTOR_PREFIX_URL = config("ACTIVATION_SERVER") + "/connectors"
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -32,6 +34,17 @@ def list_spaces(request):
     queryset = User.objects.prefetch_related("organizations").get(id=user_id)
     logger.debug(queryset)
     return queryset
+
+
+@router.get("/workspaces/{workspace_id}/credentials/{connector_type}/spec", response=Json)
+def credential_spec(request, workspace_id, connector_type):
+    workspace = Workspace.objects.get(id=workspace_id)
+    connector = Connector.objects.get(type=connector_type)
+
+    return requests.post(
+        f"{CONNECTOR_PREFIX_URL}/{connector.type}/spec",
+        json={"docker_image": connector.docker_image, "docker_tag": connector.docker_tag},
+    ).text
 
 
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])

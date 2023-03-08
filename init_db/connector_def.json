@@ -2,11 +2,17 @@
     "definitions": [
         {
             "type": "SRC",
-            "unique_name": "POSTGRES"
+            "unique_name": "POSTGRES",
+            "docker_image": "valmiio/source-postgres",
+            "docker_tag": "stable",
+            "display_name": "Postgres"
         },
         {
             "type": "DEST",
-            "unique_name": "WEBHOOK"
+            "unique_name": "WEBHOOK",
+            "docker_image": "valmiio/destination-webhook",
+            "docker_tag": "stable",
+            "display_name": "Webhook"
         }
     ]
 }

@@ -41,7 +41,7 @@ class UserSchemaOut(ModelSchema):
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
-        model_fields = ["type"]
+        model_fields = ["type", "docker_image", "docker_tag", "display_name"]
 
 
 class CredentialSchemaIn(Schema):
