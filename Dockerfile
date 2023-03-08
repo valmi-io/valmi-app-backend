@@ -20,6 +20,7 @@ WORKDIR /workspace
 ENV PATH="/opt/valmi-app-backend/bin:${PATH}"
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /workspace/src
+EXPOSE ${PORT}
 #TODO: first time install - create db and run migrations and other stuff
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "${PORT}"]
