@@ -81,6 +81,7 @@ SIMPLE_JWT = {
 # configure DRF
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.BasicAuthentication",
         "valmi_app_backend.utils.BearerAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
