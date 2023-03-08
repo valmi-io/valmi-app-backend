@@ -1,4 +1,5 @@
 #!/bin/sh
+python /workspace/init_db/create_db_if_not_exists.py
 python manage.py makemigrations
 python manage.py migrate
 

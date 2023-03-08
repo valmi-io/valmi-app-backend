@@ -3,6 +3,10 @@
         {
             "type": "SRC",
             "unique_name": "POSTGRES"
+        },
+        {
+            "type": "DEST",
+            "unique_name": "WEBHOOK"
         }
     ]
 }
