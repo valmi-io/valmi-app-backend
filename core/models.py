@@ -90,7 +90,7 @@ class Sync(models.Model):
 class Connector(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    type = models.CharField(primary_key=True, max_length=16, null=False, blank=False, default="DUMMY_CONNECTOR")
+    type = models.CharField(primary_key=True, max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR")
     docker_image = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_IMAGE_NAME")
     docker_tag = models.CharField(max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR_TAG")
     display_name = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_DISPLAY_NAME")

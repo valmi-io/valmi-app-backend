@@ -15,3 +15,4 @@ djangorestframework==3.11.2
 djangorestframework-simplejwt
 tldextract
 typing-extensions
+django-request-logging

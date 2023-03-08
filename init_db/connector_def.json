@@ -13,6 +13,13 @@
             "docker_image": "valmiio/destination-webhook",
             "docker_tag": "stable",
             "display_name": "Webhook"
+        },
+        {
+            "type": "DEST",
+            "unique_name": "TMPGOOGLESHEETS",
+            "docker_image": "valmiio/destination-webhook",
+            "docker_tag": "stable",
+            "display_name": "GOOGLE sheets"
         }
     ]
 }
