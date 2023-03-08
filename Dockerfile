@@ -10,9 +10,7 @@ RUN set -x \
     && mkdir -p /workspace && chown -R $USER_ID:$GROUP_ID /workspace && chown -R $USER_ID:$GROUP_ID /opt/valmi-app-backend
 #RUN addgroup --gid $GROUP_ID user
 #RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
-
-RUN curl -fsSL https://get.docker.com | sh
-
+ 
 #USER user
 
 WORKDIR /workspace
@@ -22,5 +20,5 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /workspace/src
 EXPOSE ${PORT}
 #TODO: first time install - create db and run migrations and other stuff
-ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "${PORT}"]
+ENTRYPOINT ["/workspace/docker-entrypoint.sh"]
+CMD  python manage.py runserver ${PORT}

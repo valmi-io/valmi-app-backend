@@ -1,0 +1,8 @@
+{
+    "definitions": [
+        {
+            "type": "SRC",
+            "unique_name": "POSTGRES"
+        }
+    ]
+}
