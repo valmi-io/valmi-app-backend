@@ -1,4 +1,35 @@
 #!/bin/sh
+
+######################################EXTRACT host port from db url
+# Abort on any error (including if wait-for-it fails).
+set -e
+
+# extract the protocol
+proto="$(echo $DATABASE_URL | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+
+# remove the protocol -- updated
+url=$(echo $DATABASE_URL | sed -e s,$proto,,g)
+
+# extract the user (if any)
+user="$(echo $url | grep @ | cut -d@ -f1)"
+
+# extract the host and port -- updated
+hostport=$(echo $url | sed -e s,$user@,,g | cut -d/ -f1)
+
+# by request host without port
+host="$(echo $hostport | sed -e 's,:.*,,g')"
+# by request - try to extract the port
+port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+
+# extract the path (if any)
+path="$(echo $url | grep / | cut -d/ -f2-)"
+
+
+echo $host
+echo $port
+##################################
+
+
 python /workspace/init_db/create_db_if_not_exists.py
 python manage.py makemigrations
 python manage.py migrate
