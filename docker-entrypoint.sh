@@ -29,6 +29,11 @@ echo $host
 echo $port
 ##################################
 
+# Wait for the backend to be up, if we know where it is.
+if [ -n "$host" ]; then
+  /workspace/wait-for-it.sh "$host:${port:-5432}" -t 60
+fi
+
 
 python /workspace/init_db/create_db_if_not_exists.py
 python manage.py makemigrations
