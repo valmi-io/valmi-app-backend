@@ -106,5 +106,17 @@ class SyncSchema(ModelSchema):
         model_fields = ["name", "id", "source", "destination", "schedule"]
 
 
+class SyncIdSchema(Schema):
+    sync_id: UUID4
+
+
 class DetailSchema(Schema):
     detail: str
+
+
+class SuccessSchema(Schema):
+    status: str = "success"
+
+
+class FailureSchema(Schema):
+    status: str = "failure"

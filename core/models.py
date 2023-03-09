@@ -27,6 +27,7 @@ class Organization(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=256, null=False, blank=False)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
     def __str__(self):
         return self.name
@@ -38,6 +39,7 @@ class Workspace(models.Model):
     name = models.CharField(max_length=256, null=False, blank=False)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     organization = models.ForeignKey(to=Organization, on_delete=models.CASCADE, related_name="workspaces")
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
     def __str__(self):
         return self.name
@@ -51,6 +53,7 @@ class Credential(models.Model):
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="credentials")
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False, default="DUMMY_CREDENTIAL_NAME")
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
     def __str__(self):
         return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id} : {self.name}"
@@ -64,6 +67,7 @@ class Source(models.Model):
     catalog = models.JSONField(blank=False, null=False)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="sources")
     credential = models.ForeignKey(to=Credential, on_delete=models.CASCADE, related_name="sources")
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
 
 class Destination(models.Model):
@@ -74,6 +78,7 @@ class Destination(models.Model):
     catalog = models.JSONField(blank=False, null=False)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="destinations")
     credential = models.ForeignKey(to=Credential, on_delete=models.CASCADE, related_name="destinations")
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
 
 class Sync(models.Model):
@@ -85,6 +90,7 @@ class Sync(models.Model):
     destination = models.ForeignKey(to=Destination, on_delete=models.CASCADE, related_name="syncs")
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="syncs")
     schedule = models.JSONField(blank=False, null=False)
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")
 
 
 class Connector(models.Model):
@@ -94,3 +100,4 @@ class Connector(models.Model):
     docker_image = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_IMAGE_NAME")
     docker_tag = models.CharField(max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR_TAG")
     display_name = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_DISPLAY_NAME")
+    status = models.CharField(max_length=256, null=False, blank=False, default="active")

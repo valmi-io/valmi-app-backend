@@ -16,6 +16,9 @@ from core.schemas import (
     SyncSchema,
     SyncSchemaIn,
     UserSchemaOut,
+    SuccessSchema,
+    FailureSchema,
+    SyncIdSchema,
 )
 
 from .models import Connector, Credential, Destination, Source, Sync, User, Workspace
@@ -23,6 +26,12 @@ from .models import Connector, Credential, Destination, Source, Sync, User, Work
 router = Router()
 
 CONNECTOR_PREFIX_URL = config("ACTIVATION_SERVER") + "/connectors"
+ACTIVE = "active"
+INACTIVE = "inactive"
+DELETED = "deleted"
+
+LONG_TIMEOUT = 60
+SHORT_TIMEOUT = 10
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -36,14 +45,15 @@ def list_spaces(request):
     return queryset
 
 
-@router.get("/workspaces/{workspace_id}/credentials/{connector_type}/spec", response=Json)
-def credential_spec(request, workspace_id, connector_type):
+@router.get("/workspaces/{workspace_id}/connectors/{connector_type}/spec", response=Json)
+def connector_spec(request, workspace_id, connector_type):
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
 
     return requests.post(
         f"{CONNECTOR_PREFIX_URL}/{connector.type}/spec",
         json={"docker_image": connector.docker_image, "docker_tag": connector.docker_tag},
+        timeout=SHORT_TIMEOUT,
     ).text
 
 
@@ -135,6 +145,45 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
     except Exception:
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/syncs/enable", response={200: SuccessSchema, 502: FailureSchema})
+def enable_sync(request, workspace_id, payload: SyncIdSchema):
+    try:
+        sync_id = payload.sync_id
+        sync = Sync.objects.get(id=sync_id)
+        sync.status = ACTIVE
+        sync.save()
+        return (200, SuccessSchema())
+    except Exception:
+        logger.exception("delete operation failed")
+        return (502, FailureSchema())
+
+
+@router.post("/workspaces/{workspace_id}/syncs/disable", response={200: SuccessSchema, 502: FailureSchema})
+def disable_sync(request, workspace_id, payload: SyncIdSchema):
+    try:
+        sync_id = payload.sync_id
+        sync = Sync.objects.get(id=sync_id)
+        sync.status = INACTIVE
+        sync.save()
+        return (200, SuccessSchema())
+    except Exception:
+        logger.exception("delete operation failed")
+        return (502, FailureSchema())
+
+
+@router.delete("/workspaces/{workspace_id}/syncs/delete", response={200: SuccessSchema, 502: FailureSchema})
+def delete_sync(request, workspace_id, payload: SyncIdSchema):
+    try:
+        sync_id = payload.sync_id
+        sync = Sync.objects.get(id=sync_id)
+        sync.status = DELETED
+        sync.save()
+        return (200, SuccessSchema())
+    except Exception:
+        logger.exception("delete operation failed")
+        return (502, FailureSchema())
 
 
 @router.get("/workspaces/{workspace_id}/syncs/", response=List[SyncSchema])
