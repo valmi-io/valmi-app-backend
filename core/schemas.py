@@ -56,6 +56,8 @@ class CredentialSchema(ModelSchema):
         model_fields = ["connector_config", "id"]
 
     connector_type: str = Field(None, alias="connector.type")
+    docker_image: str = Field(None, alias="connector.docker_image")
+    docker_tag: str = Field(None, alias="connector.docker_tag")
 
 
 class BaseSchemaIn(Schema):
@@ -103,7 +105,7 @@ class SyncSchema(ModelSchema):
 
     class Config(CamelSchemaConfig):
         model = Sync
-        model_fields = ["name", "id", "source", "destination", "schedule"]
+        model_fields = ["name", "id", "source", "destination", "schedule", "status"]
 
 
 class SyncIdSchema(Schema):

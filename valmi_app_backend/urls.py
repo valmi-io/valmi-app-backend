@@ -23,7 +23,6 @@ class BasicAuth(HttpBasicAuth):
         user_auth_tuple = BasicAuthentication().authenticate(request)
         if user_auth_tuple is not None:
             (user, token) = user_auth_tuple
-            print(user)
             request.user = user
             return user
 
