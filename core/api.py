@@ -1,11 +1,12 @@
 import logging
 import uuid
-from typing import List
+from typing import Dict, List
 from ninja import Router
 from pydantic import Json
 from decouple import config
 import requests
 from core.schemas import (
+    ConnectorSchema,
     CredentialSchema,
     CredentialSchemaIn,
     DestinationSchema,
@@ -201,3 +202,24 @@ def list_syncs(request, workspace_id):
 def get_sync(request, workspace_id, sync_id):
     sync = Sync.objects.get(id=sync_id)
     return sync
+
+
+@router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
+def create_connector(request):
+    # check for admin permissions
+    try:
+        logger.debug("listing connectors")
+        connectors = Connector.objects.all()
+        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
+        src_dst_dict["SRC"] = []
+        src_dst_dict["DEST"] = []
+        for conn in connectors:
+            arr = conn.type.split("_")
+            if arr[0] == "SRC":
+                src_dst_dict["SRC"].append(conn)
+            elif arr[0] == "DEST":
+                src_dst_dict["DEST"].append(conn)
+        return src_dst_dict
+    except Exception:
+        logger.exception("connector listing error")
+        return (400, {"detail": "The list of connectors cannot be fetched."})
