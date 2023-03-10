@@ -1,3 +1,4 @@
+from typing import Dict
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4, Json
@@ -42,6 +43,10 @@ class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
         model_fields = ["type", "docker_image", "docker_tag", "display_name"]
+
+
+class ConnectorConfigSchemaIn(Schema):
+    config: Dict
 
 
 class CredentialSchemaIn(Schema):

@@ -6,6 +6,7 @@ from pydantic import Json
 from decouple import config
 import requests
 from core.schemas import (
+    ConnectorConfigSchemaIn,
     ConnectorSchema,
     CredentialSchema,
     CredentialSchemaIn,
@@ -56,6 +57,18 @@ def connector_spec(request, workspace_id, connector_type):
         json={"docker_image": connector.docker_image, "docker_tag": connector.docker_tag},
         timeout=SHORT_TIMEOUT,
     ).text
+
+
+@router.post("/workspaces/{workspace_id}/connectors/{connector_type}/check", response=Dict)
+def connector_check(request, workspace_id, connector_type, payload: ConnectorConfigSchemaIn):
+    workspace = Workspace.objects.get(id=workspace_id)
+    connector = Connector.objects.get(type=connector_type)
+
+    return requests.post(
+        f"{CONNECTOR_PREFIX_URL}/{connector.type}/check",
+        json={**payload.dict(), "docker_image": connector.docker_image, "docker_tag": connector.docker_tag},
+        timeout=SHORT_TIMEOUT,
+    ).json()
 
 
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
