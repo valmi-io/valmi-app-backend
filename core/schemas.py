@@ -58,7 +58,7 @@ class CredentialSchemaIn(Schema):
 class CredentialSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Credential
-        model_fields = ["connector_config", "id"]
+        model_fields = ["connector_config", "id", "name"]
 
     connector_type: str = Field(None, alias="connector.type")
     docker_image: str = Field(None, alias="connector.docker_image")
