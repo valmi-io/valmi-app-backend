@@ -51,7 +51,7 @@ class ConnectorConfigSchemaIn(Schema):
 
 class CredentialSchemaIn(Schema):
     connector_type: str
-    connector_config: Json
+    connector_config: Dict
     name: str
 
 
@@ -72,7 +72,7 @@ class BaseSchemaIn(Schema):
 class SourceSchemaIn(Schema):
     credential_id: UUID4
     name: str
-    catalog: Json
+    catalog: Dict
 
 
 class SourceSchema(ModelSchema):
@@ -86,7 +86,7 @@ class SourceSchema(ModelSchema):
 class DestinationSchemaIn(Schema):
     credential_id: UUID4
     name: str
-    catalog: Json
+    catalog: Dict
 
 
 class DestinationSchema(ModelSchema):
