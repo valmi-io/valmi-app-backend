@@ -1,7 +1,7 @@
 from typing import Dict
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
-from pydantic import UUID4, Json
+from pydantic import UUID4
 
 from .models import Connector, Credential, Destination, Organization, Source, Sync, Workspace
 
@@ -101,7 +101,7 @@ class SyncSchemaIn(Schema):
     name: str
     source_id: UUID4
     destination_id: UUID4
-    schedule: Json
+    schedule: Dict
 
 
 class SyncSchema(ModelSchema):
@@ -127,3 +127,4 @@ class SuccessSchema(Schema):
 
 class FailureSchema(Schema):
     status: str = "failure"
+
