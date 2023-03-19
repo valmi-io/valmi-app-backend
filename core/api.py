@@ -237,7 +237,7 @@ def get_sync(request, workspace_id, sync_id):
 
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def create_connector(request):
+def get_connectors(request):
     # check for admin permissions
     try:
         logger.debug("listing connectors")
