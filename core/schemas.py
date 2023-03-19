@@ -1,4 +1,5 @@
-from typing import Dict
+from datetime import datetime
+from typing import Dict, Optional
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
@@ -113,6 +114,15 @@ class SyncSchema(ModelSchema):
         model_fields = ["name", "id", "source", "destination", "schedule", "status"]
 
 
+class SyncRunSchema(Schema):
+    sync_id: UUID4
+    run_id: UUID4
+    run_at: datetime
+    status: str
+    metrics: Optional[Dict]
+    extra: Optional[Dict]
+
+
 class SyncIdSchema(Schema):
     sync_id: UUID4
 
@@ -127,4 +137,3 @@ class SuccessSchema(Schema):
 
 class FailureSchema(Schema):
     status: str = "failure"
-

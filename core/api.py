@@ -1,8 +1,9 @@
+from datetime import datetime
 import logging
 import uuid
 from typing import Dict, List
 from ninja import Router
-from pydantic import Json
+from pydantic import UUID4, Json
 from decouple import config
 import requests
 from core.schemas import (
@@ -28,6 +29,7 @@ from .models import Connector, Credential, Destination, Source, Sync, User, Work
 router = Router()
 
 CONNECTOR_PREFIX_URL = config("ACTIVATION_SERVER") + "/connectors"
+ACTIVATION_URL = config("ACTIVATION_SERVER")
 ACTIVE = "active"
 INACTIVE = "inactive"
 DELETED = "deleted"
@@ -234,6 +236,29 @@ def list_syncs(request, workspace_id):
 def get_sync(request, workspace_id, sync_id):
     sync = Sync.objects.get(id=sync_id)
     return sync
+
+
+@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/", response=Json)
+def get_sync_runs(
+    request,
+    workspace_id,
+    sync_id: UUID4,
+    before: datetime = datetime.now(),
+    limit: int = 25,
+):
+    return requests.get(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/",
+        params={"before": before, "limit": limit},
+        timeout=SHORT_TIMEOUT,
+    ).text
+
+
+@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}", response=Json)
+def get_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
+    return requests.get(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}",
+        timeout=SHORT_TIMEOUT,
+    ).text
 
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
