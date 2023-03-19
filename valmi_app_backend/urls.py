@@ -8,6 +8,7 @@ from ninja.security import HttpBearer
 from ninja.security import HttpBasicAuth
 
 from core.api import router as public_api_router
+from core.api import get_workspaces
 from core.engine_api import router as superuser_api_router
 
 from core.urls import core_urlpatterns
@@ -30,11 +31,27 @@ class BasicAuth(HttpBasicAuth):
 class AuthBearer(HttpBearer):
     openapi_scheme: str = "bearer"
 
+    def has_permission_for(self, user, workspace_id):
+        for workspace in get_workspaces(user):
+            logger.debug("checking workspace %s", workspace.id)
+            if str(workspace.id) == workspace_id:
+                return True
+        return False
+
     def authenticate(self, request, token):
         user_auth_tuple = BearerAuthentication().authenticate(request)
         if user_auth_tuple is not None:
             (user, token) = user_auth_tuple  # here come your user object
             request.user = user
+            # get Workspace Id.
+            arr = request.get_full_path().split("/")
+            for i, el in enumerate(arr):
+                if el == "workspaces" and len(arr) > i + 1:
+                    workspace_id = arr[i + 1]
+                    logger.debug(workspace_id)
+                    if not self.has_permission_for(user, workspace_id):
+                        return None
+                    break
             return token
 
 

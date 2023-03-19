@@ -39,6 +39,13 @@ SHORT_TIMEOUT = 10
 logger = logging.getLogger(__name__)
 
 
+def get_workspaces(user):
+    queryset = User.objects.prefetch_related("organizations").get(id=user.id)
+    for organization in queryset.organizations.all():
+        for workspace in organization.workspaces.all():
+            yield workspace
+
+
 @router.get("/spaces/", response=UserSchemaOut)
 def list_spaces(request):
     user_id = request.user.id
