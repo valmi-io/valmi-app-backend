@@ -21,11 +21,15 @@ logger = logging.getLogger(__name__)
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
-        user_auth_tuple = BasicAuthentication().authenticate(request)
+        try:
+            user_auth_tuple = BasicAuthentication().authenticate(request)
+        except Exception:
+            user_auth_tuple = None
         if user_auth_tuple is not None:
             (user, token) = user_auth_tuple
             request.user = user
             return user
+        return None
 
 
 class AuthBearer(HttpBearer):
@@ -39,7 +43,10 @@ class AuthBearer(HttpBearer):
         return False
 
     def authenticate(self, request, token):
-        user_auth_tuple = BearerAuthentication().authenticate(request)
+        try:
+            user_auth_tuple = BearerAuthentication().authenticate(request)
+        except Exception:
+            user_auth_tuple = None
         if user_auth_tuple is not None:
             (user, token) = user_auth_tuple  # here come your user object
             request.user = user
@@ -53,6 +60,7 @@ class AuthBearer(HttpBearer):
                         return None
                     break
             return token
+        return None
 
 
 api = NinjaAPI(
