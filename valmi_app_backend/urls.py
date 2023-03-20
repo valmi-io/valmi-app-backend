@@ -64,12 +64,12 @@ api = NinjaAPI(
 )
 
 if config("AUTHENTICATION", default=True, cast=bool):
-    api.add_router("v1/public/", public_api_router, auth=[AuthBearer()])
     api.add_router("v1/superuser/", superuser_api_router, auth=[BasicAuth()])
+    api.add_router("v1/", public_api_router, auth=[AuthBearer()])
 
 else:
-    api.add_router("v1/public/", public_api_router)
     api.add_router("v1/superuser/", superuser_api_router)
+    api.add_router("v1/", public_api_router)
 
 
 urlpatterns = [
