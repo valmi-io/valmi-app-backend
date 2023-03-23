@@ -4,14 +4,14 @@
             "type": "SRC",
             "unique_name": "POSTGRES",
             "docker_image": "valmiio/source-postgres",
-            "docker_tag": "stable",
+            "docker_tag": "0.1.0",
             "display_name": "Postgres"
         },
         {
             "type": "DEST",
             "unique_name": "WEBHOOK",
             "docker_image": "valmiio/destination-webhook",
-            "docker_tag": "stable",
+            "docker_tag": "0.1.0",
             "display_name": "Webhook"
         }
     ]
