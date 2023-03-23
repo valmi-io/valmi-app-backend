@@ -2,7 +2,9 @@
   <a href="https://valmi.io"><img width="300" src="https://www.valmi.io/img/logo.svg" alt="valmi.io"></a>
 </p>
 <p align="center">
-    <em>Valmi.io activation (reverse-ETL) is the open-source data activation platform for warehouse data to load into SaaS platforms, Webhook Apis etc.</em>
+    <em>Valmi.io activation (reverse-ETL) is the open-source data activation platform load warehouse data into SaaS platforms, Webhook Apis etc.
+
+</em>
 </p>
 <p align="center">
 <a href="https://github.com/valmi-io/valmi-activation/stargazers/" target="_blank">
