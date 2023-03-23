@@ -1,3 +1,11 @@
+"""
+Copyright (c) 2023 valmi.io <https://github.com/valmi-io>
+
+Created Date: Friday, March 17th 2023, 6:09:16 pm
+Author: Rajashekar Varkala @ valmi.io
+
+"""
+
 from datetime import datetime
 from typing import Dict, Optional
 from django.contrib.auth import get_user_model

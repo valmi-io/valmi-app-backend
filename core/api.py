@@ -1,3 +1,11 @@
+"""
+Copyright (c) 2023 valmi.io <https://github.com/valmi-io>
+
+Created Date: Wednesday, March 8th 2023, 9:56:52 pm
+Author: Rajashekar Varkala @ valmi.io
+
+"""
+
 from datetime import datetime
 import logging
 import uuid
