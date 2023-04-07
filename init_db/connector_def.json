@@ -20,6 +20,13 @@
       "docker_image": "valmiio/destination-google-sheets",
       "docker_tag": "0.1.0",
       "display_name": "Google Sheets"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "CUSTOMER-IO",
+      "docker_image": "valmiio/destination-customer-io",
+      "docker_tag": "0.1.0",
+      "display_name": "Customer.io"
     }
   ]
 }
