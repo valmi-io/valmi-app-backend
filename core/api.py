@@ -43,7 +43,7 @@ INACTIVE = "inactive"
 DELETED = "deleted"
 
 LONG_TIMEOUT = 60
-SHORT_TIMEOUT = 10
+SHORT_TIMEOUT = 60
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
