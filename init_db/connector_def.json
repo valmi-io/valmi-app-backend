@@ -8,6 +8,13 @@
       "display_name": "Postgres"
     },
     {
+      "type": "SRC",
+      "unique_name": "REDSHIFT",
+      "docker_image": "valmiio/source-redshift",
+      "docker_tag": "0.1.0",
+      "display_name": "Redshift"
+    },
+    {
       "type": "DEST",
       "unique_name": "WEBHOOK",
       "docker_image": "valmiio/destination-webhook",
