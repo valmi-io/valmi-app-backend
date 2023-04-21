@@ -15,6 +15,13 @@
       "display_name": "Redshift"
     },
     {
+      "type": "SRC",
+      "unique_name": "SNOWFLAKE",
+      "docker_image": "valmiio/source-snowflake",
+      "docker_tag": "0.1.0",
+      "display_name": "Snowflake"
+    },
+    {
       "type": "DEST",
       "unique_name": "WEBHOOK",
       "docker_image": "valmiio/destination-webhook",
