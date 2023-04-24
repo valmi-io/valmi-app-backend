@@ -55,6 +55,13 @@
       "docker_image": "valmiio/destination-slack",
       "docker_tag": "0.1.0",
       "display_name": "Slack"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "HUBSPOT",
+      "docker_image": "valmiio/destination-hubspot",
+      "docker_tag": "0.1.0",
+      "display_name": "Hubspot"
     }
   ]
 }
