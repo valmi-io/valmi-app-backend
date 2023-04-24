@@ -48,6 +48,13 @@
       "docker_image": "valmiio/destination-facebook-ads",
       "docker_tag": "0.1.0",
       "display_name": "Facebook Ads"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "SLACK",
+      "docker_image": "valmiio/destination-slack",
+      "docker_tag": "0.1.0",
+      "display_name": "Slack"
     }
   ]
 }
