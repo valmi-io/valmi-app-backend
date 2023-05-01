@@ -62,6 +62,13 @@
       "docker_image": "valmiio/destination-hubspot",
       "docker_tag": "0.1.0",
       "display_name": "Hubspot"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "Stripe",
+      "docker_image": "valmiio/destination-stripe",
+      "docker_tag": "0.1.0",
+      "display_name": "Stripe"
     }
   ]
 }
