@@ -37,6 +37,13 @@
     },
     {
       "type": "DEST",
+      "unique_name": "GOOGLE-ADS",
+      "docker_image": "valmiio/destination-google-ads",
+      "docker_tag": "0.1.0",
+      "display_name": "Google Ads"
+    },
+    {
+      "type": "DEST",
       "unique_name": "CUSTOMER-IO",
       "docker_image": "valmiio/destination-customer-io",
       "docker_tag": "0.1.0",
