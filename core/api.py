@@ -6,14 +6,16 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
-from datetime import datetime
 import logging
 import uuid
+from datetime import datetime
 from typing import Dict, List
+
+import requests
+from decouple import config
 from ninja import Router
 from pydantic import UUID4, Json
-from decouple import config
-import requests
+
 from core.schemas import (
     ConnectorConfigSchemaIn,
     ConnectorSchema,
@@ -22,14 +24,15 @@ from core.schemas import (
     DestinationSchema,
     DestinationSchemaIn,
     DetailSchema,
+    FailureSchema,
+    RunTimeArgsSchemaIn,
     SourceSchema,
     SourceSchemaIn,
+    SuccessSchema,
+    SyncIdSchema,
     SyncSchema,
     SyncSchemaIn,
     UserSchemaOut,
-    SuccessSchema,
-    FailureSchema,
-    SyncIdSchema,
 )
 
 from .models import Connector, Credential, Destination, Source, Sync, User, Workspace
@@ -257,6 +260,24 @@ def get_sync_runs(
     return requests.get(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/",
         params={"before": before, "limit": limit},
+        timeout=SHORT_TIMEOUT,
+    ).text
+
+
+@router.post("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/abort", response=Json)
+def abort_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
+    return requests.post(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/abort",
+        timeout=SHORT_TIMEOUT,
+    ).text
+
+
+@router.post("/workspaces/{workspace_id}/syncs/{sync_id}/runs/create", response=Json)
+def create_new_run(request, workspace_id, sync_id: UUID4, payload: RunTimeArgsSchemaIn):
+    print(payload)
+    return requests.post(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/create",
+        json=payload.dict(),
         timeout=SHORT_TIMEOUT,
     ).text
 

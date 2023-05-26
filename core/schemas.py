@@ -8,6 +8,7 @@ Author: Rajashekar Varkala @ valmi.io
 
 from datetime import datetime
 from typing import Dict, Optional
+
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
@@ -56,6 +57,10 @@ class ConnectorSchema(ModelSchema):
 
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
+
+
+class RunTimeArgsSchemaIn(Schema):
+    run_time_args: Dict
 
 
 class CredentialSchemaIn(Schema):
