@@ -25,13 +25,13 @@ from core.schemas import (
     DestinationSchemaIn,
     DetailSchema,
     FailureSchema,
-    RunTimeArgsSchemaIn,
     SourceSchema,
     SourceSchemaIn,
     SuccessSchema,
     SyncIdSchema,
     SyncSchema,
     SyncSchemaIn,
+    SyncStartStopSchemaIn,
     UserSchemaOut,
 )
 
@@ -273,11 +273,13 @@ def abort_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
 
 
 @router.post("/workspaces/{workspace_id}/syncs/{sync_id}/runs/create", response=Json)
-def create_new_run(request, workspace_id, sync_id: UUID4, payload: RunTimeArgsSchemaIn):
-    print(payload)
+def create_new_run(request, workspace_id, sync_id: UUID4, payload: SyncStartStopSchemaIn):
+    # Prepare run time args for the sync
+    run_time_args_config = {"run_time_args": {"full_refresh": payload.full_refresh}}
+
     return requests.post(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/create",
-        json=payload.dict(),
+        json=run_time_args_config,
         timeout=SHORT_TIMEOUT,
     ).text
 

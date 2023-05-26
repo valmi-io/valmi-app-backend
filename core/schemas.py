@@ -59,8 +59,8 @@ class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
 
-class RunTimeArgsSchemaIn(Schema):
-    run_time_args: Dict
+class SyncStartStopSchemaIn(Schema):
+    full_refresh: bool = False
 
 
 class CredentialSchemaIn(Schema):
