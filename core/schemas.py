@@ -77,6 +77,7 @@ class CredentialSchema(ModelSchema):
     connector_type: str = Field(None, alias="connector.type")
     docker_image: str = Field(None, alias="connector.docker_image")
     docker_tag: str = Field(None, alias="connector.docker_tag")
+    display_name: str = Field(None, alias="connector.display_name")
 
 
 class BaseSchemaIn(Schema):
