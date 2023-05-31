@@ -99,6 +99,7 @@ class Sync(models.Model):
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="syncs")
     schedule = models.JSONField(blank=False, null=False)
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
+    ui_state = models.JSONField(blank=False, null=True)
 
 
 class Connector(models.Model):

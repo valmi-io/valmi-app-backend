@@ -117,6 +117,7 @@ class SyncSchemaIn(Schema):
     source_id: UUID4
     destination_id: UUID4
     schedule: Dict
+    ui_state: Optional[Dict]
 
 
 class SyncSchema(ModelSchema):
@@ -125,7 +126,7 @@ class SyncSchema(ModelSchema):
 
     class Config(CamelSchemaConfig):
         model = Sync
-        model_fields = ["name", "id", "source", "destination", "schedule", "status"]
+        model_fields = ["name", "id", "source", "destination", "schedule", "status", "ui_state"]
 
 
 class SyncRunSchema(Schema):
