@@ -126,7 +126,7 @@ class SyncSchema(ModelSchema):
 
     class Config(CamelSchemaConfig):
         model = Sync
-        model_fields = ["name", "id", "source", "destination", "schedule", "status"]
+        model_fields = ["name", "id", "source", "destination", "schedule", "status", "ui_state"]
 
 
 class SyncRunSchema(Schema):
