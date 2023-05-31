@@ -117,6 +117,7 @@ class SyncSchemaIn(Schema):
     source_id: UUID4
     destination_id: UUID4
     schedule: Dict
+    ui_state: Dict
 
 
 class SyncSchema(ModelSchema):
