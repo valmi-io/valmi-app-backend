@@ -62,6 +62,9 @@ class Credential(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False, default="DUMMY_CREDENTIAL_NAME")
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
+    account = models.ForeignKey(
+        to="Account", on_delete=models.CASCADE, related_name="credentials", null=True, blank=True
+    )
 
     def __str__(self):
         return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id} : {self.name}"
@@ -110,3 +113,12 @@ class Connector(models.Model):
     docker_tag = models.CharField(max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR_TAG")
     display_name = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_DISPLAY_NAME")
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
+
+
+class Account(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False)
+    external_id = models.CharField(max_length=256, null=False, blank=False)
+    profile = models.CharField(max_length=256, blank=False, null=True)
+    meta_data = models.JSONField(blank=False, null=True)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="accounts")

@@ -17,6 +17,8 @@ from ninja import Router
 from pydantic import UUID4, Json
 
 from core.schemas import (
+    AccountSchema,
+    AccountSchemaIn,
     ConnectorConfigSchemaIn,
     ConnectorSchema,
     CredentialSchema,
@@ -35,7 +37,7 @@ from core.schemas import (
     UserSchemaOut,
 )
 
-from .models import Connector, Credential, Destination, Source, Sync, User, Workspace
+from .models import Account, Connector, Credential, Destination, Source, Sync, User, Workspace
 
 router = Router()
 
@@ -118,6 +120,12 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data["connector_type"])
+
+        account_id = data.pop("account_id", None)
+        if account_id:
+            data["account"] = Account.objects.get(id=account_id)
+
+        data["account"] = Account.objects.get(id=data["account_id"])
         del data["connector_type"]
 
         credential = Credential.objects.create(**data)
@@ -125,6 +133,28 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     except Exception:
         logger.exception("Credential error")
         return {"detail": "The specific credential cannot be created."}
+
+
+@router.get("/workspaces/{workspace_id}/accounts/", response=List[AccountSchema])
+def list_accounts(request, workspace_id):
+    workspace = Workspace.objects.get(id=workspace_id)
+    queryset = Account.objects.filter(workspace=workspace)
+    return queryset
+
+
+@router.post("/workspaces/{workspace_id}/accounts/create", response={200: AccountSchema, 400: DetailSchema})
+def create_account(request, workspace_id, payload: AccountSchemaIn):
+    data = payload.dict()
+    try:
+        logger.debug(data)
+        data["id"] = uuid.uuid4()
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+
+        account = Account.objects.create(**data)
+        return account
+    except Exception:
+        logger.exception("Account error")
+        return {"detail": "The specific account cannot be created."}
 
 
 @router.get("/workspaces/{workspace_id}/sources/", response=List[SourceSchema])
