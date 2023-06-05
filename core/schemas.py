@@ -7,13 +7,13 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 
-from .models import Connector, Credential, Destination, Organization, Source, Sync, Workspace
+from .models import Account, Connector, Credential, Destination, Organization, Source, Sync, Workspace
 
 User = get_user_model()
 
@@ -66,6 +66,7 @@ class SyncStartStopSchemaIn(Schema):
 class CredentialSchemaIn(Schema):
     connector_type: str
     connector_config: Dict
+    account_id: Any = None
     name: str
 
 
@@ -78,6 +79,22 @@ class CredentialSchema(ModelSchema):
     docker_image: str = Field(None, alias="connector.docker_image")
     docker_tag: str = Field(None, alias="connector.docker_tag")
     display_name: str = Field(None, alias="connector.display_name")
+    account_name: str = Field(None, alias="account.name")
+    account_external_id: str = Field(None, alias="account.external_id")
+    account_meta_data: Dict = Field(None, alias="account.meta_data")
+
+
+class AccountSchemaIn(Schema):
+    name: str
+    external_id: str
+    profile: str
+    meta_data: Dict
+
+
+class AccountSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Account
+        model_fields = ["name", "external_id", "meta_data", "id"]
 
 
 class BaseSchemaIn(Schema):
