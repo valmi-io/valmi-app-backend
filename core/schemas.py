@@ -70,6 +70,14 @@ class CredentialSchemaIn(Schema):
     name: str
 
 
+class CredentialSchemaUpdateIn(Schema):
+    id: UUID4
+    connector_type: str
+    connector_config: Dict
+    account_id: Any = None
+    name: str
+
+
 class CredentialSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Credential
@@ -131,6 +139,15 @@ class DestinationSchema(ModelSchema):
 
 
 class SyncSchemaIn(Schema):
+    name: str
+    source_id: UUID4
+    destination_id: UUID4
+    schedule: Dict
+    ui_state: Optional[Dict]
+
+
+class SyncSchemaUpdateIn(Schema):
+    id: UUID4
     name: str
     source_id: UUID4
     destination_id: UUID4

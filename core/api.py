@@ -23,6 +23,7 @@ from core.schemas import (
     ConnectorSchema,
     CredentialSchema,
     CredentialSchemaIn,
+    CredentialSchemaUpdateIn,
     DestinationSchema,
     DestinationSchemaIn,
     DetailSchema,
@@ -33,6 +34,7 @@ from core.schemas import (
     SyncIdSchema,
     SyncSchema,
     SyncSchemaIn,
+    SyncSchemaUpdateIn,
     SyncStartStopSchemaIn,
     UserSchemaOut,
 )
@@ -119,17 +121,34 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         logger.debug(data)
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
-        data["connector"] = Connector.objects.get(type=data["connector_type"])
+        data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
 
         account_id = data.pop("account_id", None)
         if account_id:
             data["account"] = Account.objects.get(id=account_id)
 
-        data["account"] = Account.objects.get(id=data["account_id"])
-        del data["connector_type"]
-
         credential = Credential.objects.create(**data)
         return credential
+    except Exception:
+        logger.exception("Credential error")
+        return {"detail": "The specific credential cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/credentials/update", response={200: CredentialSchema, 400: DetailSchema})
+def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
+    data = payload.dict()
+    try:
+        logger.debug(data)
+        credential = Credential.objects.filter(id=data.pop("id"))
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
+
+        account_id = data.pop("account_id", None)
+        if account_id:
+            data["account"] = Account.objects.get(id=account_id)
+
+        credential.update(**data)
+        return credential.first()
     except Exception:
         logger.exception("Credential error")
         return {"detail": "The specific credential cannot be created."}
@@ -218,6 +237,29 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
         logger.debug(data["schedule"])
         sync = Sync.objects.create(**data)
         return sync
+    except Exception:
+        logger.exception("Sync error")
+        return {"detail": "The specific sync cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/syncs/update", response={200: SyncSchema, 400: DetailSchema})
+def update_sync(request, workspace_id, payload: SyncSchemaUpdateIn):
+    data = payload.dict()
+    try:
+        logger.debug(dict)
+        logger.debug(payload.source_id)
+        logger.debug(payload.destination_id)
+        sync = Sync.objects.filter(id=data.pop("id"))
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["source"] = Source.objects.get(id=payload.source_id)
+        data["destination"] = Destination.objects.get(id=payload.destination_id)
+
+        del data["source_id"]
+        del data["destination_id"]
+        logger.debug(data["schedule"])
+
+        sync.update(**data)
+        return sync.first()
     except Exception:
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}
