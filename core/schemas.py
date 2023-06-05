@@ -7,7 +7,7 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
@@ -66,8 +66,22 @@ class SyncStartStopSchemaIn(Schema):
 class CredentialSchemaIn(Schema):
     connector_type: str
     connector_config: Dict
-    account_id: Any = None
+    account: Dict = None
     name: str
+
+
+class CredentialSchemaUpdateIn(Schema):
+    id: UUID4
+    connector_type: str
+    connector_config: Dict
+    account: Dict = None
+    name: str
+
+
+class AccountSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Account
+        model_fields = ["name", "external_id", "meta_data", "id"]
 
 
 class CredentialSchema(ModelSchema):
@@ -79,23 +93,7 @@ class CredentialSchema(ModelSchema):
     docker_image: str = Field(None, alias="connector.docker_image")
     docker_tag: str = Field(None, alias="connector.docker_tag")
     display_name: str = Field(None, alias="connector.display_name")
-    account_name: str = Field(None, alias="account.name")
-    account_external_id: str = Field(None, alias="account.external_id")
-    account_profile: str = Field(None, alias="account.profile")
-    account_meta_data: Dict = Field(None, alias="account.meta_data")
-
-
-class AccountSchemaIn(Schema):
-    name: str
-    external_id: str
-    profile: str
-    meta_data: Dict
-
-
-class AccountSchema(ModelSchema):
-    class Config(CamelSchemaConfig):
-        model = Account
-        model_fields = ["name", "external_id", "meta_data", "id"]
+    account: AccountSchema = Field(None, alias="account")
 
 
 class BaseSchemaIn(Schema):
@@ -131,6 +129,15 @@ class DestinationSchema(ModelSchema):
 
 
 class SyncSchemaIn(Schema):
+    name: str
+    source_id: UUID4
+    destination_id: UUID4
+    schedule: Dict
+    ui_state: Optional[Dict]
+
+
+class SyncSchemaUpdateIn(Schema):
+    id: UUID4
     name: str
     source_id: UUID4
     destination_id: UUID4

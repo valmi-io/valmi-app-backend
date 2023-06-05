@@ -17,12 +17,11 @@ from ninja import Router
 from pydantic import UUID4, Json
 
 from core.schemas import (
-    AccountSchema,
-    AccountSchemaIn,
     ConnectorConfigSchemaIn,
     ConnectorSchema,
     CredentialSchema,
     CredentialSchemaIn,
+    CredentialSchemaUpdateIn,
     DestinationSchema,
     DestinationSchemaIn,
     DetailSchema,
@@ -33,6 +32,7 @@ from core.schemas import (
     SyncIdSchema,
     SyncSchema,
     SyncSchemaIn,
+    SyncSchemaUpdateIn,
     SyncStartStopSchemaIn,
     UserSchemaOut,
 )
@@ -119,14 +119,13 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         logger.debug(data)
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
-        data["connector"] = Connector.objects.get(type=data["connector_type"])
+        data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
 
-        account_id = data.pop("account_id", None)
-        if account_id:
-            data["account"] = Account.objects.get(id=account_id)
-
-        data["account"] = Account.objects.get(id=data["account_id"])
-        del data["connector_type"]
+        account_info = data.pop("account", None)
+        if account_info and len(account_info) > 0:
+            account_info["id"] = uuid.uuid4()
+            account_info["workspace"] = data["workspace"]
+            data["account"] = Account.objects.create(**account_info)
 
         credential = Credential.objects.create(**data)
         return credential
@@ -135,26 +134,29 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         return {"detail": "The specific credential cannot be created."}
 
 
-@router.get("/workspaces/{workspace_id}/accounts/", response=List[AccountSchema])
-def list_accounts(request, workspace_id):
-    workspace = Workspace.objects.get(id=workspace_id)
-    queryset = Account.objects.filter(workspace=workspace)
-    return queryset
-
-
-@router.post("/workspaces/{workspace_id}/accounts/create", response={200: AccountSchema, 400: DetailSchema})
-def create_account(request, workspace_id, payload: AccountSchemaIn):
+@router.post("/workspaces/{workspace_id}/credentials/update", response={200: CredentialSchema, 400: DetailSchema})
+def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
     data = payload.dict()
     try:
         logger.debug(data)
-        data["id"] = uuid.uuid4()
+        credential = Credential.objects.filter(id=data.pop("id"))
         data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
 
-        account = Account.objects.create(**data)
-        return account
+        account_info = data.pop("account", None)
+        if account_info and len(account_info) > 0:
+            account = Account.objects.filter(id=account_info.pop("id"))
+            account.update(**account_info)
+            account = account.first()
+            data["account"] = account
+        else:
+            data["account"] = None
+
+        credential.update(**data)
+        return credential.first()
     except Exception:
-        logger.exception("Account error")
-        return {"detail": "The specific account cannot be created."}
+        logger.exception("Credential error")
+        return {"detail": "The specific credential cannot be created."}
 
 
 @router.get("/workspaces/{workspace_id}/sources/", response=List[SourceSchema])
@@ -218,6 +220,29 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
         logger.debug(data["schedule"])
         sync = Sync.objects.create(**data)
         return sync
+    except Exception:
+        logger.exception("Sync error")
+        return {"detail": "The specific sync cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/syncs/update", response={200: SyncSchema, 400: DetailSchema})
+def update_sync(request, workspace_id, payload: SyncSchemaUpdateIn):
+    data = payload.dict()
+    try:
+        logger.debug(dict)
+        logger.debug(payload.source_id)
+        logger.debug(payload.destination_id)
+        sync = Sync.objects.filter(id=data.pop("id"))
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["source"] = Source.objects.get(id=payload.source_id)
+        data["destination"] = Destination.objects.get(id=payload.destination_id)
+
+        del data["source_id"]
+        del data["destination_id"]
+        logger.debug(data["schedule"])
+
+        sync.update(**data)
+        return sync.first()
     except Exception:
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}
