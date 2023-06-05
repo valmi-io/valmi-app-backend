@@ -17,8 +17,6 @@ from ninja import Router
 from pydantic import UUID4, Json
 
 from core.schemas import (
-    AccountSchema,
-    AccountSchemaIn,
     ConnectorConfigSchemaIn,
     ConnectorSchema,
     CredentialSchema,
@@ -123,9 +121,11 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
 
-        account_id = data.pop("account_id", None)
-        if account_id:
-            data["account"] = Account.objects.get(id=account_id)
+        account_info = data.pop("account", None)
+        if account_info and len(account_info) > 0:
+            account_info["id"] = uuid.uuid4()
+            account_info["workspace"] = data["workspace"]
+            data["account"] = Account.objects.create(**account_info)
 
         credential = Credential.objects.create(**data)
         return credential
@@ -143,37 +143,20 @@ def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
 
-        account_id = data.pop("account_id", None)
-        if account_id:
-            data["account"] = Account.objects.get(id=account_id)
+        account_info = data.pop("account", None)
+        if account_info and len(account_info) > 0:
+            account = Account.objects.filter(id=account_info.pop("id"))
+            account.update(**account_info)
+            account = account.first()
+            data["account"] = account
+        else:
+            data["account"] = None
 
         credential.update(**data)
         return credential.first()
     except Exception:
         logger.exception("Credential error")
         return {"detail": "The specific credential cannot be created."}
-
-
-@router.get("/workspaces/{workspace_id}/accounts/", response=List[AccountSchema])
-def list_accounts(request, workspace_id):
-    workspace = Workspace.objects.get(id=workspace_id)
-    queryset = Account.objects.filter(workspace=workspace)
-    return queryset
-
-
-@router.post("/workspaces/{workspace_id}/accounts/create", response={200: AccountSchema, 400: DetailSchema})
-def create_account(request, workspace_id, payload: AccountSchemaIn):
-    data = payload.dict()
-    try:
-        logger.debug(data)
-        data["id"] = uuid.uuid4()
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
-
-        account = Account.objects.create(**data)
-        return account
-    except Exception:
-        logger.exception("Account error")
-        return {"detail": "The specific account cannot be created."}
 
 
 @router.get("/workspaces/{workspace_id}/sources/", response=List[SourceSchema])
