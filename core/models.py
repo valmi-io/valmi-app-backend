@@ -119,6 +119,6 @@ class Account(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False)
     external_id = models.CharField(max_length=256, null=False, blank=False)
-    profile = models.CharField(max_length=256, blank=False, null=True)
+    profile = models.TextField(blank=False, null=True)
     meta_data = models.JSONField(blank=False, null=True)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="accounts")
