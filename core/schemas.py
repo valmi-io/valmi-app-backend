@@ -81,6 +81,7 @@ class CredentialSchema(ModelSchema):
     display_name: str = Field(None, alias="connector.display_name")
     account_name: str = Field(None, alias="account.name")
     account_external_id: str = Field(None, alias="account.external_id")
+    account_profile: str = Field(None, alias="account.profile")
     account_meta_data: Dict = Field(None, alias="account.meta_data")
 
 
