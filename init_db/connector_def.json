@@ -76,6 +76,13 @@
       "docker_image": "valmiio/destination-stripe",
       "docker_tag": "0.1.0",
       "display_name": "Stripe"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "Gong",
+      "docker_image": "valmiio/destination-gong",
+      "docker_tag": "0.1.0",
+      "display_name": "Gong"
     }
   ]
 }
