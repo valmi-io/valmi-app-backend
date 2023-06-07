@@ -81,7 +81,7 @@ class CredentialSchemaUpdateIn(Schema):
 class AccountSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Account
-        model_fields = ["name", "external_id", "meta_data", "id"]
+        model_fields = ["name", "external_id", "meta_data", "id", "profile"]
 
 
 class CredentialSchema(ModelSchema):
