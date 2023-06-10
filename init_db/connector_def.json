@@ -83,6 +83,13 @@
       "docker_image": "valmiio/destination-gong",
       "docker_tag": "0.1.0",
       "display_name": "Gong"
+    },
+    {
+      "type": "DEST",
+      "unique_name": "ANDROID-PUSH-NOTIFICATIONS",
+      "docker_image": "valmiio/destination-android-push-notifications",
+      "docker_tag": "0.1.0",
+      "display_name": "Android Push Notifications"
     }
   ]
 }
