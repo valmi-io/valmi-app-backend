@@ -15,7 +15,7 @@ import requests
 from decouple import config
 from ninja import Router
 from pydantic import UUID4, Json
-from decouple import config
+from decouple import config, Csv
 import json
 
 from core.schemas import (
@@ -89,7 +89,7 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
     connector = Connector.objects.get(type=connector_type)
 
     # Replacing Oauth keys
-    oauth_proxy_keys = config("OAUTH_SECRETS", default=[])
+    oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
     if len(oauth_proxy_keys) > 0:
         config_str = json.dumps(payload.config)
         for key in oauth_proxy_keys:
@@ -107,6 +107,14 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
 def connector_discover(request, workspace_id, connector_type, payload: ConnectorConfigSchemaIn):
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
+
+    # Replacing Oauth keys
+    oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+    if len(oauth_proxy_keys) > 0:
+        config_str = json.dumps(payload.config)
+        for key in oauth_proxy_keys:
+            config_str = config_str.replace(key, config(key))
+        payload.config = json.loads(config_str)
 
     return requests.post(
         f"{CONNECTOR_PREFIX_URL}/{connector.type}/discover",
