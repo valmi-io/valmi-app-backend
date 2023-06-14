@@ -2,6 +2,17 @@
   <a href="https://valmi.io"><img width="400" src="https://www.valmi.io/img/logo.svg" alt="valmi.io"></a>
 </p>
 <p align="center">
+  <b>
+    <a href="https://www.valmi.io">Website</a>
+    ·
+    <a href="https://www.valmi.io/slack">Slack Community</a>
+    ·
+    <a href="https://docs.valmi.io">Documentation</a>
+    ·
+    <a href="https://blog.valmi.io">Blog</a>
+  </b>
+</p>
+<p align="center">
     <em>valmi.io activation (reverse-ETL) is the open-source data activation platform to load data from warehouses into SaaS platforms, Webhook Apis etc.
 
 </em>
