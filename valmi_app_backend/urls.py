@@ -58,8 +58,16 @@ class AuthBearer(HttpBearer):
         return False
 
     def authenticate(self, request):
+        '''
+        logger.debug("enabled " +config('PUBLIC_SYNC_ENABLED'))
+        logger.debug("pub " +config('PUBLIC_WORKSPACE'))
+        logger.debug("sync " +config('PUBLIC_SYNC'))
+        logger.debug("authtoken " +config('PUBLIC_AUTH_TOKEN'))
+        logger.debug("path "+  request.path)
+        logger.debug("hardcoded "+  f'/api/v1/workspaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs/')
+        '''
         if (config('PUBLIC_SYNC_ENABLED', default=False) and 
-            request.get_full_path() == f'/spaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs'):
+            request.path == f'/api/v1/workspaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs/'):
             return config('PUBLIC_AUTH_TOKEN')
         
         headers = get_headers(request)
