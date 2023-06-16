@@ -1,4 +1,4 @@
-name: Valmi app backend docker build
+name: valmi-app-backend
 on:
   push:
     tags:
