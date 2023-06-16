@@ -23,6 +23,10 @@ from core.urls import core_urlpatterns
 from valmi_app_backend.utils import BearerAuthentication
 
 from rest_framework.authentication import BasicAuthentication
+from ninja.compatibility import get_headers
+from django.conf import settings
+from django.http import HttpRequest
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +47,9 @@ class BasicAuth(HttpBasicAuth):
 class AuthBearer(HttpBearer):
     openapi_scheme: str = "bearer"
 
+    def __call__(self, request: HttpRequest) -> Optional[Any]:
+        return self.authenticate(request)
+    
     def has_permission_for(self, user, workspace_id):
         for workspace in get_workspaces(user):
             logger.debug("checking workspace %s", workspace.id)
@@ -50,11 +57,23 @@ class AuthBearer(HttpBearer):
                 return True
         return False
 
-    def authenticate(self, request, token):
+    def authenticate(self, request):
         if (config('PUBLIC_SYNC_ENABLED', default=False) and 
             request.get_full_path() == f'/spaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs'):
             return config('PUBLIC_AUTH_TOKEN')
         
+        headers = get_headers(request)
+        auth_value = headers.get(self.header)
+        if not auth_value:
+            return None
+        parts = auth_value.split(" ")
+
+        if parts[0].lower() != self.openapi_scheme:
+            if settings.DEBUG:
+                logger.error(f"Unexpected auth - '{auth_value}'")
+            return None
+        token = " ".join(parts[1:])
+
         try:
             user_auth_tuple = BearerAuthentication().authenticate(request)
         except Exception:
