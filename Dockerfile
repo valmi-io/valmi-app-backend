@@ -1,26 +1,17 @@
-FROM python:3.10
-
-ARG USER_ID
-ARG GROUP_ID
+FROM  python:3.9.16-slim
 
 COPY requirements.txt /tmp/requirements.txt
-RUN set -x \
-    && python -m venv /opt/valmi-app-backend \
-    && /opt/valmi-app-backend/bin/python -m pip install -U pip -r /tmp/requirements.txt \
-    && mkdir -p /workspace && chown -R $USER_ID:$GROUP_ID /workspace && chown -R $USER_ID:$GROUP_ID /opt/valmi-app-backend
-#RUN addgroup --gid $GROUP_ID user
-#RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
- 
-#USER user
+RUN pip install -r /tmp/requirements.txt
 
-#COPY wait-for-it.sh . 
-#RUN chmod +x /wait-for-it.sh
 WORKDIR /workspace
-#COPY . /workspace/
-ENV PATH="/opt/valmi-app-backend/bin:${PATH}"
+
+RUN groupadd -r valmi_group && useradd -r -g valmi_group valmi_user
+RUN chown  -R valmi_user:valmi_group /workspace
+
+USER valmi_user 
+
 ENV PYTHONUNBUFFERED 1
-ENV PYTHONPATH /workspace/src
-EXPOSE ${PORT}
+
 #TODO: first time install - create db and run migrations and other stuff
 ENTRYPOINT ["/workspace/docker-entrypoint.sh"]
 CMD  python manage.py runserver 0.0.0.0:${PORT}
