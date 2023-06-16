@@ -51,6 +51,10 @@ class AuthBearer(HttpBearer):
         return False
 
     def authenticate(self, request, token):
+        if (config('PUBLIC_SYNC_ENABLED', default=False) and 
+            request.get_full_path() == f'/spaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs'):
+            return config('PUBLIC_AUTH_TOKEN')
+        
         try:
             user_auth_tuple = BearerAuthentication().authenticate(request)
         except Exception:
