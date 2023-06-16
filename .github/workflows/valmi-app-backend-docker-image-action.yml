@@ -21,7 +21,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build Connector Docker Image
+      - name: Build valmi-app-backend Docker Image
         env:
           version: ${{steps.vars.outputs.version}}
         run: make build-and-push
