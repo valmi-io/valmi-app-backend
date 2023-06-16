@@ -12,7 +12,7 @@ setup-buildx:
 	$(BUILDX) use $(BUILDER_NAME)
 
 build-and-push:
-	$(BUILDX) build --platform linux/amd64,linux/arm64 \
+	$(BUILDX) build --platform linux/amd64,linux/arm64 --build-arg USER_ID=0 --build-arg GROUP_ID=0 \
 		-t valmiio/valmi-app-backend:${version} \
 		-t valmiio/valmi-app-backend:stable \
 		-t valmiio/valmi-app-backend:latest \
