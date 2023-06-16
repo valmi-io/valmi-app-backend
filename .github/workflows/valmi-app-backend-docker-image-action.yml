@@ -4,8 +4,9 @@ on:
     tags:
       - 'valmi-app-backend/*.*.*'
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
+    name: ${{github.ref_name}}
     steps:
       - uses: actions/checkout@v2
       - name: Parse Connector Info
