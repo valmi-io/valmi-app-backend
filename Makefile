@@ -14,7 +14,7 @@ setup-buildx:
 	$(BUILDX) use $(BUILDER_NAME)
 
 build-and-push:
-	$(BUILDX) BUILD $(BUILDX_ARGS)  \
+	$(BUILDX) build $(BUILDX_ARGS)  \
 		-t valmiio/valmi-app-backend:${version} \
 		-t valmiio/valmi-app-backend:stable \
 		-t valmiio/valmi-app-backend:latest \
