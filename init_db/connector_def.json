@@ -4,28 +4,28 @@
       "type": "SRC",
       "unique_name": "POSTGRES",
       "docker_image": "valmiio/source-postgres",
-      "docker_tag": "0.1.2",
+      "docker_tag": "0.1.5",
       "display_name": "Postgres"
     },
     {
       "type": "SRC",
       "unique_name": "REDSHIFT",
       "docker_image": "valmiio/source-redshift",
-      "docker_tag": "0.1.0",
+      "docker_tag": "0.1.5",
       "display_name": "Redshift"
     },
     {
       "type": "SRC",
       "unique_name": "SNOWFLAKE",
       "docker_image": "valmiio/source-snowflake",
-      "docker_tag": "0.1.0",
+      "docker_tag": "0.1.5",
       "display_name": "Snowflake"
     },
     {
       "type": "DEST",
       "unique_name": "WEBHOOK",
       "docker_image": "valmiio/destination-webhook",
-      "docker_tag": "0.1.2",
+      "docker_tag": "0.1.4",
       "display_name": "Webhook"
     },
     {
