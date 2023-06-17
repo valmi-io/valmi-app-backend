@@ -4,91 +4,91 @@
       "type": "SRC",
       "unique_name": "POSTGRES",
       "docker_image": "valmiio/source-postgres",
-      "docker_tag": "0.1.5",
+      "docker_tag": "latest",
       "display_name": "Postgres"
     },
     {
       "type": "SRC",
       "unique_name": "REDSHIFT",
       "docker_image": "valmiio/source-redshift",
-      "docker_tag": "0.1.5",
+      "docker_tag": "latest",
       "display_name": "Redshift"
     },
     {
       "type": "SRC",
       "unique_name": "SNOWFLAKE",
       "docker_image": "valmiio/source-snowflake",
-      "docker_tag": "0.1.5",
+      "docker_tag": "latest",
       "display_name": "Snowflake"
     },
     {
       "type": "DEST",
       "unique_name": "WEBHOOK",
       "docker_image": "valmiio/destination-webhook",
-      "docker_tag": "0.1.4",
+      "docker_tag": "latest",
       "display_name": "Webhook"
     },
     {
       "type": "DEST",
       "unique_name": "GOOGLE-SHEETS",
       "docker_image": "valmiio/destination-google-sheets",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Google Sheets"
     },
     {
       "type": "DEST",
       "unique_name": "GOOGLE-ADS",
       "docker_image": "valmiio/destination-google-ads",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Google Ads"
     },
     {
       "type": "DEST",
       "unique_name": "CUSTOMER-IO",
       "docker_image": "valmiio/destination-customer-io",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Customer.io"
     },
     {
       "type": "DEST",
       "unique_name": "FACEBOOK-ADS",
       "docker_image": "valmiio/destination-facebook-ads",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Facebook Ads"
     },
     {
       "type": "DEST",
       "unique_name": "SLACK",
       "docker_image": "valmiio/destination-slack",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Slack"
     },
     {
       "type": "DEST",
       "unique_name": "HUBSPOT",
       "docker_image": "valmiio/destination-hubspot",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Hubspot"
     },
     {
       "type": "DEST",
       "unique_name": "Stripe",
       "docker_image": "valmiio/destination-stripe",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Stripe"
     },
     {
       "type": "DEST",
       "unique_name": "Gong",
       "docker_image": "valmiio/destination-gong",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Gong"
     },
     {
       "type": "DEST",
       "unique_name": "ANDROID-PUSH-NOTIFICATIONS",
       "docker_image": "valmiio/destination-android-push-notifications",
-      "docker_tag": "0.1.0",
+      "docker_tag": "latest",
       "display_name": "Android Push Notifications"
     }
   ]
