@@ -6,17 +6,16 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
+import json
 import logging
 import uuid
 from datetime import datetime
 from typing import Dict, List
 
 import requests
-from decouple import config
+from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
-from decouple import config, Csv
-import json
 
 from core.schemas import (
     ConnectorConfigSchemaIn,
@@ -95,7 +94,7 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
         for key in oauth_proxy_keys:
             config_str = config_str.replace(key, config(key))
         payload.config = json.loads(config_str)
-        
+
     return requests.post(
         f"{CONNECTOR_PREFIX_URL}/{connector.type}/check",
         json={**payload.dict(), "docker_image": connector.docker_image, "docker_tag": connector.docker_tag},

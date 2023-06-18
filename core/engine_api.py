@@ -9,9 +9,11 @@ Author: Rajashekar Varkala @ valmi.io
 import logging
 from typing import Dict, List
 
+from decouple import Csv, config
 from ninja import Router
 
-from core.schemas import DetailSchema, SyncSchema, ConnectorSchema
+from core.schemas import ConnectorSchema, DetailSchema, SyncSchema
+
 from .models import Connector, Sync
 
 router = Router()
@@ -26,6 +28,12 @@ def get_all_syncs(request):
     # check for admin permissions
     try:
         syncs = Sync.objects.select_related("source", "destination")
+        oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+        if len(oauth_proxy_keys) > 0:
+            for sync in syncs:
+                credentials = sync.destination.credential.connector_config["credentials"]
+                for k, v in credentials.items():
+                    credentials[k] = config(v, default=v)
         return syncs
     except Exception:
         logger.exception("syncs all error")
