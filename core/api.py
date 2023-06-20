@@ -125,7 +125,7 @@ def connector_discover(request, workspace_id, connector_type, payload: Connector
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
 def list_credentials(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
-    queryset = Credential.objects.filter(workspace=workspace).order_by("-updated_at")
+    queryset = Credential.objects.filter(workspace=workspace).order_by("-created_at")
     return queryset
 
 
@@ -308,7 +308,7 @@ def delete_sync(request, workspace_id, payload: SyncIdSchema):
 def list_syncs(request, workspace_id):
     # use request.user_id to check access control in the middleware
     workspace = Workspace.objects.get(id=workspace_id)
-    syncs = Sync.objects.filter(workspace=workspace).order_by("-updated_at")
+    syncs = Sync.objects.filter(workspace=workspace).order_by("-created_at")
     queryset = syncs.select_related("source", "destination")
     for e in queryset:
         logger.info(e)
