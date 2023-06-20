@@ -15,9 +15,9 @@ from ninja import Router
 from core.schemas import ConnectorSchema, DetailSchema, SyncSchema
 
 from .models import Connector, Sync
+import json
 
 router = Router()
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -28,12 +28,18 @@ def get_all_syncs(request):
     # check for admin permissions
     try:
         syncs = Sync.objects.select_related("source", "destination")
+
+        # Replacing Oauth keys
         oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
         if len(oauth_proxy_keys) > 0:
             for sync in syncs:
-                credentials = sync.destination.credential.connector_config["credentials"]
-                for k, v in credentials.items():
-                    credentials[k] = config(v, default=v)
+                src_dst = [sync.source, sync.destination]
+                for obj in src_dst:
+                    config_str = json.dumps(obj.credential.connector_config)
+                    for key in oauth_proxy_keys:
+                        config_str = config_str.replace(key, config(key))
+                    obj.credential.connector_config = json.loads(config_str)
+
         return syncs
     except Exception:
         logger.exception("syncs all error")
