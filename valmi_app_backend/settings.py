@@ -103,7 +103,7 @@ if config("AUTHENTICATION", default=True, cast=bool) is False:
     }
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", "https://demo.valmi.io"]
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
