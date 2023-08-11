@@ -2,11 +2,17 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from opentelemetry.instrumentation.django import DjangoInstrumentor
+from core.observability import setup_observability
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'valmi_app_backend.settings')
+
+    # Initialize the Opentelemetry Django instrumentation
+    print("Setting up instrumentation")
+    setup_observability()
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

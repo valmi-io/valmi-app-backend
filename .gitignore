@@ -130,3 +130,17 @@ dmypy.json
 media/
 staticfiles/
 .ipynb_checkpoints/
+bin/activate
+bin/activate.csh
+bin/activate.fish
+bin/Activate.ps1
+bin/normalizer
+bin/opentelemetry-bootstrap
+bin/opentelemetry-instrument
+bin/pip
+bin/pip3
+bin/pip3.9
+bin/python
+bin/python3
+bin/python3.9
+pyvenv.cfg

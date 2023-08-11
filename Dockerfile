@@ -14,4 +14,4 @@ ENV PYTHONUNBUFFERED 1
 
 #TODO: first time install - create db and run migrations and other stuff
 ENTRYPOINT ["/workspace/docker-entrypoint.sh"]
-CMD  python manage.py runserver 0.0.0.0:${PORT}
+CMD  python manage.py runserver 0.0.0.0:${PORT} --noreload

@@ -16,3 +16,8 @@ djangorestframework-simplejwt
 tldextract
 typing-extensions
 django-request-logging
+opentelemetry-sdk
+opentelemetry-instrumentation-django
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-logging
+requests

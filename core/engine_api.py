@@ -17,14 +17,26 @@ from core.schemas import ConnectorSchema, DetailSchema, SyncSchema
 from .models import Connector, Sync
 import json
 
+from opentelemetry.metrics import get_meter_provider
+from opentelemetry import trace
+
 router = Router()
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+meter = get_meter_provider().get_meter("engine_api", "test_version_number")
+
+
+# Create /syncs api counter
+syncs_api_counter = meter.create_counter("syncs_api_counter")
+
 
 @router.get("/syncs/", response={200: List[SyncSchema], 400: DetailSchema})
 def get_all_syncs(request):
+
+    syncs_api_counter.add(1)
+
     # check for admin permissions
     try:
         syncs = Sync.objects.select_related("source", "destination")
