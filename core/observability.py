@@ -75,6 +75,7 @@ def setup_observability():
         )
     )
     engine_api_log_handler.setFormatter(logging.Formatter(format_str))
+    engine_api_log_handler.setLevel(os.environ.get('OTEL_PYTHON_LOG_LEVEL', "debug").upper())
     logging.getLogger("core.engine_api").addHandler(
         engine_api_log_handler
     )
