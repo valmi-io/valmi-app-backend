@@ -48,12 +48,11 @@ def setup_observability():
     # Initialize logging and an exporter that can send data to an OTLP endpoint by attaching OTLP handler to root logger
     _logs.set_logger_provider(LoggerProvider())
     
-    # You can add handlers to custom loggers as well
-
-    # TODO:Setting the log format to include trace_id, span_id, and resource.service.name. But, this is not getting exported.
+    # TODO:Setting the log format to include trace_id, span_id, and resource.service.name. But, this is formatting is not supported yet in OTLPExporter.
     format_str = os.environ.get('OTEL_PYTHON_LOG_FORMAT',
                                 "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s trace_sampled=%(otelTraceSampled)s] - %(message)s")
 
+    # You can add handlers to custom loggers as well
     '''
     # TODO: This is not working. Check this. The root handler is duplicating the logs. Disabled root hander.
 
