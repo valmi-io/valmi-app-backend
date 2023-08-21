@@ -10,7 +10,7 @@ import json
 import logging
 import uuid
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 from decouple import Csv, config
@@ -383,3 +383,19 @@ def get_connectors(request):
     except Exception:
         logger.exception("connector listing error")
         return (400, {"detail": "The list of connectors cannot be fetched."})
+
+
+@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/logs", response=Json)
+def get_logs(
+    request,
+    workspace_id: UUID4,
+    sync_id: UUID4,
+    run_id: UUID4,
+    collector: str,
+    since: Optional[int] = None,
+    before: Optional[int] = None):
+    return requests.get(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/logs",
+        params={"collector": collector, "since": since, "before": before},
+        timeout=LONG_TIMEOUT,
+    ).text
