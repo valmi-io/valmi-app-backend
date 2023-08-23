@@ -399,3 +399,18 @@ def get_logs(
         params={"collector": collector, "since": since, "before": before},
         timeout=LONG_TIMEOUT,
     ).text
+
+
+@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/samples", response=Json)
+def get_samples(
+    request,
+    workspace_id: UUID4,
+    sync_id: UUID4,
+    run_id: UUID4,
+    collector: str,
+    metric_type: str):
+    return requests.get(
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/logs",
+        params={"collector": collector, "metric_type": metric_type},
+        timeout=LONG_TIMEOUT,
+    ).text
