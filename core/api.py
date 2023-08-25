@@ -410,7 +410,7 @@ def get_samples(
     collector: str,
     metric_type: str):
     return requests.get(
-        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/logs",
+        f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/samples",
         params={"collector": collector, "metric_type": metric_type},
         timeout=LONG_TIMEOUT,
     ).text
