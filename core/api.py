@@ -407,10 +407,10 @@ def get_samples(
     workspace_id: UUID4,
     sync_id: UUID4,
     run_id: UUID4,
-    collector: str,
+    connector: str,
     metric_type: str):
     return requests.get(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/samples",
-        params={"collector": collector, "metric_type": metric_type},
+        params={"collector": connector, "metric_type": metric_type},
         timeout=LONG_TIMEOUT,
     ).text
