@@ -30,7 +30,7 @@ def observable_counter_func(options: CallbackOptions) -> Iterable[Observation]:
 
 
 def setup_observability():
-    if os.environ.get("OTEL_PYTHON_DJANGO_INSTRUMENT", False):
+    if os.environ.get("OTEL_PYTHON_DJANGO_INSTRUMENT", False) is True:
         trace.set_tracer_provider(TracerProvider())
         otlp_exporter = OTLPSpanExporter()
         span_processor = BatchSpanProcessor(otlp_exporter)
