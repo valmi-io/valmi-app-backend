@@ -11,11 +11,13 @@ import os
 import uuid
 
 from django.contrib.auth import authenticate, get_user_model
-from django.db import connection
-from djoser.conf import settings
+from django.db import connection, transaction
 from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
+from decouple import config
+from djoser.conf import settings
 
-from .models import Organization, Workspace
+from .models import Organization, Workspace, ValmiUserIDJitsuApiToken
+import hashlib
 
 User = get_user_model()
 
@@ -34,6 +36,26 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             token = self.generate_key()
             cursor.execute("INSERT INTO authtoken_token values (%s,%s,%s)", [token, timestamp, user_id])
 
+    def patch_jitsu_user(self, user, workspace):
+        jitsu_defaultSeed = "dea42a58-acf4-45af-85bb-e77e94bd5025"
+        with connection.cursor() as cursor:
+            with transaction.atomic():
+                cursor.execute('INSERT INTO "jitsu"."Workspace" ( id, name ) VALUES ( %s, %s ) ',
+                               [str(workspace.id), workspace.name])
+                cursor.execute('INSERT INTO "jitsu"."UserProfile" (id, name, email, "loginProvider", "externalId") VALUES (%s, %s, %s, %s, %s) ',
+                               [str(user.id), user.username, user.email, "valmi", str(user.id)])
+                cursor.execute('INSERT INTO "jitsu"."WorkspaceAccess" ("workspaceId", "userId") VALUES ( %s, %s) ',
+                               [str(workspace.id), str(user.id)])
+                apiKeyId = self.generate_key()
+                apiKeySecret = self.generate_key()
+                randomSeed = self.generate_key()
+                hash = randomSeed + "." + hashlib.sha512((apiKeySecret + randomSeed + jitsu_defaultSeed).encode('utf-8')).hexdigest()
+                cursor.execute('INSERT INTO "jitsu"."UserApiToken" (id, hint, hash, "userId") VALUES ( %s, %s, %s, %s)',
+                               [apiKeyId, apiKeySecret[0:3] + '*' + apiKeySecret[-3:], hash, str(user.id)])
+
+                # store jitsu apitoken for valmi user
+                ValmiUserIDJitsuApiToken.objects.create(user=user, api_token=apiKeyId + ":" + apiKeySecret)
+
     def create(self, validated_data):
         # validated_data["username"] = validated_data["email"]
         user = super().create(validated_data)
@@ -44,6 +66,9 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             workspace.save()
             user.save()
             user.organizations.add(org)
+
+            if config("ENABLE_JITSU", default=False, cast=bool):
+                self.patch_jitsu_user(user, workspace)
 
             """
             ext = tldextract.extract(user.email)

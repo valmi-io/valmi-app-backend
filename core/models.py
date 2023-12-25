@@ -122,3 +122,10 @@ class Account(models.Model):
     profile = models.TextField(blank=False, null=True)
     meta_data = models.JSONField(blank=False, null=True)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="accounts")
+
+
+class ValmiUserIDJitsuApiToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    api_token = models.CharField(max_length=256, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
