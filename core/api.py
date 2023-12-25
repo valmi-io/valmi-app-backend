@@ -387,28 +387,28 @@ def get_connectors(request):
 
 @router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/logs", response=Json)
 def get_logs(
-    request,
-    workspace_id: UUID4,
-    sync_id: UUID4,
-    run_id: UUID4,
-    collector: str,
-    since: Optional[int] = None,
-    before: Optional[int] = None):
+        request,
+        workspace_id: UUID4,
+        sync_id: UUID4,
+        run_id: UUID4,
+        connector: str,
+        since: Optional[int] = None,
+        before: Optional[int] = None):
     return requests.get(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/logs",
-        params={"collector": collector, "since": since, "before": before},
+        params={"connector": connector, "since": since, "before": before},
         timeout=LONG_TIMEOUT,
     ).text
 
 
 @router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/samples", response=Json)
 def get_samples(
-    request,
-    workspace_id: UUID4,
-    sync_id: UUID4,
-    run_id: UUID4,
-    connector: str,
-    metric_type: str):
+        request,
+        workspace_id: UUID4,
+        sync_id: UUID4,
+        run_id: UUID4,
+        connector: str,
+        metric_type: str):
     return requests.get(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/samples",
         params={"collector": connector, "metric_type": metric_type},
