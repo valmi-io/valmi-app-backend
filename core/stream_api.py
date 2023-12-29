@@ -25,7 +25,20 @@ def get_bearer_header(bearer_token):
     return {"Authorization": f"Bearer {bearer_token}"} if bearer_token else {}
 
 
-@router.get("/{workspace_id}/config/stream", response=Json)
+# Object Schema Definitions
+@router.get("/workspaces/{workspace_id}/api/schema/stream", response=Json)
+def schema_stream(request, workspace_id):
+    authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
+    logger.debug("get_streams %s", get_bearer_header(authObject.api_token))
+    return requests.get(
+        f"{config('STREAM_API_URL')}/api/schema/stream",
+        timeout=SHORT_TIMEOUT,
+        headers=get_bearer_header(authObject.api_token),
+    ).text
+
+
+# CRUD for objects
+@router.get("/workspaces/{workspace_id}/config/stream", response=Json)
 def get_streams(request, workspace_id):
     authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
     logger.debug("get_streams %s", get_bearer_header(authObject.api_token))
