@@ -177,3 +177,10 @@ class SuccessSchema(Schema):
 
 class FailureSchema(Schema):
     status: str = "failure"
+
+
+class GenericJsonSchema(Schema):
+    class Config(Schema.Config):
+        extra = "allow"
+
+    pass
