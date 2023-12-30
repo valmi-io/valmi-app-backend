@@ -28,6 +28,25 @@ def get_bearer_header(bearer_token):
 
 
 # Object Schema Definitions
+@router.get("/workspaces/{workspace_id}/api/schema/link/{type}", response={200: Json, 500: Json})
+def destination_schema_obj(request, workspace_id, type):
+    authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
+    response = requests.get(
+        f"{config('STREAM_API_URL')}/api/schema/link/{type}",
+        timeout=SHORT_TIMEOUT,
+        headers=get_bearer_header(authObject.api_token),
+    )
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        try:
+            return (500, response.text)
+        except Exception as e:
+            raise e
+
+    return response.text
+
+
 @router.get("/workspaces/{workspace_id}/api/schema/destination/{type}", response={200: Json, 500: Json})
 def destination_schema_obj(request, workspace_id, type):
     authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
