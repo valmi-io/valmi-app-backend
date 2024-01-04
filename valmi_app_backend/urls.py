@@ -42,7 +42,10 @@ class BasicAuth(HttpBasicAuth):
         if user_auth_tuple is not None:
             (user, token) = user_auth_tuple
             request.user = user
-            return user
+            # Basic Auth allowed only for superuser.
+            if user.is_superuser:
+                return user
+            return None
         return None
 
 
@@ -114,8 +117,8 @@ api = NinjaAPI(
 
 if config("AUTHENTICATION", default=True, cast=bool):
     api.add_router("v1/superuser/", superuser_api_router, auth=[BasicAuth()])
-    api.add_router("v1/streams/", stream_api_router, auth=[AuthBearer()])
-    api.add_router("v1/", public_api_router, auth=[AuthBearer()])
+    api.add_router("v1/streams/", stream_api_router, auth=[AuthBearer(), BasicAuth()])
+    api.add_router("v1/", public_api_router, auth=[AuthBearer(), BasicAuth()])
 
 else:
     api.add_router("v1/superuser/", superuser_api_router)

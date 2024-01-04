@@ -315,6 +315,7 @@ def list_syncs(request, workspace_id):
     return queryset
 
 
+# TODO: Activation Server sends dummy wordspace_id for the sync details. Need to fix it.
 @router.get("/workspaces/{workspace_id}/syncs/{sync_id}", response=SyncSchema)
 def get_sync(request, workspace_id, sync_id):
     sync = Sync.objects.get(id=sync_id)
