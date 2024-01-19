@@ -16,6 +16,8 @@ from decouple import config
 from core.api import SHORT_TIMEOUT
 from core.schemas import GenericJsonSchema
 from .models import ValmiUserIDJitsuApiToken
+from typing import Optional
+
 
 router = Router()
 
@@ -187,3 +189,33 @@ def delete_link_obj(request, workspace_id, type, fromId, toId):
             raise e
 
     return response.text
+
+
+@router.get("/workspaces/{workspace_id}/events/{type}/{id}/logs", response={200: Json, 500: Json})
+def get_logs(
+        request, workspace_id, type, id, start: Optional[str] = "",
+        end: Optional[str] = "", beforeId: Optional[str] = "", limit: Optional[int] = 25):
+    authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
+    response = requests.get(
+        f"{config('STREAM_API_URL')}/api/{workspace_id}/log/{type}/{id}",
+        f"?start={start}&end={end}&beforeId={beforeId}&limit={limit}",
+        timeout=SHORT_TIMEOUT,
+        headers=get_bearer_header(authObject.api_token),
+    )
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        try:
+            return (500, response.text)
+        except Exception as e:
+            raise e
+
+    return response.text
+
+
+'''
+def update_store():
+    //hit this api
+    http://localhost:3100/api/admin/fast-store-refresh
+'''
