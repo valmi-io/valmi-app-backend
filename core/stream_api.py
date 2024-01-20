@@ -197,7 +197,7 @@ def get_logs(
         end: Optional[str] = "", beforeId: Optional[str] = "", limit: Optional[int] = 25):
     authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
     response = requests.get(
-        f"{config('STREAM_API_URL')}/api/{workspace_id}/log/{type}/{id}",
+        f"{config('STREAM_API_URL')}/api/{workspace_id}/log/{type}/{id}"
         f"?start={start}&end={end}&beforeId={beforeId}&limit={limit}",
         timeout=SHORT_TIMEOUT,
         headers=get_bearer_header(authObject.api_token),
