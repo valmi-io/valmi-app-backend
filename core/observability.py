@@ -1,3 +1,11 @@
+"""
+Copyright (c) 2024 valmi.io <https://github.com/valmi-io>
+
+Created Date: Wednesday, March 8th 2023, 9:56:52 pm
+Author: Rajashekar Varkala @ valmi.io
+
+"""
+
 import logging
 from typing import Iterable
 
