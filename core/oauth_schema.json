@@ -1,0 +1,104 @@
+{
+    "schema": {
+        "DEST_FACEBOOK-ADS": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Facebook client id"
+                },
+                "client_secret": {
+                    "type": "string",
+                    "description": "Facebook client secret"
+                }
+            },
+            "required": [
+                "client_id",
+                "client_secret"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "DEST_GOOGLE-SHEETS": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Google client id"
+                },
+                "client_secret": {
+                    "type": "string",
+                    "description": "Google client secret"
+                }
+            },
+            "required": [
+                "client_id",
+                "client_secret"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "DEST_GOOGLE-ADS": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Google client id"
+                },
+                "client_secret": {
+                    "type": "string",
+                    "description": "Google client secret"
+                },
+                "developer_token": {
+                    "type": "string",
+                    "description": "Google developer token"
+                }
+            },
+            "required": [
+                "client_id",
+                "client_secret",
+                "developer_token"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "DEST_SLACK": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Slack client id"
+                },
+                "client_secret": {
+                    "type": "string",
+                    "description": "Slack client secret"
+                }
+            },
+            "required": [
+                "client_id",
+                "client_secret"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "DEST_HUBSPOT": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Hubspot client id"
+                },
+                "client_secret": {
+                    "type": "string",
+                    "description": "Hubspot client secret"
+                }
+            },
+            "required": [
+                "client_id",
+                "client_secret"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+    }
+}

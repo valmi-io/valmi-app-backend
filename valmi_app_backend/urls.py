@@ -17,6 +17,8 @@ from ninja.security import HttpBasicAuth
 
 from core.api import router as public_api_router
 from core.stream_api import router as stream_api_router
+from core.oauth_api import router as oauth_api_router
+
 
 from core.api import get_workspaces
 from core.engine_api import router as superuser_api_router
@@ -54,7 +56,7 @@ class AuthBearer(HttpBearer):
 
     def __call__(self, request: HttpRequest) -> Optional[Any]:
         return self.authenticate(request)
-    
+
     def has_permission_for(self, user, workspace_id):
         for workspace in get_workspaces(user):
             logger.debug("checking workspace %s", workspace.id)
@@ -71,10 +73,10 @@ class AuthBearer(HttpBearer):
         logger.debug("path "+  request.path)
         logger.debug("hardcoded "+  f'/api/v1/workspaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs/')
         '''
-        if (config('PUBLIC_SYNC_ENABLED', default=False) and 
-            request.path == f'/api/v1/workspaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs/'):
+        if (config('PUBLIC_SYNC_ENABLED', default=False) and
+                request.path == f'/api/v1/workspaces/{config("PUBLIC_WORKSPACE")}/syncs/{config("PUBLIC_SYNC")}/runs/'):
             return config('PUBLIC_AUTH_TOKEN')
-        
+
         headers = get_headers(request)
         auth_value = headers.get(self.header)
         if not auth_value:
@@ -118,11 +120,13 @@ api = NinjaAPI(
 if config("AUTHENTICATION", default=True, cast=bool):
     api.add_router("v1/superuser/", superuser_api_router, auth=[BasicAuth()])
     api.add_router("v1/streams/", stream_api_router, auth=[AuthBearer(), BasicAuth()])
+    api.add_router("v1/oauth/", oauth_api_router, auth=[AuthBearer(), BasicAuth()])
     api.add_router("v1/", public_api_router, auth=[AuthBearer(), BasicAuth()])
 
 else:
     api.add_router("v1/superuser/", superuser_api_router)
     api.add_router("v1/streams/", stream_api_router)
+    api.add_router("v1/oauth/", oauth_api_router)
     api.add_router("v1/", public_api_router)
 
 urlpatterns = [

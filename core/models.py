@@ -12,7 +12,20 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
+from enum import Enum
+
+
 # Create your models here.
+
+
+class OAuthKeys(str, Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+
+    @classmethod
+    def choices(cls):
+        return [(item.value, item.name) for item in cls]
 
 
 class User(AbstractUser):
@@ -113,6 +126,8 @@ class Connector(models.Model):
     docker_tag = models.CharField(max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR_TAG")
     display_name = models.CharField(max_length=128, null=False, blank=False, default="DUMMY_CONNECTOR_DISPLAY_NAME")
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
+    oauth = models.BooleanField(default=False)
+    oauth_keys = models.CharField(max_length=64, choices=OAuthKeys.choices(), default=OAuthKeys.PRIVATE.value)
 
 
 class Account(models.Model):
@@ -129,3 +144,14 @@ class ValmiUserIDJitsuApiToken(models.Model):
     api_token = models.CharField(max_length=256, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class OAuthApiKeys(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="oauth_api_keys")
+    type = models.CharField(primary_key=True, max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR")
+    oauth_config = models.JSONField(blank=False, null=True)
+
+    class Meta:
+        db_table = 'core_oauth_api_keys'

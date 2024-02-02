@@ -22,6 +22,8 @@ for conn_def in connector_defs["definitions"]:
             "display_name": conn_def["display_name"],
             "docker_image": conn_def["docker_image"],
             "docker_tag": conn_def["docker_tag"],
+            "oauth": conn_def["oauth"],
+            "oauth_keys": conn_def["oauth_keys"],
         },
         auth=HTTPBasicAuth(os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"]),
     )

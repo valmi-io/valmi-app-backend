@@ -13,7 +13,8 @@ from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 
-from .models import Account, Connector, Credential, Destination, Organization, Source, Sync, Workspace
+from .models import Account, Connector, Credential, Destination, Organization, Source, Sync, Workspace, OAuthApiKeys
+
 
 User = get_user_model()
 
@@ -52,7 +53,7 @@ class UserSchemaOut(ModelSchema):
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
-        model_fields = ["type", "docker_image", "docker_tag", "display_name"]
+        model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys"]
 
 
 class ConnectorConfigSchemaIn(Schema):
@@ -184,3 +185,19 @@ class GenericJsonSchema(Schema):
         extra = "allow"
 
     pass
+
+
+class OAuthSchemaIn(Schema):
+    type: str
+    oauth_config: Dict
+
+
+class OAuthSchemaUpdateIn(Schema):
+    type: str
+    oauth_config: Dict
+
+
+class OAuthSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = OAuthApiKeys
+        model_fields = ["workspace", "type", "oauth_config"]
