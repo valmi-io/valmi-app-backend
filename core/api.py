@@ -40,6 +40,8 @@ from core.schemas import (
 
 from .models import Account, Connector, Credential, Destination, Source, Sync, User, Workspace, OAuthApiKeys
 
+from valmi_app_backend.utils import replace_values_in_json
+
 
 router = Router()
 
@@ -73,7 +75,7 @@ def list_spaces(request):
 
 @router.get("/workspaces/{workspace_id}/connectors/{connector_type}/spec", response=Json)
 def connector_spec(request, workspace_id, connector_type):
-    workspace = Workspace.objects.get(id=workspace_id)
+    # workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
 
     return requests.post(
@@ -88,13 +90,20 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
 
-    # Replacing Oauth keys
-    oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
-    if len(oauth_proxy_keys) > 0:
-        config_str = json.dumps(payload.config)
-        for key in oauth_proxy_keys:
-            config_str = config_str.replace(key, config(key))
-        payload.config = json.loads(config_str)
+    queryset = OAuthApiKeys.objects.filter(workspace=workspace, type=connector_type)
+
+    if queryset.exists():
+        keys = queryset.first()
+        # Replacing oauth keys with db values
+        replace_values_in_json(payload.config, keys.oauth_config)
+    else:
+        # Replacing oauth keys with .env values
+        oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+        if len(oauth_proxy_keys) > 0:
+            config_str = json.dumps(payload.config)
+            for key in oauth_proxy_keys:
+                config_str = config_str.replace(key, config(key))
+            payload.config = json.loads(config_str)
 
     return requests.post(
         f"{CONNECTOR_PREFIX_URL}/{connector.type}/check",
@@ -108,13 +117,22 @@ def connector_discover(request, workspace_id, connector_type, payload: Connector
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
 
-    # Replacing Oauth keys
-    oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
-    if len(oauth_proxy_keys) > 0:
-        config_str = json.dumps(payload.config)
-        for key in oauth_proxy_keys:
-            config_str = config_str.replace(key, config(key))
-        payload.config = json.loads(config_str)
+    queryset = OAuthApiKeys.objects.filter(workspace=workspace, type=connector_type)
+
+    if queryset.exists():
+        keys = queryset.first()
+
+        # Replacing oauth keys with db values
+        replace_values_in_json(payload.config, keys.oauth_config)
+
+    else:
+        # Replacing oauth keys with .env values
+        oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+        if len(oauth_proxy_keys) > 0:
+            config_str = json.dumps(payload.config)
+            for key in oauth_proxy_keys:
+                config_str = config_str.replace(key, config(key))
+            payload.config = json.loads(config_str)
 
     return requests.post(
         f"{CONNECTOR_PREFIX_URL}/{connector.type}/discover",

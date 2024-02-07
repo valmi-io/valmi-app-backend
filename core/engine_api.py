@@ -14,11 +14,17 @@ from ninja import Router
 
 from core.schemas import ConnectorSchema, DetailSchema, SyncSchema
 
-from .models import Connector, Sync
+from .models import (
+    Connector,
+    Sync,
+    OAuthApiKeys
+)
 import json
 
 from opentelemetry.metrics import get_meter_provider
-from opentelemetry import trace
+# from opentelemetry import trace
+
+from valmi_app_backend.utils import replace_values_in_json
 
 router = Router()
 
@@ -47,10 +53,24 @@ def get_all_syncs(request):
             for sync in syncs:
                 src_dst = [sync.source, sync.destination]
                 for obj in src_dst:
-                    config_str = json.dumps(obj.credential.connector_config)
-                    for key in oauth_proxy_keys:
-                        config_str = config_str.replace(key, config(key))
-                    obj.credential.connector_config = json.loads(config_str)
+                    workspace = obj.credential.workspace
+                    connector_type = obj.credential.connector.type
+
+                    queryset = OAuthApiKeys.objects.filter(workspace=workspace, type=connector_type)
+
+                    if queryset.exists():
+
+                        keys = queryset.first()
+
+                        # Replacing oauth keys with db values
+                        replace_values_in_json(obj.credential.connector_config, keys.oauth_config)
+                    else:
+
+                        # Replacing oauth keys with .env values
+                        config_str = json.dumps(obj.credential.connector_config)
+                        for key in oauth_proxy_keys:
+                            config_str = config_str.replace(key, config(key))
+                        obj.credential.connector_config = json.loads(config_str)
 
         return syncs
     except Exception:
