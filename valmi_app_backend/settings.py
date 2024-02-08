@@ -116,7 +116,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_NAME = "valmi.io"
-DOMAIN = "demo.valmi.io"
+DOMAIN = "cloud.valmi.io"
 
 # Application definition
 
