@@ -94,6 +94,8 @@ class CredentialSchema(ModelSchema):
     docker_image: str = Field(None, alias="connector.docker_image")
     docker_tag: str = Field(None, alias="connector.docker_tag")
     display_name: str = Field(None, alias="connector.display_name")
+    oauth: str = Field(None, alias="connector.oauth")
+    oauth_keys: str = Field(None, alias="connector.oauth_keys")
     account: AccountSchema = Field(None, alias="account")
 
 
