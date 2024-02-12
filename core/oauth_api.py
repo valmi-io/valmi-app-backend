@@ -104,7 +104,7 @@ def update_obj(request, workspace_id, payload: OAuthSchemaUpdateIn):
         return {"detail": "The specific oauth key cannot be updated."}
 
 
-@router.get("/workspaces/{workspace_id}/keys/{type}", response={200: List[OAuthSchema], 404: Json, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/keys/{type}", response={200: List[OAuthSchema], 400: DetailSchema})
 def get_obj(request, workspace_id, type):
     try:
         workspace = Workspace.objects.get(id=workspace_id)
@@ -114,10 +114,8 @@ def get_obj(request, workspace_id, type):
         if queryset.exists():
             return [queryset.first()]
         else:
-            response_data = {"detail": "The specific oauth key does not exist."}
-            response_json = json.dumps(response_data)
-
-            return (404, response_json)
+            logger.debug("No found")
+            return []
 
     except Exception:
         return {"detail": "The specific oauth key cannot be fetched."}
