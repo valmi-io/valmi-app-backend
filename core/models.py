@@ -147,11 +147,15 @@ class ValmiUserIDJitsuApiToken(models.Model):
 
 
 class OAuthApiKeys(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="oauth_api_keys")
-    type = models.CharField(primary_key=True, max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR")
+    type = models.CharField(max_length=64, null=True, blank=True, default="DUMMY_CONNECTOR")
     oauth_config = models.JSONField(blank=False, null=True)
 
     class Meta:
         db_table = 'core_oauth_api_keys'
+        constraints = [
+            models.UniqueConstraint(fields=['workspace', 'type'], name='unique_oauth_keys')
+        ]

@@ -8,6 +8,8 @@ Author: Rajashekar Varkala @ valmi.io
 
 import json
 import logging
+import uuid
+
 
 from typing import List
 
@@ -60,49 +62,62 @@ def get_config(request, connector_type: str):
 @router.post("/workspaces/{workspace_id}/config/create", response={200: OAuthSchema, 400: DetailSchema})
 def create_obj(request, workspace_id, payload: OAuthSchemaIn):
     data = payload.dict()
-    logger.debug("create oauth keys_", data)
+    logger.debug("payload", payload)
     try:
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
+
+        workspace = Workspace.objects.get(id=workspace_id)
+
+        logger.debug("workspace", workspace.id)
+
+        data["id"] = uuid.uuid4()
+        data["workspace"] = workspace
 
         result = OAuthApiKeys.objects.create(**data)
+
         return result
     except Exception:
         return {"detail": "The specific oauth key cannot be created."}
 
 
-@router.put("/workspaces/{workspace_id}/config/update", response={200: OAuthSchema, 400: DetailSchema})
+@router.put("/workspaces/{workspace_id}/config/update", response={200: OAuthSchema, 404: Json, 400: DetailSchema})
 def update_obj(request, workspace_id, payload: OAuthSchemaUpdateIn):
     data = payload.dict()
-    try:
-        oauth_key = OAuthApiKeys.objects.filter(type=data.pop("type"))
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
 
-        oauth_key.update(**data)
-        return oauth_key.first()
+    try:
+        workspace = Workspace.objects.get(id=workspace_id)
+
+        oauth_key = OAuthApiKeys.objects.filter(workspace=workspace, type=data.pop("type"))
+
+        if oauth_key.exists():
+
+            data["workspace"] = workspace
+
+            oauth_key.update(**data)
+            return oauth_key.first()
+        else:
+            response_data = {"detail": "The specific oauth key cannot be updated."}
+            response_json = json.dumps(response_data)
+
+            return (404, response_json)
 
     except Exception:
         return {"detail": "The specific oauth key cannot be updated."}
 
 
-@router.get("/workspaces/{workspace_id}/keys", response=List[OAuthSchema])
-def list_objs(request, workspace_id):
-    workspace = Workspace.objects.get(id=workspace_id)
-    queryset = OAuthApiKeys.objects.filter(workspace=workspace)
-    return queryset
-
-
-@router.get("/workspaces/{workspace_id}/keys/{type}", response={200: List[OAuthSchema], 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/keys/{type}", response={200: List[OAuthSchema], 404: Json, 400: DetailSchema})
 def get_obj(request, workspace_id, type):
     try:
         workspace = Workspace.objects.get(id=workspace_id)
 
         queryset: OAuthSchema = OAuthApiKeys.objects.filter(workspace=workspace, type=type)
 
-        if queryset:
+        if queryset.exists():
             return [queryset.first()]
         else:
-            logger.debug("No found")
-            return []
+            response_data = {"detail": "The specific oauth key does not exist."}
+            response_json = json.dumps(response_data)
+
+            return (404, response_json)
 
     except Exception:
         return {"detail": "The specific oauth key cannot be fetched."}
