@@ -95,7 +95,7 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
     if queryset.exists():
         keys = queryset.first()
         # Replacing oauth keys with db values
-        replace_values_in_json(payload.config, keys.oauth_config)
+        payload.config = replace_values_in_json(payload.config, keys.oauth_config)
     else:
         # Replacing oauth keys with .env values
         oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))

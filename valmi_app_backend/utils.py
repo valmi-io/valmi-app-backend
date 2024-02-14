@@ -1,4 +1,5 @@
 from rest_framework import authentication
+import json
 
 
 class BearerAuthentication(authentication.TokenAuthentication):
@@ -15,10 +16,7 @@ class BearerAuthentication(authentication.TokenAuthentication):
 
 
 def replace_values_in_json(json_obj, replacements):
-    for key, value in json_obj.items():
-        if isinstance(value, dict):
-            replace_values_in_json(value, replacements)
-        elif key in replacements:
-            replacement_value = replacements.get(key)
-            if replacement_value is not None:
-                json_obj[key] = replacement_value
+    config_str = json.dumps(json_obj)
+    for key in replacements:
+        config_str = config_str.replace(key, replacements[key])
+    return json.loads(config_str)

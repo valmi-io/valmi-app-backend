@@ -3,18 +3,21 @@
         "DEST_FACEBOOK-ADS": {
             "type": "object",
             "properties": {
-                "client_id": {
+                "AUTH_FACEBOOK_CLIENT_ID": {
                     "type": "string",
-                    "description": "Facebook client id"
+                    "description": "Facebook client id",
+                    "title":"Client Id"
                 },
-                "client_secret": {
+                "AUTH_FACEBOOK_CLIENT_SECRET": {
                     "type": "string",
-                    "description": "Facebook client secret"
+                    "description": "Facebook client secret",
+                    "title":"Client Secret"
+
                 }
             },
             "required": [
-                "client_id",
-                "client_secret"
+                "AUTH_FACEBOOK_CLIENT_ID",
+                "AUTH_FACEBOOK_CLIENT_SECRET"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
@@ -22,18 +25,21 @@
         "DEST_GOOGLE-SHEETS": {
             "type": "object",
             "properties": {
-                "client_id": {
+                "AUTH_GOOGLE_CLIENT_ID": {
                     "type": "string",
-                    "description": "Google client id"
+                    "description": "Google client id",
+                    "title":"Client Id"
+
                 },
-                "client_secret": {
+                "AUTH_GOOGLE_CLIENT_SECRET": {
                     "type": "string",
-                    "description": "Google client secret"
+                    "description": "Google client secret",
+                    "title":"Client Secret"
                 }
             },
             "required": [
-                "client_id",
-                "client_secret"
+                "AUTH_GOOGLE_CLIENT_ID",
+                "AUTH_GOOGLE_CLIENT_SECRET"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
@@ -41,23 +47,28 @@
         "DEST_GOOGLE-ADS": {
             "type": "object",
             "properties": {
-                "client_id": {
+                "AUTH_GOOGLE_CLIENT_ID": {
                     "type": "string",
-                    "description": "Google client id"
+                    "description": "Google client id",
+                    "title":"Client Id"
+
                 },
-                "client_secret": {
+                "AUTH_GOOGLE_CLIENT_SECRET": {
                     "type": "string",
-                    "description": "Google client secret"
+                    "description": "Google client secret",
+                    "title":"Client Secret"
+
                 },
-                "developer_token": {
+                "AUTH_GOOGLE_DEVELOPER_TOKEN": {
                     "type": "string",
-                    "description": "Google developer token"
+                    "description": "Google developer token",
+                    "title":"Developer Token"
                 }
             },
             "required": [
-                "client_id",
-                "client_secret",
-                "developer_token"
+                "AUTH_GOOGLE_CLIENT_ID",
+                "AUTH_GOOGLE_CLIENT_SECRET",
+                "AUTH_GOOGLE_DEVELOPER_TOKEN"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
@@ -65,18 +76,21 @@
         "DEST_SLACK": {
             "type": "object",
             "properties": {
-                "client_id": {
+                "AUTH_SLACK_CLIENT_ID": {
                     "type": "string",
-                    "description": "Slack client id"
+                    "description": "Slack client id",
+                    "title":"Client Id"
                 },
-                "client_secret": {
+                "AUTH_SLACK_CLIENT_SECRET": {
                     "type": "string",
-                    "description": "Slack client secret"
+                    "description": "Slack client secret",
+                    "title":"Client Secret"
+
                 }
             },
             "required": [
-                "client_id",
-                "client_secret"
+                "AUTH_SLACK_CLIENT_ID",
+                "AUTH_SLACK_CLIENT_SECRET"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
@@ -84,18 +98,22 @@
         "DEST_HUBSPOT": {
             "type": "object",
             "properties": {
-                "client_id": {
+                "AUTH_HUBSPOT_CLIENT_ID": {
                     "type": "string",
-                    "description": "Hubspot client id"
+                    "description": "Hubspot client id",
+                    "title":"Client Id"
+
                 },
-                "client_secret": {
+                "AUTH_HUBSPOT_CLIENT_SECRET": {
                     "type": "string",
-                    "description": "Hubspot client secret"
+                    "description": "Hubspot client secret",
+                    "title":"Client Secret"
+
                 }
             },
             "required": [
-                "client_id",
-                "client_secret"
+                "AUTH_HUBSPOT_CLIENT_ID",
+                "AUTH_HUBSPOT_CLIENT_SECRET"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
