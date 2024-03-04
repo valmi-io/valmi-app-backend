@@ -49,9 +49,11 @@ def get_all_syncs(request):
 
         # Replacing Oauth keys
         oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+
         if len(oauth_proxy_keys) > 0:
             for sync in syncs:
                 src_dst = [sync.source, sync.destination]
+
                 for obj in src_dst:
                     workspace = obj.credential.workspace
                     connector_type = obj.credential.connector.type
@@ -63,11 +65,13 @@ def get_all_syncs(request):
                         keys = queryset.first()
 
                         # Replacing oauth keys with db values
-                        replace_values_in_json(obj.credential.connector_config, keys.oauth_config)
+                        obj.credential.connector_config = replace_values_in_json(
+                            obj.credential.connector_config, keys.oauth_config)
                     else:
 
                         # Replacing oauth keys with .env values
                         config_str = json.dumps(obj.credential.connector_config)
+
                         for key in oauth_proxy_keys:
                             config_str = config_str.replace(key, config(key))
                         obj.credential.connector_config = json.loads(config_str)
