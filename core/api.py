@@ -36,6 +36,7 @@ from core.schemas import (
     SyncSchemaUpdateIn,
     SyncStartStopSchemaIn,
     UserSchemaOut,
+    CreateConfigSchemaIn
 )
 
 from .models import Account, Connector, Credential, Destination, Source, Sync, User, Workspace, OAuthApiKeys
@@ -143,6 +144,34 @@ def connector_discover(request, workspace_id, connector_type, payload: Connector
         timeout=SHORT_TIMEOUT,
     ).json()
 
+
+@router.post("/workspaces/{workspace_id}/connectors/{connector_type}/create", response=Dict)
+def connector_create(request, workspace_id, connector_type, payload: CreateConfigSchemaIn):
+    workspace = Workspace.objects.get(id=workspace_id)
+    connector = Connector.objects.get(type=connector_type)
+    queryset = OAuthApiKeys.objects.filter(workspace=workspace, type=connector_type)
+    if queryset.exists():
+        keys = queryset.first()
+
+        logger.debug("connector spec keys:-", keys)
+        # Replacing oauth keys with db values
+        payload.config = replace_values_in_json(payload.config, keys.oauth_config)
+
+    else:
+        # Replacing oauth keys with .env values
+        oauth_proxy_keys = config("OAUTH_SECRETS", default="", cast=Csv(str))
+        if len(oauth_proxy_keys) > 0:
+            config_str = json.dumps(payload.config)
+            for key in oauth_proxy_keys:
+                config_str = config_str.replace(key, config(key))
+            payload.config = json.loads(config_str)
+
+    res = requests.post(
+        f"{CONNECTOR_PREFIX_URL}/{connector.type}/create",
+        json={**payload.dict(), "docker_image": connector.docker_image, "docker_tag": connector.docker_tag},
+        timeout=SHORT_TIMEOUT,
+    ).json()
+    return res
 
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
 def list_credentials(request, workspace_id):

@@ -59,6 +59,8 @@ class ConnectorSchema(ModelSchema):
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
+class CreateConfigSchemaIn(Schema):
+    config: Dict
 
 class SyncStartStopSchemaIn(Schema):
     full_refresh: bool = False
