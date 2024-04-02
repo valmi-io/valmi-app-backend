@@ -117,6 +117,28 @@
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "SRC_SHOPIFY": {
+            "type": "object",
+            "properties": {
+                "AUTH_SHOPIFY_CLIENT_ID": {
+                    "type": "string",
+                    "description": "Shopify client id",
+                    "title":"Client Id"
+                },
+                "AUTH_SHOPIFY_CLIENT_SECRET": {
+                    "type": "string",
+                    "description": "Shopify client secret",
+                    "title":"Client Secret"
+
+                }
+            },
+            "required": [
+                "AUTH_SHOPIFY_CLIENT_ID",
+                "AUTH_SHOPIFY_CLIENT_SECRET"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
         }
     }
 }

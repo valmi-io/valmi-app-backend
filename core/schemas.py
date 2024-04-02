@@ -53,14 +53,16 @@ class UserSchemaOut(ModelSchema):
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
-        model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys"]
+        model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys", "mode"]
 
 
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
+
 class CreateConfigSchemaIn(Schema):
     config: Dict
+
 
 class SyncStartStopSchemaIn(Schema):
     full_refresh: bool = False

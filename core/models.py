@@ -11,6 +11,7 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 from enum import Enum
@@ -128,6 +129,11 @@ class Connector(models.Model):
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
     oauth = models.BooleanField(default=False)
     oauth_keys = models.CharField(max_length=64, choices=OAuthKeys.choices(), default=OAuthKeys.PRIVATE.value)
+    mode = ArrayField(
+        ArrayField(
+            models.CharField(max_length=64, null=False, blank=False, default="DUMMY_CONNECTOR_MODE")
+        )
+    )
 
 
 class Account(models.Model):

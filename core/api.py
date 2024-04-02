@@ -173,6 +173,7 @@ def connector_create(request, workspace_id, connector_type, payload: CreateConfi
     ).json()
     return res
 
+
 @router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
 def list_credentials(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
@@ -422,10 +423,13 @@ def get_connectors(request):
     try:
         logger.debug("listing connectors")
         connectors = Connector.objects.all()
+
+        logger.info(f"connectors - {connectors}")
         src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
         src_dst_dict["SRC"] = []
         src_dst_dict["DEST"] = []
         for conn in connectors:
+            logger.info(f"conn{conn}")
             arr = conn.type.split("_")
             if arr[0] == "SRC":
                 src_dst_dict["SRC"].append(conn)
