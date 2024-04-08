@@ -279,7 +279,7 @@ def get_storage_credentials(request, workspace_id):
     config['host'] = host_url
     config['port'] = 5432
     config["ssl"] = False
-    config["schema"] = "public"
+    config["schema"] = user_name
     return json.dumps(config)
 
 
