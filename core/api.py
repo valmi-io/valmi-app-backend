@@ -9,6 +9,12 @@ Author: Rajashekar Varkala @ valmi.io
 import json
 import logging
 import uuid
+import psycopg2
+import uuid
+import os
+import string
+import random
+
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -39,7 +45,7 @@ from core.schemas import (
     CreateConfigSchemaIn
 )
 
-from .models import Account, Connector, Credential, Destination, Source, Sync, User, Workspace, OAuthApiKeys
+from .models import Account, Connector, Credential, Destination, Source, StorageCredentials, Sync, User, Workspace, OAuthApiKeys
 
 from valmi_app_backend.utils import replace_values_in_json
 
@@ -186,6 +192,35 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     data = payload.dict()
     try:
         logger.debug(data)
+        logger.debug(workspace_id)
+        source = data.get("connector_type")
+        if source=="SRC_SHOPIFY":
+            host_url = os.environ["DB_URL"]
+            db_password = os.environ["DB_PASSWORD"]
+            db_username = os.environ["DB_USERNAME"]
+            conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+            cursor = conn.cursor()
+            create_new_cred = True
+            try:
+                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace_id)
+                create_new_cred = False
+            except Exception:
+                create_new_cred = True
+            if create_new_cred==True:
+                user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
+                password = ''.join(random.choices(string.ascii_uppercase, k=17))
+                creds = {'username': user_name, 'password': password}
+                credential_info = {"id": uuid.uuid4()}
+                credential_info["workspace"] = Workspace.objects.get(id=workspace_id)
+                credential_info["connector_config"] = creds
+                result = StorageCredentials.objects.create(**credential_info)
+                logger.debug(result)
+                query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
+                cursor.execute(query, (password,))
+                query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA public TO {username}").format(username=user_name)
+                cursor.execute(query)
+                conn.commit()
+                conn.close()
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
@@ -211,7 +246,6 @@ def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
         credential = Credential.objects.filter(id=data.pop("id"))
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
-
         account_info = data.pop("account", None)
         if account_info and len(account_info) > 0:
             account = Account.objects.filter(id=account_info.pop("id"))
@@ -238,6 +272,7 @@ def list_sources(request, workspace_id):
 @router.post("/workspaces/{workspace_id}/sources/create", response={200: SourceSchema, 400: DetailSchema})
 def create_source(request, workspace_id, payload: SourceSchemaIn):
     data = payload.dict()
+    logger.debug("Creating source")
     logger.debug(dict)
     try:
         data["id"] = uuid.uuid4()

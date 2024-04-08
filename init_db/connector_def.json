@@ -19,6 +19,16 @@
       "oauth": "True",
       "oauth_keys":"private",
       "mode":["etl"]
+    },
+    {
+      "type": "DEST",
+      "unique_name": "POSTGRES-DEST",
+      "docker_image": "valmiio/destination-postgres",
+      "docker_tag": "latest",
+      "display_name": "Dest Postgres",
+      "oauth": "False",
+      "oauth_keys":"private",
+      "mode":["etl"]
     }
   ]
 }

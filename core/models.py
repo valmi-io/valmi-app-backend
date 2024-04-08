@@ -82,7 +82,12 @@ class Credential(models.Model):
 
     def __str__(self):
         return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id} : {self.name}"
+    
 
+class StorageCredentials(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="storage_credentials")
+    connector_config = models.JSONField(blank=False, null=False)
 
 class Source(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
