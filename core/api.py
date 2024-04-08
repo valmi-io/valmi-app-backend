@@ -272,14 +272,15 @@ def get_storage_credentials(request, workspace_id):
     if not create_new_cred:
         config['username'] = do_id_exists.connector_config.get('username')
         config['password'] = do_id_exists.connector_config.get('password')
+        config["schema"] = do_id_exists.connector_config.get("username")
     else:
         config['username'] = user_name
         config['password'] = password
+        config["schema"] = user_name
     config['database'] = "dvdrental"
     config['host'] = host_url
     config['port'] = 5432
     config["ssl"] = False
-    config["schema"] = user_name
     return json.dumps(config)
 
 
