@@ -20,4 +20,10 @@ class Migration(migrations.Migration):
                 ('workspace', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='storage_credentials', to='core.workspace')),
             ],
         ),
+        migrations.AddField(
+            model_name='connector',
+            name='mode',
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(max_length=64), blank=True, default=list, size=None),
+        ),
     ]
