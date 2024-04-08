@@ -8,12 +8,12 @@ Author: Rajashekar Varkala @ valmi.io
 
 import json
 import logging
+import os
+import random
+import string
 import uuid
 import psycopg2
 import uuid
-import os
-import string
-import random
 
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -194,33 +194,33 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         logger.debug(data)
         logger.debug(workspace_id)
         source = data.get("connector_type")
-        if source=="SRC_SHOPIFY":
-            host_url = os.environ["DB_URL"]
-            db_password = os.environ["DB_PASSWORD"]
-            db_username = os.environ["DB_USERNAME"]
-            conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
-            cursor = conn.cursor()
-            create_new_cred = True
-            try:
-                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace_id)
-                create_new_cred = False
-            except Exception:
-                create_new_cred = True
-            if create_new_cred==True:
-                user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
-                password = ''.join(random.choices(string.ascii_uppercase, k=17))
-                creds = {'username': user_name, 'password': password}
-                credential_info = {"id": uuid.uuid4()}
-                credential_info["workspace"] = Workspace.objects.get(id=workspace_id)
-                credential_info["connector_config"] = creds
-                result = StorageCredentials.objects.create(**credential_info)
-                logger.debug(result)
-                query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
-                cursor.execute(query, (password,))
-                query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA public TO {username}").format(username=user_name)
-                cursor.execute(query)
-                conn.commit()
-                conn.close()
+        # if source=="SRC_SHOPIFY":
+        #     host_url = os.environ["DB_URL"]
+        #     db_password = os.environ["DB_PASSWORD"]
+        #     db_username = os.environ["DB_USERNAME"]
+        #     conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+        #     cursor = conn.cursor()
+        #     create_new_cred = True
+        #     try:
+        #         do_id_exists = StorageCredentials.objects.get(workspace_id=workspace_id)
+        #         create_new_cred = False
+        #     except Exception:
+        #         create_new_cred = True
+        #     if create_new_cred:
+        #         user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
+        #         password = ''.join(random.choices(string.ascii_uppercase, k=17))
+        #         creds = {'username': user_name, 'password': password}
+        #         credential_info = {"id": uuid.uuid4()}
+        #         credential_info["workspace"] = Workspace.objects.get(id=workspace_id)
+        #         credential_info["connector_config"] = creds
+        #         result = StorageCredentials.objects.create(**credential_info)
+        #         logger.debug(result)
+        #         query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
+        #         cursor.execute(query, (password,))
+        #         query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA public TO {username}").format(username=user_name)
+        #         cursor.execute(query)
+        #         conn.commit()
+        #         conn.close()
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["connector"] = Connector.objects.get(type=data.pop("connector_type"))
@@ -236,6 +236,49 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     except Exception:
         logger.exception("Credential error")
         return {"detail": "The specific credential cannot be created."}
+    
+
+@router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
+def get_storage_credentials(request, workspace_id):
+    host_url = os.environ["DB_URL"]
+    db_password = os.environ["DB_PASSWORD"]
+    db_username = os.environ["DB_USERNAME"]
+    conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+    cursor = conn.cursor()
+    create_new_cred = True
+    try:
+        do_id_exists = StorageCredentials.objects.get(workspace_id=workspace_id)
+        create_new_cred = False
+    except Exception:
+        create_new_cred = True
+    if create_new_cred:
+        user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
+        password = ''.join(random.choices(string.ascii_uppercase, k=17))
+        creds = {'username': user_name, 'password': password}
+        credential_info = {"id": uuid.uuid4()}
+        credential_info["workspace"] = Workspace.objects.get(id=workspace_id)
+        credential_info["connector_config"] = creds
+        result = StorageCredentials.objects.create(**credential_info)
+        logger.debug(result)
+        query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
+        cursor.execute(query, (password,))
+        query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA public TO {username}").format(username=user_name)
+        cursor.execute(query)
+        conn.commit()
+        conn.close()
+    config = {}
+    if not create_new_cred:
+        config['username'] = do_id_exists.connector_config.get('username')
+        config['password'] = do_id_exists.connector_config.get('password')
+    else:
+        config['username'] = user_name
+        config['password'] = password
+    config['database'] = "dvdrental"
+    config['host'] = host_url
+    config['port'] = 5432
+    config["ssl"] = False
+    config["schema"] = "public"
+    return json.dumps(config)
 
 
 @router.post("/workspaces/{workspace_id}/credentials/update", response={200: CredentialSchema, 400: DetailSchema})
