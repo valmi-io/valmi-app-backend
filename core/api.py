@@ -264,7 +264,7 @@ def get_storage_credentials(request, workspace_id):
         cursor.execute(query, (password,))
         query = ("CREATE SCHEMA AUTHORIZATION {name}").format(name = user_name)
         cursor.execute(query)
-        query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA public TO {username}").format(username=user_name)
+        query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA {schema} TO {username}").format(schema=user_name,username=user_name)
         cursor.execute(query)
         conn.commit()
         conn.close()
