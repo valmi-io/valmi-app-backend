@@ -100,6 +100,7 @@ class CredentialSchema(ModelSchema):
     display_name: str = Field(None, alias="connector.display_name")
     oauth: str = Field(None, alias="connector.oauth")
     oauth_keys: str = Field(None, alias="connector.oauth_keys")
+    mode: list = Field(None, alias="connector.mode")
     account: AccountSchema = Field(None, alias="account")
 
 
