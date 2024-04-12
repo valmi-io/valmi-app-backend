@@ -137,6 +137,18 @@ class Connector(models.Model):
     mode = ArrayField(models.CharField(max_length=64), blank=True, default=list)
 
 
+class Package(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    name = models.CharField(primary_key=True,max_length=256, null=False, blank=False)
+    scopes = ArrayField(models.CharField(max_length=64), blank=True, default=list)
+
+class Prompt(models.Model):
+    name = models.CharField(primary_key=True,max_length=256, null=False, blank=False,unique=True)
+    query = models.CharField(null=False, blank = False,max_length=5000)
+    parameters = models.JSONField(blank=False, null=True)
+    package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
+
 class Account(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False)

@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 
-from .models import Account, Connector, Credential, Destination, Organization, Source, Sync, Workspace, OAuthApiKeys
+from .models import Account, Connector, Credential, Destination, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
 
 
 User = get_user_model()
@@ -54,6 +54,17 @@ class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
         model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys", "mode"]
+
+
+class PackageSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Package
+        model_fields = ["name", "scopes"]
+
+class PromptSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Prompt
+        model_fields = ["name","query","parameters","package_id"]
 
 
 class ConnectorConfigSchemaIn(Schema):

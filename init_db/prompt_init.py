@@ -1,0 +1,29 @@
+"""
+Copyright (c) 2024 valmi.io <https://github.com/valmi-io>
+
+Created Date: Wednesday, April 11th 2024, 9:56:52 pm
+Author: Rajashekar Varkala @ valmi.io
+
+"""
+
+from os.path import dirname, join
+import json
+import requests
+import os
+from requests.auth import HTTPBasicAuth
+
+prompt_defs = json.loads(open(join(dirname(__file__), "prompt_def.json"), "r").read())
+
+for prompt_def in prompt_defs["definitions"]:
+    resp = requests.post(
+        f"http://localhost:{os.environ['PORT']}/api/v1/superuser/prompts/create",
+        json={
+            "name": prompt_def["name"],
+            "query": prompt_def["query"],
+            "parameters":prompt_def["parameters"],
+            "package_id":prompt_def["package_id"]
+        },
+        auth=HTTPBasicAuth(os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"]),
+    )
+    if resp.status_code != 200:
+        print("Failed to create prompt. May exist already. Do better - continuing...")

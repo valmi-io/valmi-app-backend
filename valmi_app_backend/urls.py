@@ -17,6 +17,7 @@ from ninja.security import HttpBasicAuth
 
 from core.api import router as public_api_router
 from core.stream_api import router as stream_api_router
+from core.prompt_api import router as prompt_api_router
 from core.oauth_api import router as oauth_api_router
 
 
@@ -120,6 +121,7 @@ api = NinjaAPI(
 if config("AUTHENTICATION", default=True, cast=bool):
     api.add_router("v1/superuser/", superuser_api_router, auth=[BasicAuth()])
     api.add_router("v1/streams/", stream_api_router, auth=[AuthBearer(), BasicAuth()])
+    api.add_router("v1/prompts/", prompt_api_router, auth=[AuthBearer(), BasicAuth()])
     api.add_router("v1/oauth/", oauth_api_router, auth=[AuthBearer(), BasicAuth()])
     api.add_router("v1/", public_api_router, auth=[AuthBearer(), BasicAuth()])
 
