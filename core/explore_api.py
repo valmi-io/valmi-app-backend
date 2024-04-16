@@ -1,30 +1,28 @@
 import logging
+from typing import List
 import uuid
-from pydantic import Json
 from core.models import Account, Explore, Prompt, Workspace
-from core.schemas import DetailSchema
+from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn
 from ninja import Router
-import json
 
 logger = logging.getLogger(__name__)
 
 router = Router()
 
-@router.get("/", response={200: Json, 400: DetailSchema})
-def get_prompts(request):
+@router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
+def get_prompts(request,workspace_id):
     try:
         logger.debug("listing connectors")
-        explores = Explore.objects.all()
-        explores_data_list = list(explores.values())
-        response = json.dumps(explores_data_list)
-        return response
+        workspace = Workspace.objects.get(id=workspace_id)
+        explores = Explore.objects.filter(workspace=workspace)
+        return explores
     except Exception:
-        logger.exception("prompts listing error")
+        logger.exception("explores listing error")
         return (400, {"detail": "The list of explores cannot be fetched."})
 
 
-@router.post("/workspaces/{workspace_id}/prompts/{prompt_id}",response={200: Json, 400: DetailSchema})
-def create_explore(request, workspace_id,prompt_id,payload: Json):
+@router.post("/workspaces/{workspace_id}/create",response={200: ExploreSchema, 400: DetailSchema})
+def create_explore(request, workspace_id,payload: ExploreSchemaIn):
     logger.info("data before creating")
     data = payload.dict()
     logger.info("data before creating")
@@ -32,7 +30,7 @@ def create_explore(request, workspace_id,prompt_id,payload: Json):
     try:
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
-        data["prompt"] = Prompt.objects.get(id=prompt_id)
+        data["prompt"] = Prompt.objects.get(id=data["prompt_id"])
         account_info = data.pop("account", None)
         if account_info and len(account_info) > 0:
             account_info["id"] = uuid.uuid4()
@@ -40,6 +38,7 @@ def create_explore(request, workspace_id,prompt_id,payload: Json):
             data["account"] = Account.objects.create(**account_info)
         logger.debug(data)
         explore = Explore.objects.create(**data)
+        return explore
     except Exception:
         logger.exception("explore creation error")
         return (400, {"detail": "The specific explore cannot be created."})

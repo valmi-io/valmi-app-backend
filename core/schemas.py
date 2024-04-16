@@ -90,6 +90,7 @@ class ExploreSchemaIn(Schema):
     name:str
     spreadsheet_url:str
     account: Dict = None
+    prompt_id:str
 
 
 
@@ -129,7 +130,7 @@ class ExploreSchema(ModelSchema):
     account: AccountSchema = Field(None, alias="account")
     prompt: PromptSchema = Field(None, alias="prompt")
     workspace: WorkspaceSchema = Field(None, alias="workspace")
-    
+
 
 
 class BaseSchemaIn(Schema):
