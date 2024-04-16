@@ -12,10 +12,11 @@ from typing import Dict, List
 from decouple import Csv, config
 from ninja import Router
 
-from core.schemas import ConnectorSchema, DetailSchema, PromptSchema, SyncSchema
+from core.schemas import ConnectorSchema, DetailSchema, PackageSchema, PromptSchema, SyncSchema
 
 from .models import (
     Connector,
+    Package,
     Prompt,
     Sync,
     OAuthApiKeys
@@ -102,12 +103,27 @@ def create_connector(request, payload: PromptSchema):
     data = payload.dict()
     logger.debug(data)
     try:
-        logger.debug("creating connector")
+        logger.debug("creating prompt")
         prompts = Prompt.objects.create(**data)
         return (200, PromptSchema)
     except Exception:
-        logger.exception("Connector error")
-        return (400, {"detail": "The specific connector cannot be created."})
+        logger.exception("Prompt error")
+        return (400, {"detail": "The specific prompt cannot be created."})
+    
+
+@router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
+def create_connector(request, payload: PackageSchema):
+    # check for admin permissions
+    logger.info("logging package schema")
+    data = payload.dict()
+    logger.debug(data)
+    try:
+        logger.debug("creating package")
+        package = Package.objects.create(**data)
+        return (200, PackageSchema)
+    except Exception:
+        logger.exception("Package error")
+        return (400, {"detail": "The specific package cannot be created."})
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors(request):

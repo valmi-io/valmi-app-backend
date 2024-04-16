@@ -1,8 +1,19 @@
 {
     "definitions":[
         {
+           
             "name":"products",
             "query":"SELECT * FROM products",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
+            
+            "name":"Orders",
+            "query":"SELECT * FROM orders",
             "parameters":{
                 "test":"test"
             },

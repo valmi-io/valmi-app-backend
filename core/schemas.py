@@ -64,7 +64,7 @@ class PackageSchema(ModelSchema):
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["name","query","parameters","package_id"]
+        model_fields = ["id","name","query","parameters","package_id"]
 
 
 class ConnectorConfigSchemaIn(Schema):
@@ -85,6 +85,18 @@ class CredentialSchemaIn(Schema):
     account: Dict = None
     name: str
 
+class ExploreSchemaIn(Schema):
+    ready: bool = False
+    spreadsheet_url:str
+    account: Dict = None
+    prompt_id:Dict = None
+    workspace_id:Dict = None
+
+
+class PackageSchema(Schema):
+    class Config(CamelSchemaConfig):
+        model = Package
+        model_fields = ["name","scopes","gated"]
 
 class CredentialSchemaUpdateIn(Schema):
     id: UUID4

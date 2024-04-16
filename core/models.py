@@ -138,16 +138,17 @@ class Connector(models.Model):
 
 
 class Package(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(primary_key=True,max_length=256, null=False, blank=False)
     scopes = ArrayField(models.CharField(max_length=64), blank=True, default=list)
+    gated = models.BooleanField(null=False, blank = False, default=True)
 
 class Prompt(models.Model):
-    name = models.CharField(primary_key=True,max_length=256, null=False, blank=False,unique=True)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False,unique=True)
     query = models.CharField(null=False, blank = False,max_length=5000)
     parameters = models.JSONField(blank=False, null=True)
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
+    gated = models.BooleanField(null=False, blank = False, default=True)
 
 class Account(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
@@ -157,6 +158,14 @@ class Account(models.Model):
     meta_data = models.JSONField(blank=False, null=True)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="accounts")
 
+
+class Explore(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="explore_workspace")
+    prompt = models.ForeignKey(to=Prompt, on_delete=models.CASCADE, related_name="explore_prompt")
+    ready = models.BooleanField(null=False, blank = False, default=False)
+    account = models.ForeignKey(to=Account, on_delete=models.CASCADE, related_name="explore_account")
+    spreadsheet_url = models.URLField(null=True, blank=True, default="https://example.com")
 
 class ValmiUserIDJitsuApiToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)

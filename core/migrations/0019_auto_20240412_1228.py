@@ -16,10 +16,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='prompt',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='prompt',
             name='package',
         ),
         migrations.AddField(
@@ -28,13 +24,8 @@ class Migration(migrations.Migration):
             field=models.CharField(default='P0', max_length=20),
         ),
         migrations.AlterField(
-            model_name='package',
-            name='name',
-            field=models.CharField(max_length=256, primary_key=True, serialize=False),
-        ),
-        migrations.AlterField(
             model_name='prompt',
             name='name',
-            field=models.CharField(max_length=256, primary_key=True, serialize=False, unique=True),
+            field=models.CharField(max_length=256, unique=True),
         ),
     ]

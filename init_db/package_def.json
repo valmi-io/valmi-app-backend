@@ -1,0 +1,14 @@
+{
+    "definitions":[
+        {
+            "name":"P0",
+            "scopes":["orders","products"],
+            "gated":true
+        },
+        {
+            "name":"P1",
+            "scopes":["orders","products"],
+            "gated":true
+        }
+    ]
+}
