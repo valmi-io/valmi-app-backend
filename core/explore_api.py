@@ -70,7 +70,7 @@ def create_sync(request, workspace_id,payload: ExplorePreviewDataIn):
         for i, col in enumerate(cursor.description):
             for i, col in enumerate(cursor.description):
             # Convert datetime objects to ISO format
-                if isinstance(row[i], datetime):
+                if isinstance(row[i], datetime):    
                     d[col[0]] = row[i].isoformat()
                 else:
                     d[col[0]] = row[i]
