@@ -145,6 +145,7 @@ class Package(models.Model):
 class Prompt(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False,unique=True)
+    description = models.CharField(max_length=1000, null=False, blank=False,default="aaaaaa")
     query = models.CharField(null=False, blank = False,max_length=5000)
     parameters = models.JSONField(blank=False, null=True)
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
@@ -161,6 +162,7 @@ class Account(models.Model):
 
 class Explore(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False,default="aaaaaa")
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="explore_workspace")
     prompt = models.ForeignKey(to=Prompt, on_delete=models.CASCADE, related_name="explore_prompt")
     ready = models.BooleanField(null=False, blank = False, default=False)

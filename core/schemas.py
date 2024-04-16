@@ -64,7 +64,7 @@ class PackageSchema(ModelSchema):
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id","name","query","parameters","package_id"]
+        model_fields = ["id","name","description","query","parameters","package_id"]
 
 
 class ConnectorConfigSchemaIn(Schema):
