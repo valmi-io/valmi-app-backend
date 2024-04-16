@@ -5,11 +5,9 @@ Created Date: Wednesday, April 11th 2024, 9:56:52 pm
 Author: Rajashekar Varkala @ valmi.io
 
 """
-
-
+import logging
 from os.path import dirname, join
 import json
-import logging
 import requests
 import os
 from requests.auth import HTTPBasicAuth
@@ -22,8 +20,8 @@ for package_def in package_defs["definitions"]:
         f"http://localhost:{os.environ['PORT']}/api/v1/superuser/packages/create",
         json={
             "name": package_def["name"],
-            "scopes":package_def["scopes"],
-            "gated":package_def["gated"],
+            "scopes": package_def["scopes"],
+            "gated": package_def["gated"],
         },
         auth=HTTPBasicAuth(os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"]),
     )

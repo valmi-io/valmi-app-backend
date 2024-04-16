@@ -105,7 +105,7 @@ def create_connector(request, payload: PromptSchema):
     try:
         logger.debug("creating prompt")
         prompts = Prompt.objects.create(**data)
-        return (200, PromptSchema)
+        return (200, prompts)
     except Exception:
         logger.exception("Prompt error")
         return (400, {"detail": "The specific prompt cannot be created."})
@@ -120,7 +120,7 @@ def create_connector(request, payload: PackageSchema):
     try:
         logger.debug("creating package")
         package = Package.objects.create(**data)
-        return (200, PackageSchema)
+        return (200, package)
     except Exception:
         logger.exception("Package error")
         return (400, {"detail": "The specific package cannot be created."})
