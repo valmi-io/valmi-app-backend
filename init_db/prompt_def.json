@@ -4,23 +4,23 @@
            
             "name":"products",
             "description":"Product description",
-            "query":"SELECT * FROM products",
+            "query":"SELECT * FROM _airbyte_raw_products",
             "parameters":{
                 "test":"test"
             },
             "package_id":"P0",
-            "gated":true
+            "gated":false
         },
         {
             
             "name":"Orders",
             "description":"Order description",
-            "query":"SELECT * FROM orders",
+            "query":"SELECT * FROM _airbyte_raw_products",
             "parameters":{
                 "test":"test"
             },
             "package_id":"P0",
-            "gated":true
+            "gated":false
         }
     ]
 }

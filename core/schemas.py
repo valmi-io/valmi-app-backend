@@ -92,6 +92,8 @@ class ExploreSchemaIn(Schema):
     account: Dict = None
     prompt_id:str
 
+class ExplorePreviewDataIn(Schema):
+    prompt_id:str
 
 
 class CredentialSchemaUpdateIn(Schema):
