@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 
-from .models import Account, Connector, Credential, Destination, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
+from .models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
 
 
 User = get_user_model()
@@ -120,6 +120,16 @@ class CredentialSchema(ModelSchema):
     oauth_keys: str = Field(None, alias="connector.oauth_keys")
     mode: list = Field(None, alias="connector.mode")
     account: AccountSchema = Field(None, alias="account")
+
+
+class ExploreSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Explore
+        model_fields = ["ready", "name", "spreadsheet_url", "account", "id"]
+    account: AccountSchema = Field(None, alias="account")
+    prompt: PromptSchema = Field(None, alias="prompt")
+    workspace: WorkspaceSchema = Field(None, alias="workspace")
+    
 
 
 class BaseSchemaIn(Schema):
