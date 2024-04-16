@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from pydantic import Json
 from core.models import Prompt
@@ -13,9 +14,13 @@ router = Router()
 @router.get("/", response={200: Json, 400: DetailSchema})
 def get_prompts(request):
     try:
-        logger.debug("listing connectors")
+        logger.debug("listing prompts")
         prompts = Prompt.objects.all()
         prompts_data = list(prompts.values())
+        for prompt in prompts_data:
+            for key, value in prompt.items():
+                if isinstance(value, uuid.UUID):
+                    prompt[key] = str(value)
         response = json.dumps(prompts_data)
         logger.info(response)
         logger.info(f"prompts - {prompts}")
