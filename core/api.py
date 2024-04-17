@@ -239,6 +239,8 @@ def get_storage_credentials(request, workspace_id):
         cursor.execute(query)
         query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA {schema} TO {username}").format(schema=user_name,username=user_name)
         cursor.execute(query)
+        query = ("ALTER USER {username} WITH SUPERUSER").format(username=user_name)
+        cursor.execute(query)
         conn.commit()
         conn.close()
     config = {}
