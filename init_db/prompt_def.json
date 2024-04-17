@@ -2,25 +2,100 @@
     "definitions":[
         {
            
-            "name":"products",
-            "description":"Product description",
+            "name":"Inventory snapshot",
+            "description":"Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
             "query":"SELECT * FROM _airbyte_raw_products",
             "parameters":{
                 "test":"test"
             },
             "package_id":"P0",
-            "gated":false
+            "gated":true
+        },
+        {
+           
+            "name":"At Risk customers",
+            "description":"Top 100 customers who have not purchased from you in the last 30 days, ordered by their total purchase value.",
+            "query":"SELECT * FROM _airbyte_raw_customers",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
+           
+            "name":"Cart abandonment",
+            "description":"Get a snapshot of customers who have initiated the process of making a purchase on your platform but have left before completing the transaction.",
+            "query":"SELECT * FROM _airbyte_raw_checkouts",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
+           
+            "name":"Sales by Payment method",
+            "description":"Understand which payment methods your customers prefer. If a customer uses multiple payment methods for the same order, the order count and order value will be counted multiple times.",
+            "query":"SELECT * FROM _airbyte_raw_orders",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
         },
         {
             
+            "name":"Order export with products",
+            "description":"Receive an export of your orders with line items. Use this report to share with your fulfillment teams and identify preorder volumes.",
+            "query":"SELECT * FROM _airbyte_raw_orders",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
+            
+            "name":"Average Order value",
+            "description":"Shows the average order value of all orders (excluding gift cards), divided by the total number of orders that contained at least one product other than a gift card. Order value includes taxes, shipping, and discounts before returns.",
+            "query":"SELECT * FROM _airbyte_raw_orders",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
             "name":"Orders",
-            "description":"Order description",
+            "description":"Orders, total sales, and products sold over the specified time period. Orders include all statuses. Refunded value is removed from Total Sales on the day of the order.",
+            "query":"SELECT * FROM _airbyte_raw_orders",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
+        },
+        {
+            "name":"Profit by product variant over time",
+            "description":"Review your profits by each variant over time. Use this report to identify high margin products and loss leaders. If collaborating on products on a profit share basis, use this to help calculate payouts.",
             "query":"SELECT * FROM _airbyte_raw_products",
             "parameters":{
                 "test":"test"
             },
             "package_id":"P0",
-            "gated":false
+            "gated":true
+        },
+        {
+            "name":"New customer sales",
+            "description":"Sales metrics for new customers over the specified time-period.",
+            "query":"SELECT * FROM _airbyte_raw_customers",
+            "parameters":{
+                "test":"test"
+            },
+            "package_id":"P0",
+            "gated":true
         }
+        
     ]
 }
