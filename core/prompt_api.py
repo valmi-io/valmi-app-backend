@@ -18,4 +18,15 @@ def get_prompts(request):
     except Exception:
         logger.exception("prompts listing error")
         return (400, {"detail": "The list of prompts cannot be fetched."})
+
+@router.get("/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
+def get_prompts(request,prompt_id):
+    try:
+        logger.debug("listing prompts")
+        prompt = Prompt.objects.get(id=prompt_id)
+        return prompt
+    except Exception:
+        logger.exception("prompt listing error")
+        return (400, {"detail": "The  prompt cannot be fetched."})
+
     
