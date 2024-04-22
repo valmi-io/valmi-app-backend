@@ -251,7 +251,7 @@ def get_storage_credentials(request, workspace_id):
     else:
         config['username'] = user_name
         config['password'] = password
-        config["schema"] = user_name
+        config["namespace"] = user_name
     config['database'] = "dvdrental"
     config['host'] = host_url
     config['port'] = 5432
