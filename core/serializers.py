@@ -8,15 +8,18 @@ Author: Rajashekar Varkala @ valmi.io
 
 import binascii
 import os
+import random
+import string
 import uuid
-
+import logging
 from django.contrib.auth import authenticate, get_user_model
 from django.db import connection, transaction
+import psycopg2
 from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
 from decouple import config
 from djoser.conf import settings
-
-from .models import Organization, Workspace, ValmiUserIDJitsuApiToken
+logger = logging.getLogger(__name__)
+from .models import Organization, StorageCredentials, Workspace, ValmiUserIDJitsuApiToken
 import hashlib
 
 User = get_user_model()
@@ -66,6 +69,38 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             workspace.save()
             user.save()
             user.organizations.add(org)
+            host_url = os.environ["DATA_WAREHOUSE_URL"]
+            db_password = os.environ["DATA_WAREHOUSE_PASSWORD"]
+            db_username = os.environ["DATA_WAREHOUSE_USERNAME"]
+            conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+            cursor = conn.cursor()
+            logger.debug("logger in serializers")
+
+            create_new_cred = True
+            try:
+                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace.id)
+                create_new_cred = False
+            except Exception:
+                create_new_cred = True
+            if create_new_cred:
+                logger.debug("logger in creating new creds")
+                user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
+                password = ''.join(random.choices(string.ascii_uppercase, k=17))
+                creds = {'username': user_name, 'password': password,'namespace': user_name}
+                credential_info = {"id": uuid.uuid4()}
+                credential_info["workspace"] = Workspace.objects.get(id=workspace.id)
+                credential_info["connector_config"] = creds
+                result = StorageCredentials.objects.create(**credential_info)
+                query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
+                cursor.execute(query, (password,))
+                query = ("CREATE SCHEMA AUTHORIZATION {name}").format(name = user_name)
+                cursor.execute(query)
+                query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA {schema} TO {username}").format(schema=user_name,username=user_name)
+                cursor.execute(query)
+                query = ("ALTER USER {username} WITH SUPERUSER").format(username=user_name)
+                cursor.execute(query)
+                conn.commit()
+                conn.close()
 
             if config("ENABLE_JITSU", default=False, cast=bool):
                 self.patch_jitsu_user(user, workspace)

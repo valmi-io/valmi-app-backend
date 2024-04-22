@@ -8,21 +8,14 @@ Author: Rajashekar Varkala @ valmi.io
 
 import json
 import logging
-import os
-import random
-import string
 import uuid
-import psycopg2
 import uuid
-
 from datetime import datetime
 from typing import Dict, List, Optional
-
 import requests
 from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
-
 from core.schemas import (
     ConnectorConfigSchemaIn,
     ConnectorSchema,
@@ -212,48 +205,14 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     
 
 @router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
-def get_storage_credentials(request, workspace_id):
-    host_url = os.environ["DB_URL"]
-    db_password = os.environ["DB_PASSWORD"]
-    db_username = os.environ["DB_USERNAME"]
-    conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
-    cursor = conn.cursor()
-    create_new_cred = True
-    try:
-        do_id_exists = StorageCredentials.objects.get(workspace_id=workspace_id)
-        create_new_cred = False
-    except Exception:
-        create_new_cred = True
-    if create_new_cred:
-        user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
-        password = ''.join(random.choices(string.ascii_uppercase, k=17))
-        creds = {'username': user_name, 'password': password}
-        credential_info = {"id": uuid.uuid4()}
-        credential_info["workspace"] = Workspace.objects.get(id=workspace_id)
-        credential_info["connector_config"] = creds
-        result = StorageCredentials.objects.create(**credential_info)
-        logger.debug(result)
-        query = ("CREATE ROLE {username} LOGIN PASSWORD %s").format(username=user_name)
-        cursor.execute(query, (password,))
-        query = ("CREATE SCHEMA AUTHORIZATION {name}").format(name = user_name)
-        cursor.execute(query)
-        query = ("GRANT INSERT, UPDATE, SELECT ON ALL TABLES IN SCHEMA {schema} TO {username}").format(schema=user_name,username=user_name)
-        cursor.execute(query)
-        query = ("ALTER USER {username} WITH SUPERUSER").format(username=user_name)
-        cursor.execute(query)
-        conn.commit()
-        conn.close()
-    config = {}
-    if not create_new_cred:
-        config['username'] = do_id_exists.connector_config.get('username')
-        config['password'] = do_id_exists.connector_config.get('password')
-        config["schema"] = do_id_exists.connector_config.get("username")
-    else:
-        config['username'] = user_name
-        config['password'] = password
-        config["namespace"] = user_name
+def storage_credentials(request, workspace_id):
+    config={}
+    creds = StorageCredentials.objects.get(workspace_id=workspace_id)
+    config['username'] = creds.connector_config["username"]
+    config['password'] = creds.connector_config["password"]
+    config["namespace"] = creds.connector_config["namespace"]
     config['database'] = "dvdrental"
-    config['host'] = host_url
+    config['host'] = "classspace.in"
     config['port'] = 5432
     config["ssl"] = False
     return json.dumps(config)
