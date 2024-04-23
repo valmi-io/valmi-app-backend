@@ -24,6 +24,7 @@ for prompt_def in prompt_defs["definitions"]:
             "name": prompt_def["name"],
             "description": prompt_def["description"],
             "query": prompt_def["query"],
+            "table":prompt_def["table"],
             "parameters":prompt_def["parameters"],
             "package_id":prompt_def["package_id"],
             "gated":prompt_def["gated"],

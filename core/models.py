@@ -6,6 +6,7 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
+from django.utils import timezone
 import uuid
 
 from django.contrib.auth import get_user_model
@@ -148,6 +149,7 @@ class Prompt(models.Model):
     description = models.CharField(max_length=1000, null=False, blank=False,default="aaaaaa")
     query = models.CharField(null=False, blank = False,max_length=5000)
     parameters = models.JSONField(blank=False, null=True)
+    table = models.CharField(max_length=256,null=False, blank=False,default="table_name")
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
     gated = models.BooleanField(null=False, blank = False, default=True)
 
@@ -161,6 +163,8 @@ class Account(models.Model):
 
 
 class Explore(models.Model):
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False,default="aaaaaa")
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="explore_workspace")

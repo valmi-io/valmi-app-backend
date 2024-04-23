@@ -1,0 +1,34 @@
+{
+    "sinks": [
+        {
+            "name": "Google Sheets",
+            "label": "GoogleSheets",
+            "mapping": [],
+            "field_catalog": {
+                "upsert": {
+                    "json_schema": {
+                        "type": "object",
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "properties": {
+                            "_airbyte_data": {
+                                "type": "jsonb"
+                            },
+                            "_airbyte_ab_id": {
+                                "type": "character varying"
+                            },
+                            "_airbyte_emitted_at": {
+                                "type": "timestamp with time zone"
+                            }
+                        }
+                    },
+                    "allow_freeform_fields": true,
+                    "supported_destination_ids": []
+                }
+            },
+            "destination_sync_mode": "append",
+            "supported_destination_sync_modes": [
+                "upsert"
+            ]
+        }
+    ]
+}

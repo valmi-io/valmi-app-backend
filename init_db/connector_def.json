@@ -29,6 +29,26 @@
       "oauth": "False",
       "oauth_keys":"private",
       "mode":["etl"]
+    },
+    {
+      "type": "SRC",
+      "unique_name": "POSTGRES",
+      "docker_image": "valmiio/source-postgres",
+      "docker_tag": "latest",
+      "display_name": "Postgres",
+      "oauth": "False",
+      "oauth_keys":"private",
+      "mode":["retl"]
+    },
+    {
+      "type": "DEST",
+      "unique_name": "GOOGLE-SHEETS",
+      "docker_image": "valmiio/destination-google-sheets",
+      "docker_tag": "latest",
+      "display_name": "Google Sheets",
+      "oauth": "True",
+      "oauth_keys":"private",
+      "mode":["retl"]
     }
   ]
 }
