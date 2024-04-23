@@ -21,6 +21,7 @@ from core.prompt_api import router as prompt_api_router
 from core.package_api import router as package_api_router
 from core.oauth_api import router as oauth_api_router
 from core.explore_api import router as explore_api_router
+from core.social_auth import router as social_api_router
 
 from core.api import get_workspaces
 from core.engine_api import router as superuser_api_router
@@ -119,6 +120,8 @@ api = NinjaAPI(
     urls_namespace="public_api",
 )
 
+
+api.add_router("/auth/social", social_api_router)
 if config("AUTHENTICATION", default=True, cast=bool):
     api.add_router("v1/superuser/", superuser_api_router, auth=[BasicAuth()])
     api.add_router("v1/streams/", stream_api_router, auth=[AuthBearer(), BasicAuth()])
