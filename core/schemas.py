@@ -88,9 +88,9 @@ class CredentialSchemaIn(Schema):
 class ExploreSchemaIn(Schema):
     ready: bool = False
     name:str
-    spreadsheet_url:str
     account: Dict = None
     prompt_id:str
+    refresh_token:str
 
 class ExplorePreviewDataIn(Schema):
     prompt_id:str

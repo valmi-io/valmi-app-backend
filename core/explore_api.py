@@ -1,7 +1,9 @@
 import datetime
 import json
 import logging
-
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+import json
 import os
 from os.path import dirname, join
 from typing import List
@@ -77,12 +79,13 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
+        spreadsheet_url = create_spreadsheet(refresh_token=data["refresh_token"])
         des_connector_config = {
-            "spreadsheet_id": "https://docs.google.com/spreadsheets/d/1Smf99F4Ib_n0jUQPOPSsf-W9r3hxKckPbFzW_1JxtdE/edit?usp=sharing",
+            "spreadsheet_id": spreadsheet_url,
             "credentials": {
-                "client_id": "YOUR GOOGLE CLIENT ID",
-                "client_secret": "YOUR GOOGLE CLIENT SECRET",
-                "refresh_token": "YOUR GOOGLE REFRESH TOKEN",
+                "client_id": "YOUR ID",
+                "client_secret": "YOUR SECRET",
+                "refresh_token": data["refresh_token"],
             },
         }
         des_credential["connector_config"] = des_connector_config
@@ -151,7 +154,11 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         json_body = json.dumps(request_body)
         response = requests.post(url,headers=head,data=json_body)
         logger.info(response)
-        return Explore.objects.create(**data)
+        del data["refresh_token"]
+        explore =  Explore.objects.create(**data)
+        explore.spreadsheet_url = spreadsheet_url
+        explore.save()
+        return explore
     except Exception:
         logger.exception("explore creation error")
         return (400, {"detail": "The specific explore cannot be created."})
@@ -188,3 +195,49 @@ def preview_data(request, workspace_id,prompt_id):
     items = [dict(zip([key[0] for key in cursor.description],row))for row in result]
     json_data = json.dumps(items, indent=4,default=custom_serializer)
     return json_data
+
+
+
+def create_spreadsheet(refresh_token):
+    logger.debug("create_spreadsheet")
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    credentials_dict = {
+        "client_id": "YOUR ID",
+        "client_secret": "YOUR SECRET",
+        "refresh_token": refresh_token
+    }
+
+    # Create a Credentials object from the dictionary
+    credentials = Credentials.from_authorized_user_info(
+        credentials_dict, scopes=SCOPES
+    )
+    service = build("sheets", "v4", credentials=credentials)
+        
+    # Create the spreadsheet
+    spreadsheet = {"properties": {"title": "My Spreadsheet"}}
+    try:
+        spreadsheet = (
+            service.spreadsheets()
+            .create(body=spreadsheet, fields="spreadsheetId")
+            .execute()
+        )
+        spreadsheet_id = spreadsheet.get("spreadsheetId")
+
+        # Update the sharing settings to make the spreadsheet publicly accessible
+        drive_service = build('drive', 'v3', credentials=credentials)
+        drive_service.permissions().create(
+            fileId=spreadsheet_id,
+            body={
+                "role": "writer",
+                "type": "anyone",
+                "withLink": True
+            },
+            fields="id"
+        ).execute()
+
+        spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
+        print(f"Spreadsheet URL: {spreadsheet_url}")
+        return spreadsheet_url
+    except Exception as e:
+        logger.error(f"Error creating spreadsheet: {e}")
+        return e
