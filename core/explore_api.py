@@ -200,10 +200,8 @@ def preview_data(request, workspace_id,prompt_id):
     # skip = 25*(page_id_int-1)
     query = f'SELECT * FROM {db_namespace}.{table} LIMIT 100'
     cursor.execute(query)
-    result = cursor.fetchall()
-    items = [dict(zip([key[0] for key in cursor.description],row))for row in result]
-    json_data = json.dumps(items, indent=4,default=custom_serializer)
-    return json_data
+    items = [dict(zip([key[0] for key in cursor.description], row)) for row in cursor.fetchall()]
+    return json.dumps(items, indent=4, default=custom_serializer)
 
 
 @router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
