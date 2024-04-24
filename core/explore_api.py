@@ -81,7 +81,7 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
-        name = prompt.name
+        name = "valmi.io "+prompt.name
         spreadsheet_url = create_spreadsheet(name,refresh_token=data["refresh_token"])
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
@@ -165,6 +165,7 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         response = requests.post(url,headers=head,data=json_body)
         logger.info(response)
         del data["refresh_token"]
+        data["name"] = name
         explore =  Explore.objects.create(**data)
         explore.spreadsheet_url = spreadsheet_url
         explore.save()
