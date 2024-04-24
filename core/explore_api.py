@@ -176,7 +176,7 @@ def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     
-@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview/",response={200: Json, 404: DetailSchema})
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
 def preview_data(request, workspace_id,prompt_id):
     prompt = Prompt.objects.get(id=prompt_id)
     storage_cred = StorageCredentials.objects.get(workspace_id=workspace_id)
@@ -205,6 +205,14 @@ def preview_data(request, workspace_id,prompt_id):
     return json_data
 
 
+@router.get("/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
+def get_prompts(request,explore_id):
+    try:
+        logger.debug("listing explores")
+        return Explore.objects.get(id=explore_id)
+    except Exception:
+        logger.exception("explore listing error")
+        return (400, {"detail": "The  explore cannot be fetched."})
 
 def create_spreadsheet(refresh_token):
     logger.debug("create_spreadsheet")
