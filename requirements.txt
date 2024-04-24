@@ -21,5 +21,5 @@ opentelemetry-instrumentation-django
 opentelemetry-exporter-otlp
 opentelemetry-instrumentation-logging
 requests
-google.oauth2
-googleapiclient
+google.oauth
+google-api-python-client
