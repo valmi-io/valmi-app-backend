@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from urllib.parse import urlparse
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import json
@@ -83,8 +84,8 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
             "credentials": {
-                "client_id": "YOUR ID",
-                "client_secret": "YOUR SECRET",
+               "client_id": os.environ["GOOGLE_CLIENT_ID"],
+                "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
                 "refresh_token": data["refresh_token"],
             },
         }
@@ -138,7 +139,14 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         url = 'http://localhost:4000/api/v1/workspaces/{workspaceid}/syncs/{sync_id}/runs/create'.format(workspaceid=workspace_id, sync_id=sync.id)
         logger.info(url)
         user = User.objects.get(email = request.user.email)
-        conn = psycopg2.connect(host="host.docker.internal",port="5432",database="valmi_app",user="postgres",password="changeme")
+        result = urlparse(os.environ["DATABASE_URL"])
+        # result = urlparse("postgresql://postgres:changeme@localhost/valmi_app")
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        port = result.port
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
         cursor = conn.cursor()
         query = f'SELECT KEY FROM authtoken_token WHERE user_id = {user.id}'
         cursor.execute(query)
@@ -202,8 +210,8 @@ def create_spreadsheet(refresh_token):
     logger.debug("create_spreadsheet")
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     credentials_dict = {
-        "client_id": "YOUR ID",
-        "client_secret": "YOUR SECRET",
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
         "refresh_token": refresh_token
     }
 
@@ -231,7 +239,7 @@ def create_spreadsheet(refresh_token):
                 "role": "writer",
                 "type": "anyone",
                 "withLink": True
-            },
+            },  
             fields="id"
         ).execute()
 
