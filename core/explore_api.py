@@ -80,7 +80,8 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
-        spreadsheet_url = create_spreadsheet(refresh_token=data["refresh_token"])
+        name = data["prompt"].get("name")
+        spreadsheet_url = create_spreadsheet(name,refresh_token=data["refresh_token"])
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
             "credentials": {
@@ -205,8 +206,8 @@ def preview_data(request, workspace_id,prompt_id):
     return json_data
 
 
-@router.get("/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
-def get_prompts(request,explore_id):
+@router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
+def get_prompts(request,workspace_id,explore_id):
     try:
         logger.debug("listing explores")
         return Explore.objects.get(id=explore_id)
@@ -214,7 +215,7 @@ def get_prompts(request,explore_id):
         logger.exception("explore listing error")
         return (400, {"detail": "The  explore cannot be fetched."})
 
-def create_spreadsheet(refresh_token):
+def create_spreadsheet(name,refresh_token):
     logger.debug("create_spreadsheet")
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     credentials_dict = {
@@ -222,15 +223,15 @@ def create_spreadsheet(refresh_token):
         "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
         "refresh_token": refresh_token
     }
-
+    sheet_name = f'valmi.io {name} sheet'
     # Create a Credentials object from the dictionary
     credentials = Credentials.from_authorized_user_info(
         credentials_dict, scopes=SCOPES
     )
     service = build("sheets", "v4", credentials=credentials)
-        
+
     # Create the spreadsheet
-    spreadsheet = {"properties": {"title": "My Spreadsheet"}}
+    spreadsheet = {"properties": {"title": sheet_name}}
     try:
         spreadsheet = (
             service.spreadsheets()
