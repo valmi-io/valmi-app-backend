@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 @router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
-def get_prompts(request,workspace_id):
+def get_explores(request,workspace_id):
     try:
         logger.debug("listing explores")
         workspace = Workspace.objects.get(id=workspace_id)
@@ -45,7 +45,8 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
     try:
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
-        data["prompt"] = Prompt.objects.get(id=data["prompt_id"])
+        prompt = Prompt.objects.get(id=data["prompt_id"])
+        data["prompt"] = prompt
         account_info = data.pop("account", None)
         account = {}
         if account_info and len(account_info) > 0:
@@ -80,7 +81,7 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
-        name = data["prompt"].get("name")
+        name = prompt.name
         spreadsheet_url = create_spreadsheet(name,refresh_token=data["refresh_token"])
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
