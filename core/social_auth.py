@@ -1,7 +1,9 @@
+
 from ninja import Router, Schema
 from rest_framework.authtoken.models import Token
 from core.schemas import SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
+from core.services import warehouse_credentials
 import binascii
 import os
 import uuid
@@ -48,6 +50,7 @@ def login(request, payload: SocialAuthLoginSchema):
         workspace = Workspace(name="Default Workspace", id=uuid.uuid4(), organization=org)
         workspace.save()
         user.save()
+        warehouse_credentials.DefaultWarehouse.create(workspace)
         user.organizations.add(org)
         oauth = OAuthApiKeys(workspace=workspace, type='GOOGLE_LOGIN', id=uuid.uuid4())
         oauth.oauth_config = {

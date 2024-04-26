@@ -45,7 +45,7 @@ class OrganizationSchema(ModelSchema):
 class UserSchemaOut(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
-        model_fields = ["first_name", "email"]
+        model_fields = ["first_name", "email","username"]
 
     organizations: list[OrganizationSchema] = None
 
