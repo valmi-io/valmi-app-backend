@@ -10,6 +10,7 @@ from core.models import StorageCredentials, Workspace
 logger = logging.getLogger(__name__)
 
 class DefaultWarehouse():
+    @staticmethod
     def create(workspace):
         host_url = os.environ["DATA_WAREHOUSE_URL"]
         db_password = os.environ["DATA_WAREHOUSE_PASSWORD"]
@@ -19,7 +20,7 @@ class DefaultWarehouse():
         logger.debug("logger in creating new creds")
         user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
         password = ''.join(random.choices(string.ascii_uppercase, k=17))
-        creds = {'username': user_name, 'password': password,'namespace': user_name}
+        creds = {'username': user_name, 'password': password,'namespace': user_name,'schema': user_name}
         credential_info = {"id": uuid.uuid4()}
         credential_info["workspace"] = Workspace.objects.get(id=workspace.id)
         credential_info["connector_config"] = creds

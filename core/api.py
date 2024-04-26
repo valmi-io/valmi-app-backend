@@ -211,6 +211,7 @@ def storage_credentials(request, workspace_id):
     config['username'] = creds.connector_config["username"]
     config['password'] = creds.connector_config["password"]
     config["namespace"] = creds.connector_config["namespace"]
+    config["schema"] = creds.connector_config["schema"]
     config['database'] = "dvdrental"
     config['host'] = "classspace.in"
     config['port'] = 5432
