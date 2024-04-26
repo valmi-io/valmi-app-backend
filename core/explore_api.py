@@ -86,8 +86,8 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
             "credentials": {
-               "client_id": os.environ["GOOGLE_CLIENT_ID"],
-                "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+               "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
+                "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
                 "refresh_token": data["refresh_token"],
             },
         }
@@ -219,8 +219,8 @@ def create_spreadsheet(name,refresh_token):
     logger.debug("create_spreadsheet")
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     credentials_dict = {
-        "client_id": os.environ["GOOGLE_CLIENT_ID"],
-        "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+        "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
+        "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
         "refresh_token": refresh_token
     }
     sheet_name = f'valmi.io {name} sheet'
