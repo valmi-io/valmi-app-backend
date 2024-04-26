@@ -239,3 +239,20 @@ class OAuthSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = OAuthApiKeys
         model_fields = ["workspace", "type", "oauth_config"]
+
+
+class SocialAccount(Schema):
+    provider: str    
+    type: str
+    access_token: str
+    expires_at: int
+    refresh_token: str
+    scope: str
+    token_type: str
+    id_token: str
+class SocialUser(Schema):
+    name: str
+    email: str
+class SocialAuthLoginSchema(Schema):
+    account: SocialAccount
+    user: SocialUser
