@@ -50,6 +50,13 @@ class UserSchemaOut(ModelSchema):
     organizations: list[OrganizationSchema] = None
 
 
+class CreatedUserSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = User
+        model_fields = ["first_name", "email","username"]
+    organizations: list[OrganizationSchema] = None
+    auth_token: str
+
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Connector
