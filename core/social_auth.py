@@ -62,11 +62,34 @@ def login(request, payload: SocialAuthLoginSchema):
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     queryset = User.objects.prefetch_related("organizations").get(id=user_id)
+    user_with_organizations = User.objects.prefetch_related("organizations").get(id=user_id)
+    logger.debug("before fetching user organiations")
+    logger.debug(queryset)
+    logger.debug(queryset.organizations)
+    print("User:")
+    print(f"Email: {user_with_organizations.email}")
+    print(f"Username: {user_with_organizations.username}")
+
+    # Print related organizations
+    print("Organizations:")
+    for organization in user_with_organizations.organizations.all():
+        print("in for loop")
+        print(organization.__dict__)
+    for organization in queryset.organizations.all():
+        organization_data = {
+            "id": str(organization.id),
+            "name": organization.name,
+            "status": organization.status,
+            "created_at": organization.created_at.isoformat(),  # Convert to ISO format
+            "updated_at": organization.updated_at.isoformat()   # Convert to ISO format
+        }
     response = {
         "auth_token" :str(token.key),
-        "queryset" :queryset,
         "email":user.email,
-        "username":user.username
+        "username":user.username,
+        "organizations":[]
     }
+    response["organizations"].append(organization_data)
+    logger.debug("before returning")
     logger.debug(response)
     return response

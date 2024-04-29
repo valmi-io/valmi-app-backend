@@ -54,7 +54,7 @@ class CreatedUserSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
         model_fields = ["first_name", "email","username"]
-    organizations: OrganizationSchema = Field(None, alias="organization")
+    organizations: list[OrganizationSchema] = None
     auth_token: str
     
 
