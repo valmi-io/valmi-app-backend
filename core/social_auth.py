@@ -1,14 +1,17 @@
 
+from urllib.parse import urlparse
 from ninja import Router, Schema
+import psycopg2
+from pydantic import Json
 from rest_framework.authtoken.models import Token
-from core.schemas import CreatedUserSchema, SocialAuthLoginSchema
+from core.schemas import SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
 from core.services import warehouse_credentials
 import binascii
 import os
 import uuid
 import logging
-
+import json
 router = Router()
 
 
@@ -26,7 +29,7 @@ def generate_key():
 
 
 # TODO response for bad request, 400
-@router.post("/login", response={200: CreatedUserSchema})
+@router.post("/login", response={200: Json})
 def login(request, payload: SocialAuthLoginSchema):
 
     req = payload.dict()
@@ -61,35 +64,24 @@ def login(request, payload: SocialAuthLoginSchema):
         oauth.save()
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
-    queryset = User.objects.prefetch_related("organizations").get(id=user_id)
-    user_with_organizations = User.objects.prefetch_related("organizations").get(id=user_id)
-    logger.debug("before fetching user organiations")
-    logger.debug(queryset)
-    logger.debug(queryset.organizations)
-    print("User:")
-    print(f"Email: {user_with_organizations.email}")
-    print(f"Username: {user_with_organizations.username}")
-
-    # Print related organizations
-    print("Organizations:")
-    for organization in user_with_organizations.organizations.all():
-        print("in for loop")
-        print(organization.__dict__)
-    for organization in queryset.organizations.all():
-        organization_data = {
-            "id": str(organization.id),
-            "name": organization.name,
-            "status": organization.status,
-            "created_at": organization.created_at.isoformat(),  # Convert to ISO format
-            "updated_at": organization.updated_at.isoformat()   # Convert to ISO format
-        }
-    response = {
-        "auth_token" :str(token.key),
-        "email":user.email,
-        "username":user.username,
-        "organizations":[]
+    #HACK: Hardcoded everything as of now need to figure out a way to work this 
+    result = urlparse(os.environ["DATABASE_URL"])
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
+    conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+    query = f'SELECT * FROM core_user_organizations WHERE user_id = {user_id}'
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchone()
+    query = f"SELECT * FROM core_workspace WHERE organization_id = '{result[2]}'"
+    cursor.execute(query)
+    result = cursor.fetchone()
+    response = {    
+        "auth_token": token.key,
+        "workspace_id": str(result[3])
     }
-    response["organizations"].append(organization_data)
-    logger.debug("before returning")
     logger.debug(response)
-    return response
+    return json.dumps(response)
