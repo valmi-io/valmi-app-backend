@@ -1,7 +1,7 @@
 
 from ninja import Router, Schema
 from rest_framework.authtoken.models import Token
-from core.schemas import SocialAuthLoginSchema
+from core.schemas import CreatedUserSchema, SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
 from core.services import warehouse_credentials
 import binascii
@@ -26,7 +26,7 @@ def generate_key():
 
 
 # TODO response for bad request, 400
-@router.post("/login", response={200: AuthToken})
+@router.post("/login", response={200: CreatedUserSchema})
 def login(request, payload: SocialAuthLoginSchema):
 
     req = payload.dict()
@@ -62,9 +62,11 @@ def login(request, payload: SocialAuthLoginSchema):
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     queryset = User.objects.prefetch_related("organizations").get(id=user_id)
-    logger.debug(queryset)
     response = {
-        "auth_token" :token.key,
+        "auth_token" :str(token.key),
+        "queryset" :queryset,
+        "email":user.email,
+        "username":user.username
     }
     logger.debug(response)
     return response
