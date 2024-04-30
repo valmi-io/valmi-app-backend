@@ -1,5 +1,8 @@
 
+from urllib.parse import urlparse
 from ninja import Router, Schema
+import psycopg2
+from pydantic import Json
 from rest_framework.authtoken.models import Token
 from core.schemas import SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
@@ -8,7 +11,7 @@ import binascii
 import os
 import uuid
 import logging
-
+import json
 router = Router()
 
 
@@ -26,7 +29,7 @@ def generate_key():
 
 
 # TODO response for bad request, 400
-@router.post("/login", response={200: AuthToken})
+@router.post("/login", response={200: Json})
 def login(request, payload: SocialAuthLoginSchema):
 
     req = payload.dict()
@@ -61,10 +64,24 @@ def login(request, payload: SocialAuthLoginSchema):
         oauth.save()
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
-    queryset = User.objects.prefetch_related("organizations").get(id=user_id)
-    logger.debug(queryset)
-    response = {
-        "auth_token" :token.key,
+    #HACK: Hardcoded everything as of now need to figure out a way to work this 
+    result = urlparse(os.environ["DATABASE_URL"])
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
+    conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+    query = f'SELECT * FROM core_user_organizations WHERE user_id = {user_id}'
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchone()
+    query = f"SELECT * FROM core_workspace WHERE organization_id = '{result[2]}'"
+    cursor.execute(query)
+    result = cursor.fetchone()
+    response = {    
+        "auth_token": token.key,
+        "workspace_id": str(result[3])
     }
     logger.debug(response)
-    return response
+    return json.dumps(response)
