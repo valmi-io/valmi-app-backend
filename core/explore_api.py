@@ -12,11 +12,13 @@ import uuid
 import time
 import json
 from pydantic import Json
-import requests
-from .models import Source, User
+
+from core.api import create_new_run
+
+from .models import Source
 import psycopg2
 from core.models import Account, Credential, Destination, Explore, Prompt, StorageCredentials, Workspace,Sync
-from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn
+from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, ExploreStatusSchemaIn, SuccessSchema, SyncStartStopSchemaIn
 from ninja import Router
 
 logger = logging.getLogger(__name__)
@@ -55,6 +57,21 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
             account = Account.objects.create(**account_info)
             data["account"] = account
         logger.debug(data)
+        result = urlparse(os.environ["DATABASE_URL"])
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        port = result.port
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+        cursor = conn.cursor()
+        query = f"select * from core_oauth_api_keys where workspace_id = '{workspace_id}'"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        columns = [column[0] for column in cursor.description]
+        oauth_data = dict(zip(columns, result))
+        logger.debug(oauth_data)
+        logger.debug(oauth_data["oauth_config"]["refresh_token"])
         src_credential = {"id": uuid.uuid4()}
         src_credential["workspace"] = Workspace.objects.get(id=workspace_id)
         src_credential["connector_id"] = "SRC_POSTGRES"
@@ -81,14 +98,14 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
-        name = "valmi.io "+prompt.name
-        spreadsheet_url = create_spreadsheet(name,refresh_token=data["refresh_token"])
+        name = f"valmi.io {prompt.name}"
+        spreadsheet_url = create_spreadsheet(name,refresh_token=oauth_data["oauth_config"]["refresh_token"])
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
             "credentials": {
                "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
                 "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
-                "refresh_token": data["refresh_token"],
+                "refresh_token": oauth_data["oauth_config"]["refresh_token"],
             },
         }
         des_credential["connector_config"] = des_connector_config
@@ -138,33 +155,9 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         sync = Sync.objects.create(**sync_config)
         logger.info(sync)
         time.sleep(10)
-        url = 'http://localhost:4000/api/v1/workspaces/{workspaceid}/syncs/{sync_id}/runs/create'.format(workspaceid=workspace_id, sync_id=sync.id)
-        logger.info(url)
-        user = User.objects.get(email = request.user.email)
-        result = urlparse(os.environ["DATABASE_URL"])
-        # result = urlparse("postgresql://postgres:changeme@localhost/valmi_app")
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        port = result.port
-        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
-        cursor = conn.cursor()
-        query = f'SELECT KEY FROM authtoken_token WHERE user_id = {user.id}'
-        cursor.execute(query)
-        token_row = cursor.fetchone()
-        bearer_token = f'Bearer {token_row[0]}'
-        head = {
-            "Authorization":bearer_token,
-            'Content-Type': 'application/json'
-        }
-        request_body = {
-            "full_refresh":False
-        }
-        json_body = json.dumps(request_body)
-        response = requests.post(url,headers=head,data=json_body)
-        logger.info(response)
-        del data["refresh_token"]
+        payload = SyncStartStopSchemaIn(full_refresh=True)
+        response = create_new_run(request,workspace_id,sync.id,payload)
+        print(response)
         data["name"] = name
         explore =  Explore.objects.create(**data)
         explore.spreadsheet_url = spreadsheet_url
@@ -207,7 +200,7 @@ def preview_data(request, workspace_id,prompt_id):
 
 
 @router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
-def get_prompts(request,workspace_id,explore_id):
+def get_explores(request,workspace_id,explore_id):
     try:
         logger.debug("listing explores")
         return Explore.objects.get(id=explore_id)
@@ -223,7 +216,7 @@ def create_spreadsheet(name,refresh_token):
         "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
         "refresh_token": refresh_token
     }
-    sheet_name = f'valmi.io {name} sheet'
+    sheet_name = f'{name} sheet'
     # Create a Credentials object from the dictionary
     credentials = Credentials.from_authorized_user_info(
         credentials_dict, scopes=SCOPES
@@ -240,7 +233,7 @@ def create_spreadsheet(name,refresh_token):
         )
         spreadsheet_id = spreadsheet.get("spreadsheetId")
 
-        # Update the sharing settings to make the spreadsheet publicly accessible
+        #Update the sharing settings to make the spreadsheet publicly accessible
         drive_service = build('drive', 'v3', credentials=credentials)
         drive_service.permissions().create(
             fileId=spreadsheet_id,
@@ -258,3 +251,40 @@ def create_spreadsheet(name,refresh_token):
     except Exception as e:
         logger.error(f"Error creating spreadsheet: {e}")
         return e
+
+
+@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: SuccessSchema, 400: DetailSchema})
+def get_explore_status(request,workspace_id,explore_id,payload:ExploreStatusSchemaIn):
+    data = payload.dict()
+    try:
+        logger.debug("getting_explore_status")
+        explore = Explore.objects.get(id=explore_id)
+        sync_id = data.get('sync_id')
+        result = urlparse(os.environ["DATABASE_URL"])
+        username = result.username
+        password = result.password
+        database = "valmi_activation"
+        hostname = result.hostname
+        port = result.port
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+        cursor = conn.cursor()
+        query = f"SELECT * FROM sync_runs WHERE sync_id = '{sync_id}' ORDER BY created_at DESC LIMIT 1"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        columns = [column[0] for column in cursor.description]
+        data = dict(zip(columns, result))
+        print(data.get('status'))
+        # if data.get('status') == 'stopped':
+        #     CODE for re running the sync from backend
+        #     payload = SyncStartStopSchemaIn(full_refresh=True)       
+        #     response = create_new_run(request,workspace_id,sync_id,payload)
+        #     print(response)
+        #     return "sync got failed. Please re-try again"
+        if data.get('status') == 'running':
+            return "sync is still running"
+        explore.ready = True
+        explore.save()
+        return "sync completed"
+    except Exception:
+        logger.exception("get_explore_status error")
+        return (400, {"detail": "The  explore cannot be fetched."})
