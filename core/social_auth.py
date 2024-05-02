@@ -4,7 +4,7 @@ from ninja import Router, Schema
 import psycopg2
 from pydantic import Json
 from rest_framework.authtoken.models import Token
-from core.schemas import SocialAuthLoginSchema
+from core.schemas import DetailSchema, SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
 from core.services import warehouse_credentials
 import binascii
@@ -29,7 +29,7 @@ def generate_key():
 
 
 # TODO response for bad request, 400
-@router.post("/login", response={200: Json})
+@router.post("/login", response={200: Json,400:DetailSchema})
 def login(request, payload: SocialAuthLoginSchema):
 
     req = payload.dict()
@@ -64,7 +64,6 @@ def login(request, payload: SocialAuthLoginSchema):
         oauth.save()
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
-    #HACK: Hardcoded everything as of now need to figure out a way to work this 
     result = urlparse(os.environ["DATABASE_URL"])
     username = result.username
     password = result.password
@@ -129,7 +128,6 @@ def login(request, payload: SocialAuthLoginSchema):
         "auth_token": token.key,
         "organizations":result
     }
-    logger.debug("result is ---------------------------------------")
     logger.debug(response)
     return json.dumps(response)
 
