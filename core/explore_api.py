@@ -277,32 +277,6 @@ def get_explore_status(request,workspace_id,explore_id,payload:ExploreStatusSche
     except Exception:
         logger.exception("get_explore_status error")
         return (400, {"detail": "The  explore cannot be fetched."})
-import datetime
-import json
-import logging
-from urllib.parse import urlparse
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-import json
-import os
-from os.path import dirname, join
-from typing import List
-import uuid
-import time
-import json
-from pydantic import Json
-
-from core.api import create_new_run
-
-from .models import Source
-import psycopg2
-from core.models import Account, Credential, Destination, Explore, Prompt, StorageCredentials, Workspace,Sync
-from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, ExploreStatusSchemaIn, SuccessSchema, SyncStartStopSchemaIn
-from ninja import Router
-
-logger = logging.getLogger(__name__)
-
-router = Router()
 
 @router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
 def get_explores(request,workspace_id):
