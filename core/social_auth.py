@@ -71,7 +71,6 @@ def login(request, payload: SocialAuthLoginSchema):
     hostname = result.hostname
     port = result.port
     conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
-    query = f'SELECT * FROM core_user_organizations WHERE user_id = {user_id}'
     cursor = conn.cursor()
     query = """
         SELECT
