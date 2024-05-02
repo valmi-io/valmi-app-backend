@@ -131,6 +131,6 @@ def login(request, payload: SocialAuthLoginSchema):
         logger.debug(response)
         return json.dumps(response)
     except Exception as e:
-        return 400, {"detail": e.message}
+        return (400, {"detail": e.message})
 
 
