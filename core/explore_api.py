@@ -9,6 +9,7 @@ import os
 from os.path import dirname, join
 from typing import List
 import uuid
+from decouple import config
 import time
 import json
 from pydantic import Json
@@ -24,6 +25,7 @@ from ninja import Router
 logger = logging.getLogger(__name__)
 
 router = Router()
+ACTIVATION_URL = config("ACTIVATION_SERVER")
 
 @router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
 def get_explores(request,workspace_id):
@@ -549,15 +551,18 @@ def get_explore_status(request,workspace_id,explore_id,payload:ExploreStatusSche
         result = cursor.fetchone()
         columns = [column[0] for column in cursor.description]
         data = dict(zip(columns, result))
-        print(data.get('status'))
+        status = f"{ACTIVATION_URL}/syncs/{sync_id}/status",
+        print(status)
         # if data.get('status') == 'stopped':
         #     CODE for re running the sync from backend
         #     payload = SyncStartStopSchemaIn(full_refresh=True)       
         #     response = create_new_run(request,workspace_id,sync_id,payload)
         #     print(response)
         #     return "sync got failed. Please re-try again"
-        if data.get('status') == 'running':
+        if status == 'running':
             return "sync is still running"
+        if status == 'failed':
+            return "sync got failed. Please re-try again"
         explore.ready = True
         explore.save()
         return "sync completed"

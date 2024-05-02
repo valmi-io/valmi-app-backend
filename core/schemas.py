@@ -56,6 +56,7 @@ class CreatedUserSchema(ModelSchema):
         model_fields = ["first_name", "email","username"]
     organizations: list[OrganizationSchema] = None
     auth_token: str
+    
 
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
@@ -73,7 +74,8 @@ class PromptSchema(ModelSchema):
         model = Prompt
         model_fields = ["id","name","description","query","parameters","package_id","gated","table"]
 
-
+class ExploreStatusIn(Schema):
+    sync_id:str
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
@@ -97,7 +99,6 @@ class ExploreSchemaIn(Schema):
     name:str
     account: Dict = None
     prompt_id:str
-    refresh_token:str
 
 class ExplorePreviewDataIn(Schema):
     prompt_id:str
@@ -263,3 +264,7 @@ class SocialUser(Schema):
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
     user: SocialUser
+
+
+class ExploreStatusSchemaIn(Schema):
+    sync_id: str
