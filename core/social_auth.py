@@ -64,70 +64,73 @@ def login(request, payload: SocialAuthLoginSchema):
         oauth.save()
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
-    result = urlparse(os.environ["DATABASE_URL"])
-    username = result.username
-    password = result.password
-    database = result.path[1:]
-    hostname = result.hostname
-    port = result.port
-    conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
-    cursor = conn.cursor()
-    query = """
-        SELECT
-        json_build_object(
-            'organizations', json_agg(
+    try:
+        result = urlparse(os.environ["DATABASE_URL"])
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        port = result.port
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+        cursor = conn.cursor()
+        query = """
+            SELECT
             json_build_object(
-                'created_at', organization_created_at,
-                'updated_at', organization_updated_at,
-                'name', organization_name,
-                'id', organization_id,
-                'status', organization_status,
-                'workspaces', workspaces
-            )
-            )
-        ) AS json_output
-        FROM (
-        SELECT
-            "core_organization"."created_at" AS "organization_created_at",
-            "core_organization"."updated_at" AS "organization_updated_at",
-            "core_organization"."name" AS "organization_name",
-            "core_organization"."id" AS "organization_id",
-            "core_organization"."status" AS "organization_status",
-            json_agg(
-            json_build_object(
-                'created_at', "core_workspace"."created_at",
-                'updated_at', "core_workspace"."updated_at",
-                'name', "core_workspace"."name",
-                'id', "core_workspace"."id",
-                'organization', "core_workspace"."organization_id",
-                'status', "core_workspace"."status"
-            )
-            ) AS workspaces
-        FROM
-            "core_organization"
-        LEFT JOIN
-            "core_user_organizations" ON "core_organization"."id" = "core_user_organizations"."organization_id"
-        LEFT JOIN
-            "core_workspace" ON "core_organization"."id" = "core_workspace"."organization_id"
-        WHERE
-            "core_user_organizations"."user_id" = %s
-        GROUP BY
-            "core_organization"."created_at",
-            "core_organization"."updated_at",
-            "core_organization"."name",
-            "core_organization"."id",
-            "core_organization"."status"
-        ) AS subquery;
-    """
-    cursor.execute(query,(user_id,))
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    response = {    
-        "auth_token": token.key,
-        "organizations":result
-    }
-    logger.debug(response)
-    return json.dumps(response)
+                'organizations', json_agg(
+                json_build_object(
+                    'created_at', organization_created_at,
+                    'updated_at', organization_updated_at,
+                    'name', organization_name,
+                    'id', organization_id,
+                    'status', organization_status,
+                    'workspaces', workspaces
+                )
+                )
+            ) AS json_output
+            FROM (
+            SELECT
+                "core_organization"."created_at" AS "organization_created_at",
+                "core_organization"."updated_at" AS "organization_updated_at",
+                "core_organization"."name" AS "organization_name",
+                "core_organization"."id" AS "organization_id",
+                "core_organization"."status" AS "organization_status",
+                json_agg(
+                json_build_object(
+                    'created_at', "core_workspace"."created_at",
+                    'updated_at', "core_workspace"."updated_at",
+                    'name', "core_workspace"."name",
+                    'id', "core_workspace"."id",
+                    'organization', "core_workspace"."organization_id",
+                    'status', "core_workspace"."status"
+                )
+                ) AS workspaces
+            FROM
+                "core_organization"
+            LEFT JOIN
+                "core_user_organizations" ON "core_organization"."id" = "core_user_organizations"."organization_id"
+            LEFT JOIN
+                "core_workspace" ON "core_organization"."id" = "core_workspace"."organization_id"
+            WHERE
+                "core_user_organizations"."user_id" = %s
+            GROUP BY
+                "core_organization"."created_at",
+                "core_organization"."updated_at",
+                "core_organization"."name",
+                "core_organization"."id",
+                "core_organization"."status"
+            ) AS subquery;
+        """
+        cursor.execute(query,(user_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        response = {    
+            "auth_token": token.key,
+            "organizations":result
+        }
+        logger.debug(response)
+        return json.dumps(response)
+    except Exception as e:
+        return e
 
 
