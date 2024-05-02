@@ -13,6 +13,7 @@ from decouple import config
 import time
 import json
 from pydantic import Json
+import requests
 
 from core.api import create_new_run
 
@@ -531,37 +532,25 @@ def create_spreadsheet(name,refresh_token):
         return e
 
 
-@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: SuccessSchema, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: str, 400: DetailSchema})
 def get_explore_status(request,workspace_id,explore_id,payload:ExploreStatusSchemaIn):
     data = payload.dict()
     try:
         logger.debug("getting_explore_status")
         explore = Explore.objects.get(id=explore_id)
         sync_id = data.get('sync_id')
-        result = urlparse(os.environ["DATABASE_URL"])
-        username = result.username
-        password = result.password
-        database = "valmi_activation"
-        hostname = result.hostname
-        port = result.port
-        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
-        cursor = conn.cursor()
-        query = f"SELECT * FROM sync_runs WHERE sync_id = '{sync_id}' ORDER BY created_at DESC LIMIT 1"
-        cursor.execute(query)
-        result = cursor.fetchone()
-        columns = [column[0] for column in cursor.description]
-        data = dict(zip(columns, result))
-        status = f"{ACTIVATION_URL}/syncs/{sync_id}/status",
+        response = requests.get(f"http://valmi-activation:8000/syncs/{sync_id}/status")
+        status = response.text
         print(status)
-        # if data.get('status') == 'stopped':
+        # if status == 'stopped':
         #     CODE for re running the sync from backend
         #     payload = SyncStartStopSchemaIn(full_refresh=True)       
         #     response = create_new_run(request,workspace_id,sync_id,payload)
         #     print(response)
         #     return "sync got failed. Please re-try again"
-        if status == 'running':
+        if status == '"running"':
             return "sync is still running"
-        if status == 'failed':
+        if status == '"failed"':
             return "sync got failed. Please re-try again"
         explore.ready = True
         explore.save()
