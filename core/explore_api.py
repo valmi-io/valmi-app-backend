@@ -242,7 +242,7 @@ def create_spreadsheet(name,refresh_token):
         return e
 
 
-@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: str, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: Json, 400: DetailSchema})
 def get_explore_status(request,workspace_id,explore_id):
     try:
         logger.debug("getting_explore_status")
@@ -259,13 +259,17 @@ def get_explore_status(request,workspace_id,explore_id):
         #     response = create_new_run(request,workspace_id,sync_id,payload)
         #     print(response)
         #     return "sync got failed. Please re-try again"
+        response = {}
         if status == '"running"':
-            return "sync is still running"
+            response["status"] = "running"
+            return json.dumps(response)
         if status == '"failed"':
-            return "sync got failed. Please re-try again"
+            response["status"] = "failed"
+            return json.dumps(response)
         explore.ready = True
         explore.save()
-        return "sync completed"
+        response["status"] = "success"
+        return json.dumps(response)
     except Exception:
         logger.exception("get_explore_status error")
         return (400, {"detail": "The  explore cannot be fetched."})
