@@ -19,7 +19,7 @@ from core.api import create_new_run
 from .models import OAuthApiKeys, Source
 import psycopg2
 from core.models import Account, Credential, Destination, Explore, Prompt, StorageCredentials, Workspace,Sync
-from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, ExploreStatusSchemaIn, SyncStartStopSchemaIn
+from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
 from ninja import Router
 
 logger = logging.getLogger(__name__)
@@ -147,6 +147,7 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         response = create_new_run(request,workspace_id,sync.id,payload)
         print(response)
         data["name"] = name
+        data["sync"] = sync
         explore =  Explore.objects.create(**data)
         explore.spreadsheet_url = spreadsheet_url
         explore.save()
@@ -242,13 +243,14 @@ def create_spreadsheet(name,refresh_token):
 
 
 @router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: str, 400: DetailSchema})
-def get_explore_status(request,workspace_id,explore_id,payload:ExploreStatusSchemaIn):
-    data = payload.dict()
+def get_explore_status(request,workspace_id,explore_id):
     try:
         logger.debug("getting_explore_status")
         explore = Explore.objects.get(id=explore_id)
-        sync_id = data.get('sync_id')
-        response = requests.get(f"http://valmi-activation:8000/syncs/{sync_id}/status")
+        if explore.ready:
+            return "sync completed"
+        sync_id = explore.sync.id
+        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last/run/status")
         status = response.text
         print(status)
         # if status == 'stopped':
