@@ -169,6 +169,7 @@ class Explore(models.Model):
     name = models.CharField(max_length=256, null=False, blank=False,default="aaaaaa")
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="explore_workspace")
     prompt = models.ForeignKey(to=Prompt, on_delete=models.CASCADE, related_name="explore_prompt")
+    sync = models.ForeignKey(to=Sync, on_delete=models.CASCADE, related_name="explore_sync")
     ready = models.BooleanField(null=False, blank = False, default=False)
     account = models.ForeignKey(to=Account, on_delete=models.CASCADE, related_name="explore_account")
     spreadsheet_url = models.URLField(null=True, blank=True, default="https://example.com")

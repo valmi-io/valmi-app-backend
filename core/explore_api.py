@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-from urllib.parse import urlparse
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import json
@@ -9,19 +8,24 @@ import os
 from os.path import dirname, join
 from typing import List
 import uuid
+from decouple import config
 import time
 import json
 from pydantic import Json
 import requests
-from .models import Source, User
+
+from core.api import create_new_run
+
+from .models import OAuthApiKeys, Source
 import psycopg2
 from core.models import Account, Credential, Destination, Explore, Prompt, StorageCredentials, Workspace,Sync
-from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn
+from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
 from ninja import Router
 
 logger = logging.getLogger(__name__)
 
 router = Router()
+ACTIVATION_URL = config("ACTIVATION_SERVER")
 
 @router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
 def get_explores(request,workspace_id):
@@ -55,6 +59,7 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
             account = Account.objects.create(**account_info)
             data["account"] = account
         logger.debug(data)
+        oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id,type="GOOGLE_LOGIN")
         src_credential = {"id": uuid.uuid4()}
         src_credential["workspace"] = Workspace.objects.get(id=workspace_id)
         src_credential["connector_id"] = "SRC_POSTGRES"
@@ -81,14 +86,14 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         des_credential["name"] = "DEST_GOOGLE-SHEETS 2819"
         des_credential["account"] = account
         des_credential["status"] = "active"
-        name = "valmi.io "+prompt.name
-        spreadsheet_url = create_spreadsheet(name,refresh_token=data["refresh_token"])
+        name = f"valmi.io {prompt.name}"
+        spreadsheet_url = create_spreadsheet(name,refresh_token=oauthkeys.oauth_config["refresh_token"])
         des_connector_config = {
             "spreadsheet_id": spreadsheet_url,
             "credentials": {
                "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
                 "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
-                "refresh_token": data["refresh_token"],
+                "refresh_token": oauthkeys.oauth_config["refresh_token"],
             },
         }
         des_credential["connector_config"] = des_connector_config
@@ -138,34 +143,11 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         sync = Sync.objects.create(**sync_config)
         logger.info(sync)
         time.sleep(10)
-        url = 'http://localhost:4000/api/v1/workspaces/{workspaceid}/syncs/{sync_id}/runs/create'.format(workspaceid=workspace_id, sync_id=sync.id)
-        logger.info(url)
-        user = User.objects.get(email = request.user.email)
-        result = urlparse(os.environ["DATABASE_URL"])
-        # result = urlparse("postgresql://postgres:changeme@localhost/valmi_app")
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        port = result.port
-        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
-        cursor = conn.cursor()
-        query = f'SELECT KEY FROM authtoken_token WHERE user_id = {user.id}'
-        cursor.execute(query)
-        token_row = cursor.fetchone()
-        bearer_token = f'Bearer {token_row[0]}'
-        head = {
-            "Authorization":bearer_token,
-            'Content-Type': 'application/json'
-        }
-        request_body = {
-            "full_refresh":False
-        }
-        json_body = json.dumps(request_body)
-        response = requests.post(url,headers=head,data=json_body)
-        logger.info(response)
-        del data["refresh_token"]
+        payload = SyncStartStopSchemaIn(full_refresh=True)
+        response = create_new_run(request,workspace_id,sync.id,payload)
+        print(response)
         data["name"] = name
+        data["sync"] = sync
         explore =  Explore.objects.create(**data)
         explore.spreadsheet_url = spreadsheet_url
         explore.save()
@@ -207,7 +189,7 @@ def preview_data(request, workspace_id,prompt_id):
 
 
 @router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
-def get_prompts(request,workspace_id,explore_id):
+def get_explores(request,workspace_id,explore_id):
     try:
         logger.debug("listing explores")
         return Explore.objects.get(id=explore_id)
@@ -223,7 +205,7 @@ def create_spreadsheet(name,refresh_token):
         "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
         "refresh_token": refresh_token
     }
-    sheet_name = f'valmi.io {name} sheet'
+    sheet_name = f'{name} sheet'
     # Create a Credentials object from the dictionary
     credentials = Credentials.from_authorized_user_info(
         credentials_dict, scopes=SCOPES
@@ -240,7 +222,7 @@ def create_spreadsheet(name,refresh_token):
         )
         spreadsheet_id = spreadsheet.get("spreadsheetId")
 
-        # Update the sharing settings to make the spreadsheet publicly accessible
+        #Update the sharing settings to make the spreadsheet publicly accessible
         drive_service = build('drive', 'v3', credentials=credentials)
         drive_service.permissions().create(
             fileId=spreadsheet_id,
@@ -258,3 +240,32 @@ def create_spreadsheet(name,refresh_token):
     except Exception as e:
         logger.error(f"Error creating spreadsheet: {e}")
         return e
+
+
+@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: str, 400: DetailSchema})
+def get_explore_status(request,workspace_id,explore_id):
+    try:
+        logger.debug("getting_explore_status")
+        explore = Explore.objects.get(id=explore_id)
+        if explore.ready:
+            return "sync completed"
+        sync_id = explore.sync.id
+        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last/run/status")
+        status = response.text
+        print(status)
+        # if status == 'stopped':
+        #     CODE for re running the sync from backend
+        #     payload = SyncStartStopSchemaIn(full_refresh=True)       
+        #     response = create_new_run(request,workspace_id,sync_id,payload)
+        #     print(response)
+        #     return "sync got failed. Please re-try again"
+        if status == '"running"':
+            return "sync is still running"
+        if status == '"failed"':
+            return "sync got failed. Please re-try again"
+        explore.ready = True
+        explore.save()
+        return "sync completed"
+    except Exception:
+        logger.exception("get_explore_status error")
+        return (400, {"detail": "The  explore cannot be fetched."})
