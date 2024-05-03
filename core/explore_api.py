@@ -250,7 +250,7 @@ def get_explore_status(request,workspace_id,explore_id):
         if explore.ready:
             return "sync completed"
         sync_id = explore.sync.id
-        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/lastRunStatus")
+        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latestRunStatus")
         status = response.text
         print(status)
         # if status == 'stopped':
