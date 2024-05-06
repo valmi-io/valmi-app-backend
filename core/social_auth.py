@@ -53,7 +53,6 @@ def login(request, payload: SocialAuthLoginSchema):
         workspace = Workspace(name="Default Workspace", id=uuid.uuid4(), organization=org)
         workspace.save()
         user.save()
-        warehouse_credentials.DefaultWarehouse.create(workspace)
         user.organizations.add(org)
         oauth = OAuthApiKeys(workspace=workspace, type='GOOGLE_LOGIN', id=uuid.uuid4())
         oauth.oauth_config = {

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class DefaultWarehouse():
     @staticmethod
-    def create(workspace):
+    def create(workspace,shopify_store):
         host_url = os.environ["DATA_WAREHOUSE_URL"]
         db_password = os.environ["DATA_WAREHOUSE_PASSWORD"]
         db_username = os.environ["DATA_WAREHOUSE_USERNAME"]
@@ -20,7 +20,7 @@ class DefaultWarehouse():
         logger.debug("logger in creating new creds")
         user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
         password = ''.join(random.choices(string.ascii_uppercase, k=17))
-        creds = {'username': user_name, 'password': password,'namespace': user_name,'schema': user_name}
+        creds = {'username': user_name, 'password': password,'namespace': user_name,'schema': user_name,'shopify_store':shopify_store,'host':'classspace.in','database':'dvdrental','port':5432}
         credential_info = {"id": uuid.uuid4()}
         credential_info["workspace"] = Workspace.objects.get(id=workspace.id)
         credential_info["connector_config"] = creds

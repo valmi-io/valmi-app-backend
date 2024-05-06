@@ -12,7 +12,6 @@ from typing import Dict, Optional
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
-
 from .models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
 
 
@@ -94,6 +93,17 @@ class CredentialSchemaIn(Schema):
     account: Dict = None
     name: str
 
+class ConnectionSchemaIn(Schema):
+    account: Dict = None
+    shopify_store: str
+    source_catalog: Dict
+    destination_catalog: Dict
+    schedule: Dict
+    source_connector_type: str
+    source_connector_config: Dict
+    
+
+    
 class ExploreSchemaIn(Schema):
     ready: bool = False
     name:str
