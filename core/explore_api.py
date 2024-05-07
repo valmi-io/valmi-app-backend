@@ -114,55 +114,6 @@ def get_explores(request,workspace_id,explore_id):
         logger.exception("explore listing error")
         return (400, {"detail": "The  explore cannot be fetched."})
 
-# def create_spreadsheet(name,refresh_token):
-    # try:
-    #     explore.ExploreService.create_spreadsheet(name,refresh_token)
-    # except Exception as e:
-    #     logger.exception("create_spreadsheet error")
-    #     return (400, {"detail": "The specific explore cannot be created."})
-    # logger.debug("create_spreadsheet")
-    # SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-    # credentials_dict = {
-    #     "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
-    #     "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
-    #     "refresh_token": refresh_token
-    # }
-    # sheet_name = f'{name} sheet'
-    # # Create a Credentials object from the dictionary
-    # credentials = Credentials.from_authorized_user_info(
-    #     credentials_dict, scopes=SCOPES
-    # )
-    # service = build("sheets", "v4", credentials=credentials)
-
-    # # Create the spreadsheet
-    # spreadsheet = {"properties": {"title": sheet_name}}
-    # try:
-    #     spreadsheet = (
-    #         service.spreadsheets()
-    #         .create(body=spreadsheet, fields="spreadsheetId")
-    #         .execute()
-    #     )
-    #     spreadsheet_id = spreadsheet.get("spreadsheetId")
-
-    #     #Update the sharing settings to make the spreadsheet publicly accessible
-    #     drive_service = build('drive', 'v3', credentials=credentials)
-    #     drive_service.permissions().create(
-    #         fileId=spreadsheet_id,
-    #         body={
-    #             "role": "writer",
-    #             "type": "anyone",
-    #             "withLink": True
-    #         },  
-    #         fields="id"
-    #     ).execute()
-
-    #     spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
-    #     print(f"Spreadsheet URL: {spreadsheet_url}")
-    #     return spreadsheet_url
-    # except Exception as e:
-    #     logger.error(f"Error creating spreadsheet: {e}")
-    #     return e
-
 
 @router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: Json, 400: DetailSchema})
 def get_explore_status(request,workspace_id,explore_id):
