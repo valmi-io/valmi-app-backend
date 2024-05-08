@@ -10,15 +10,14 @@ from ninja import Router
 from pydantic import UUID4, Json
 
 from core.routes.api_config import LONG_TIMEOUT, SHORT_TIMEOUT
-from core.schemas import (ConnectionSchemaIn, ConnectorConfigSchemaIn,
-                          CreateConfigSchemaIn, CredentialSchema,
-                          CredentialSchemaIn, CredentialSchemaUpdateIn,
-                          DestinationSchema, DestinationSchemaIn, DetailSchema,
-                          FailureSchema, SourceSchema, SourceSchemaIn,
-                          SuccessSchema, SyncIdSchema, SyncSchema,
-                          SyncSchemaIn, SyncSchemaUpdateIn,
-                          SyncStartStopSchemaIn)
-from core.services import warehouse_credentials
+from core.schemas.schemas import (ConnectionSchemaIn, ConnectorConfigSchemaIn,
+                                  CreateConfigSchemaIn, CredentialSchema,
+                                  CredentialSchemaIn, CredentialSchemaUpdateIn,
+                                  DestinationSchema, DestinationSchemaIn,
+                                  DetailSchema, FailureSchema, SourceSchema,
+                                  SourceSchemaIn, SuccessSchema, SyncIdSchema,
+                                  SyncSchema, SyncSchemaIn, SyncSchemaUpdateIn,
+                                  SyncStartStopSchemaIn)
 from valmi_app_backend.utils import replace_values_in_json
 
 from ..models import (Account, Connector, Credential, Destination,
@@ -176,15 +175,14 @@ def create_connection_with_default_warehouse(request, workspace_id,payload: Conn
     try:
         source_credential_payload = CredentialSchemaIn(name=data["shopify_store"],account=data["account"],connector_type=data["source_connector_type"],connector_config=data["source_connector_config"])
         source_credential = create_credential(request,workspace_id,source_credential_payload)
-        workspace = Workspace.objects.get(id = workspace_id)
-        warehouse_credentials.DefaultWarehouse.create(workspace,data["shopify_store"])
-        storage_credentials = StorageCredentials.objects.filter(workspace_id=workspace_id).get(
-                connector_config__shopify_store=data["shopify_store"]
-        )         
-        destination_credential_payload = CredentialSchemaIn(name="default warehouse",account=data["account"],connector_type="DEST_POSTGRES-DEST",connector_config=storage_credentials.connector_config)
-        destination_credential = create_credential(request,workspace_id,destination_credential_payload)
         source_payload = SourceSchemaIn(name="shopify",credential_id=source_credential.id,catalog = data["source_catalog"])
         source = create_source(request,workspace_id,source_payload)
+        workspace = Workspace.objects.get(id = workspace_id)
+        storage_credentials = DefaultWarehouse.create(workspace)
+        source_access_info = {"source":source, "storage_credentials":storage_credentials}
+        SourceAccessInfo.objects.create(**source_access_info)       
+        destination_credential_payload = CredentialSchemaIn(name="default warehouse",account=data["account"],connector_type="DEST_POSTGRES-DEST",connector_config=storage_credentials.connector_config)
+        destination_credential = create_credential(request,workspace_id,destination_credential_payload)
         destination_payload = DestinationSchemaIn(name="default warehouse",credential_id=destination_credential.id,catalog = data["destination_catalog"])
         destination = create_destination(request,workspace_id,destination_payload)
         sync_payload = SyncSchemaIn(name="shopify to default warehouse",source_id=source.id,destination_id=destination.id,schedule=data["schedule"])
@@ -194,7 +192,7 @@ def create_connection_with_default_warehouse(request, workspace_id,payload: Conn
         logger.debug(response)
         return "starting sync from shopify to default warehouse"
     except Exception as e:
-        logger.debug(e.message)
+        logger.exception(e)
         return {"detail": "The specific connection cannot be created."}
 
 @router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
