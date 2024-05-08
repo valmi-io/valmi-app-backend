@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 from google.oauth2.credentials import Credentials
@@ -19,7 +18,7 @@ from core.api import create_new_run
 from .models import OAuthApiKeys, Source
 import psycopg2
 from core.models import Account, Credential, Destination, Explore, Prompt, StorageCredentials, Workspace,Sync
-from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
+from core.schemas.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
 from ninja import Router
 
 logger = logging.getLogger(__name__)
@@ -156,38 +155,6 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         logger.exception("explore creation error")
         return (400, {"detail": "The specific explore cannot be created."})
     
-
-def custom_serializer(obj):
-    if isinstance(obj, datetime.datetime):
-        return obj.isoformat()
-    
-@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
-def preview_data(request, workspace_id,prompt_id):
-    prompt = Prompt.objects.get(id=prompt_id)
-    storage_cred = StorageCredentials.objects.get(workspace_id=workspace_id)
-    host_url = os.environ["DATA_WAREHOUSE_URL"]
-    db_password = storage_cred.connector_config.get('password')
-    db_username = storage_cred.connector_config.get('username')
-    db_namespace = storage_cred.connector_config.get('namespace')
-    conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
-    cursor = conn.cursor()
-    table = prompt.table
-    # LOGIC for implementing pagination if necessary
-    # query = f'SELECT COUNT(*) FROM {db_namespace}.{table}'
-    # cursor.execute(query)
-    # count_row = cursor.fetchone()
-    # count = count_row[0] if count_row is not None else 0
-    # page_id_int = int(page_id)
-
-    # if page_id_int > count/25 or page_id_int<=0:
-    #     return (404, {"detail": "Invalid page Id."})
-    # skip = 25*(page_id_int-1)
-    query = f'SELECT * FROM {db_namespace}.{table} LIMIT 100'
-    cursor.execute(query)
-    items = [dict(zip([key[0] for key in cursor.description], row)) for row in cursor.fetchall()]
-    return json.dumps(items, indent=4, default=custom_serializer)
-
-
 @router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
 def get_explores(request,workspace_id,explore_id):
     try:

@@ -12,7 +12,7 @@ from typing import Dict, List
 from decouple import Csv, config
 from ninja import Router
 
-from core.schemas import ConnectorSchema, DetailSchema, PackageSchema, PromptSchema, SyncSchema
+from core.schemas.schemas import ConnectorSchema, DetailSchema, PackageSchema, PromptSchema, SyncSchema
 
 from .models import (
     Connector,

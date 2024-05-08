@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from core.models import Package
-from core.schemas import DetailSchema, PackageSchema
+from core.schemas.schemas import DetailSchema, PackageSchema
 from ninja import Router
 
 logger = logging.getLogger(__name__)

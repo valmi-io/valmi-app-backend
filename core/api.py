@@ -16,7 +16,7 @@ import requests
 from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
-from core.schemas import (
+from core.schemas.schemas import (
     ConnectionSchemaIn,
     ConnectorConfigSchemaIn,
     ConnectorSchema,

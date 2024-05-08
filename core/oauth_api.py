@@ -18,7 +18,7 @@ from pydantic import Json
 
 from .models import Connector, Workspace, OAuthApiKeys
 
-from core.schemas import (
+from core.schemas.schemas import (
     DetailSchema,
     OAuthSchema,
     OAuthSchemaIn,

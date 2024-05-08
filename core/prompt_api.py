@@ -1,10 +1,17 @@
+import datetime
+import json
 import logging
+import os
 from typing import List
 
-from core.models import Prompt, Credential
-from core.schemas import DetailSchema, PromptSchema,PromptSchemaOut
+import psycopg2
 from ninja import Router
-import json
+from pydantic import Json
+
+from core.models import Credential, Prompt, StorageCredentials
+from core.schemas.prompt import PromptPreviewSchemaIn
+from core.schemas.schemas import DetailSchema, PromptSchema, PromptSchemaOut
+from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
 
@@ -38,3 +45,21 @@ def get_prompts(request,prompt_id):
         return (400, {"detail": "The  prompt cannot be fetched."})
 
     
+def custom_serializer(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+    
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
+def preview_data(request, workspace_id,prompt_id, prompt_req: PromptPreviewSchemaIn):
+    prompt = Prompt.objects.get(id=prompt_id)
+    query = PromptService().build(prompt.table, prompt_req.time_window, prompt_req.filters)
+    storage_cred = StorageCredentials.objects.get(workspace_id=workspace_id)
+    host_url = os.environ["DATA_WAREHOUSE_URL"]
+    db_password = storage_cred.connector_config.get('password')
+    db_username = storage_cred.connector_config.get('username')
+    db_namespace = storage_cred.connector_config.get('namespace')
+    conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+    cursor = conn.cursor()
+    cursor.execute(query)
+    items = [dict(zip([key[0] for key in cursor.description], row)) for row in cursor.fetchall()]
+    return json.dumps(items, indent=4, default=custom_serializer)

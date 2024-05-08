@@ -1,0 +1,9 @@
+
+{% assign filterStr = "" %}
+{% for filter in filters %}    
+    {% assign filterStr = filterStr| append: filter.name | append: " " | append: filter.operator | append: " "| append: filter.value %}
+    {% if forloop.last == false %}
+        {% assign filterStr = filterStr| append: " and " %}
+    {% endif %}
+{% endfor %}
+select * from {{ table }} where {{ filterStr }} and updated_at >= {{ timeWindow.range.start}} and updated_at <= {{ timeWindow.range.end }}
