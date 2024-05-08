@@ -49,7 +49,7 @@ def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     
-@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
+@router.post("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
 def preview_data(request, workspace_id,prompt_id, prompt_req: PromptPreviewSchemaIn):
     prompt = Prompt.objects.get(id=prompt_id)
     query = PromptService().build(prompt.table, prompt_req.time_window, prompt_req.filters)

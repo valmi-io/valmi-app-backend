@@ -1,16 +1,30 @@
-from liquid import Environment, FileSystemLoader
+import logging
+from pathlib import Path
 
+from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
+from core.schemas.prompt import TimeWindow
+
+logger = logging.getLogger(__name__)
 class PromptService():    
     @classmethod
-    def getTemplateFile(cls, tab:str):
+    def getTemplateFile(cls):
         return 'prompts.liquid'
     @staticmethod
-    def build(table, timeWindow, filters)-> str:
+    def build(table, timeWindow: TimeWindow , filters: list[TimeWindow])-> str:
+        timeWindowDict = timeWindow.dict()
+        filterList = []
+        for filter in filters:
+            filterList.append(filter.__dict__)
         file_name  = PromptService.getTemplateFile()
-        env = Environment(loader=FileSystemLoader("templates/"))
+        template_parent_path = Path(__file__).parent.absolute()
+        env = Environment(
+            tolerance=Mode.STRICT,
+            undefined=StrictUndefined,
+            loader=FileSystemLoader(str(template_parent_path) + "/prompt_templates"))
         template = env.get_template(file_name)
-        return template.render(table=table, timeWindow=timeWindow, filters=filters)
+        filters = list(filters)
+        return template.render(table=table, timeWindow=timeWindowDict, filters=filterList)
 
 
 
