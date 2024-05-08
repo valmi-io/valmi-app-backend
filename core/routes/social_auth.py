@@ -7,10 +7,20 @@ from rest_framework.authtoken.models import Token
 from core.schemas import DetailSchema, SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
 import binascii
+import json
+import logging
 import os
 import uuid
-import logging
-import json
+from urllib.parse import urlparse
+
+import psycopg2
+from ninja import Router, Schema
+from pydantic import Json
+from rest_framework.authtoken.models import Token
+
+from core.models import OAuthApiKeys, Organization, User, Workspace
+from core.schemas.schemas import DetailSchema, SocialAuthLoginSchema
+
 router = Router()
 
 
