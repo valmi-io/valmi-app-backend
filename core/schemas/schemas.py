@@ -116,6 +116,7 @@ class ExploreSchemaIn(Schema):
     name:str
     account: Dict = None
     prompt_id:str
+    source_id:str
 
 class ExplorePreviewDataIn(Schema):
     prompt_id:str
