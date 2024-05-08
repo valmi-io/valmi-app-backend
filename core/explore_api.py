@@ -13,7 +13,7 @@ import requests
 
 
 import psycopg2
-from core.models import Account, Credential, Explore, Prompt, StorageCredentials, Workspace
+from core.models import Account, Explore, Prompt, StorageCredentials, Workspace
 from core.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
 from ninja import Router
 from core.services.explore_service import ExploreService
@@ -52,22 +52,22 @@ def create_explore(request, workspace_id,payload: ExploreSchemaIn):
         source = ExploreService.create_source(workspace_id,account)
        #create destination
         spreadsheet_name = f"valmiio {prompt.name} sheet"
-        destination = ExploreService.create_destination(spreadsheet_name,workspace_id,account)
+        destination_data = ExploreService.create_destination(spreadsheet_name,workspace_id,account)
+        spreadsheet_url = destination_data[0]
+        destination = destination_data[1]
         logger.debug("after service creation")
         logger.info(destination.id)
         #create sync
         sync = ExploreService.create_sync(source,destination,workspace_id)
         time.sleep(5)
-        #create run
-        payload = SyncStartStopSchemaIn(full_refresh=True)
-        ExploreService.create_run(request,workspace_id,sync.id,payload)
         #creating explore
         data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
+        data["spreadsheet_url"] = spreadsheet_url
         explore =  Explore.objects.create(**data)
-        spreadsheet_url = Credential.objects.get(id=destination.credential.id).connector_config["spreadsheet_id"]
-        explore.spreadsheet_url = spreadsheet_url
-        explore.save()
+        #create run
+        payload = SyncStartStopSchemaIn(full_refresh=True)
+        ExploreService.create_run(request,workspace_id,sync.id,payload)
         return explore
     except Exception as e:
         logger.exception(e)

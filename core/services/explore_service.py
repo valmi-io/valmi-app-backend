@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from typing import List, Union
 import uuid
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -8,11 +9,12 @@ from os.path import dirname, join
 from core.api import create_new_run
 from core.models import Credential, Destination, OAuthApiKeys, Source, StorageCredentials, Sync, Workspace
 logger = logging.getLogger(__name__)
+
+SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 class ExploreService:
     @staticmethod
-    def create_spreadsheet(name:str,refresh_token:str):
+    def create_spreadsheet(name:str,refresh_token:str)->str:
         logger.debug("create_spreadsheet")
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
         credentials_dict = {
             "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
             "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
@@ -20,8 +22,9 @@ class ExploreService:
         }
         # Create a Credentials object from the dictionary
         try:
+            base_spreadsheet_url = "https://docs.google.com/spreadsheets/d/"
             credentials = Credentials.from_authorized_user_info(
-             credentials_dict, scopes=SCOPES
+             credentials_dict, scopes=SPREADSHEET_SCOPES
             )
             service = build("sheets", "v4", credentials=credentials)
             # Create the spreadsheet
@@ -44,15 +47,14 @@ class ExploreService:
                 fields="id"
             ).execute()
 
-            spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
-            print(f"Spreadsheet URL: {spreadsheet_url}")
+            spreadsheet_url = f"{base_spreadsheet_url}{spreadsheet_id}"
             return spreadsheet_url
         except Exception as e:
-            logger.error(f"Error creating spreadsheet: {e}")
-            raise Exception("spreadhseet creationm failed")
+            logger.exception(f"Error creating spreadsheet: {e}")
+            raise Exception("spreadhseet creation failed")
     
     @staticmethod
-    def create_source(workspace_id,account:object):
+    def create_source(workspace_id:str,account:object)->object:
         try:
             #creating source credentail
             credential = {"id": uuid.uuid4()}
@@ -89,11 +91,11 @@ class ExploreService:
             result = Source.objects.create(**source)
             return result
         except Exception as e:
-            logger.error(f"Error creating source: {e}")
+            logger.exception(f"Error creating source: {e}")
             raise Exception("unable to create source")
     
     @staticmethod
-    def create_destination(spreadsheet_name:str,workspace_id,account:object):
+    def create_destination(spreadsheet_name:str,workspace_id:str,account:object)->List[Union[str, object]]:
         try:
             #creating destination credential
             oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id,type="GOOGLE_LOGIN")
@@ -129,13 +131,13 @@ class ExploreService:
             destination["catalog"] = destination_catalog
             result = Destination.objects.create(**destination)
             logger.info(result)
-            return result
+            return [spreadsheet_url,result]
         except Exception as e:
-            logger.error(f"Error creating destination: {e}")
+            logger.exception(f"Error creating destination: {e}")
             raise Exception("unable to create destination")
         
     @staticmethod
-    def create_sync(source:object,destination:object,workspace_id):
+    def create_sync(source:object,destination:object,workspace_id:str)->object:
         try:
             logger.debug("creating sync in service")
             logger.debug(source.id)
@@ -154,14 +156,14 @@ class ExploreService:
             sync = Sync.objects.create(**sync_config)
             return sync
         except Exception as e:
-            logger.error(f"Error creating sync: {e}")
+            logger.exception(f"Error creating sync: {e}")
             raise Exception("unable to create sync")
 
     @staticmethod
-    def create_run(request,workspace_id,sync_id,payload):
+    def create_run(request:object,workspace_id:str,sync_id:str,payload:object)->None:
         try:
              response = create_new_run(request,workspace_id,sync_id,payload)
              logger.debug(response)
         except Exception as e:
-            logger.error(f"Error creating run: {e}")
+            logger.exception(f"Error creating run: {e}")
             raise Exception("unable to create run")
