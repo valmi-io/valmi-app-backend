@@ -150,6 +150,10 @@ class Prompt(models.Model):
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
     gated = models.BooleanField(null=False, blank = False, default=True)
 
+class SourceAccessInfo(models.Model):
+    source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="source_access_info")
+    storage_credentials = models.ForeignKey(to=StorageCredentials,on_delete=models.CASCADE,related_name="source_access_info")
+
 class Account(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False)
