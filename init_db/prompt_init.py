@@ -14,7 +14,7 @@ import os
 from requests.auth import HTTPBasicAuth
 
 
-prompt_defs = json.loads(open(join(dirname(__file__), "prompt_def.json"), "r").read())
+prompt_defs = json.loads(open(join(dirname(__file__), "test_prompt_def.json"), "r").read())
 
 for prompt_def in prompt_defs["definitions"]:
     resp = requests.post(
@@ -23,9 +23,9 @@ for prompt_def in prompt_defs["definitions"]:
             "id":str(uuid.uuid4()),
             "name": prompt_def["name"],
             "description": prompt_def["description"],
-            "query": prompt_def["query"],
+            "type": prompt_def["type"],
             "table":prompt_def["table"],
-            "parameters":prompt_def["parameters"],
+            "spec":prompt_def["spec"],
             "package_id":prompt_def["package_id"],
             "gated":prompt_def["gated"],
         },

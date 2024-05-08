@@ -6,17 +6,14 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
-from django.utils import timezone
 import uuid
+from enum import Enum
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.contrib.postgres.fields import ArrayField
-
-
-from enum import Enum
-
+from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -147,8 +144,8 @@ class Prompt(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     name = models.CharField(max_length=256, null=False, blank=False,unique=True)
     description = models.CharField(max_length=1000, null=False, blank=False,default="aaaaaa")
-    query = models.CharField(null=False, blank = False,max_length=5000)
-    parameters = models.JSONField(blank=False, null=True)
+    type = models.CharField(null=False, blank = False,max_length=256, default="SRC_SHOPIFY")
+    spec = models.JSONField(blank=False, null=True)
     table = models.CharField(max_length=256,null=False, blank=False,default="table_name")
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
     gated = models.BooleanField(null=False, blank = False, default=True)
