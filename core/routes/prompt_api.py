@@ -52,7 +52,7 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id,prompt_id, prompt_req: PromptPreviewSchemaIn):
     prompt = Prompt.objects.get(id=prompt_id)
     query = PromptService().build(prompt.table, prompt_req.time_window, prompt_req.filters)
-    souce_access_info = SourceAccessInfo.objects.get(id=prompt_req.source_id)
+    souce_access_info = SourceAccessInfo.objects.get(source_id=prompt_req.source_id)
     storage_cred = StorageCredentials.objects.get(id=souce_access_info.storage_credentials_id)
     host_url = os.environ["DATA_WAREHOUSE_URL"]
     db_password = storage_cred.connector_config.get('password')

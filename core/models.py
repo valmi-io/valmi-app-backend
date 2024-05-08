@@ -150,7 +150,7 @@ class Prompt(models.Model):
     gated = models.BooleanField(null=False, blank = False, default=True)
 
 class SourceAccessInfo(models.Model):
-    source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="source_access_info")
+    source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="source_access_info",primary_key=True)
     storage_credentials = models.ForeignKey(to=StorageCredentials,on_delete=models.CASCADE,related_name="source_access_info")
 
 class Account(models.Model):

@@ -1,17 +1,13 @@
 import json
 import logging
 import os
-import uuid
-from os.path import dirname, join
 from typing import List, Union
-
+import uuid
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-
-from core.models import (Credential, Destination, OAuthApiKeys, Source,
-                         StorageCredentials, Sync, Workspace)
-from core.routes.workspace_api import create_new_run
-
+from os.path import dirname, join
+from core.api import create_new_run
+from core.models import Credential, Destination, OAuthApiKeys, Source, SourceAccessInfo, StorageCredentials, Sync, Workspace
 logger = logging.getLogger(__name__)
 
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
@@ -58,7 +54,7 @@ class ExploreService:
             raise Exception("spreadhseet creation failed")
     
     @staticmethod
-    def create_source(workspace_id:str,account:object)->object:
+    def create_source(shopify_source_id:str,workspace_id:str,account:object)->object:
         try:
             #creating source credentail
             credential = {"id": uuid.uuid4()}
@@ -67,7 +63,8 @@ class ExploreService:
             credential["name"] = "SRC_POSTGRES"
             credential["account"] = account
             credential["status"] = "active"
-            storage_credential = StorageCredentials.objects.get(workspace_id = workspace_id)
+            source_access_info = SourceAccessInfo.objects.get(source_id=shopify_source_id)
+            storage_credential = StorageCredentials.objects.get(id = source_access_info.storage_credentials.id)
             connector_config = {
                 "ssl": False,
                 "host": storage_credential.connector_config["host"],
