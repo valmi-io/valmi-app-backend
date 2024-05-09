@@ -17,4 +17,4 @@
     {% assign filterStr = filterStr | append: " and " %}
 {%  endif  %}
 
-select * from {{ table }} where {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start}}' and "updated_at" <= '{{ timeWindow.range.end }}' limit 100
+select * from {{ table }} where {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start}}' and "updated_at" <= '{{ timeWindow.range.end }}'
