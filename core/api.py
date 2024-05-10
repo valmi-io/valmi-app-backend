@@ -206,7 +206,7 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
 def create_connection_with_default_warehouse(request, workspace_id,payload: ConnectionSchemaIn):
     data = payload.dict()
     try:
-        source_credential_payload = CredentialSchemaIn(name=data["shopify_store"],account=data["account"],connector_type=data["source_connector_type"],connector_config=data["source_connector_config"])
+        source_credential_payload = CredentialSchemaIn(name=data["name"],account=data["account"],connector_type=data["source_connector_type"],connector_config=data["source_connector_config"])
         source_credential = create_credential(request,workspace_id,source_credential_payload)
         source_payload = SourceSchemaIn(name="shopify",credential_id=source_credential.id,catalog = data["source_catalog"])
         source = create_source(request,workspace_id,source_payload)

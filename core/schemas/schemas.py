@@ -103,7 +103,7 @@ class CredentialSchemaIn(Schema):
 
 class ConnectionSchemaIn(Schema):
     account: Dict = None
-    shopify_store: str
+    name: str
     source_catalog: Dict
     destination_catalog: Dict
     schedule: Dict
