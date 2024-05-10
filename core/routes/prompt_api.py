@@ -40,14 +40,14 @@ def get_prompts(request,workspace_id,prompt_id):
         prompt = Prompt.objects.get(id=prompt_id)
         credential_info = Source.objects.filter(credential__workspace_id=workspace_id, credential__connector_id=prompt.type).select_related('credential').values('credential__name', 'credential__created_at', 'id')
         logger.debug(credential_info[0])
-        source_ids = []
+        sources = []
         for info in credential_info.all():
             source={
                 "name" : str(info['credential__name'] +'$'+ str(info['credential__created_at'])),
                 "id":str(info['id'])
             }
-            source_ids.append(source)
-        prompt.source_id = source_ids
+            sources.append(source)
+        prompt.sources = sources
         logger.debug(prompt)
         return prompt
     except Exception:
