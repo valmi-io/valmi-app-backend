@@ -72,7 +72,7 @@ class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
         model_fields = ["id","name","description","type","spec","package_id","gated","table"]
-    source_id: List[Dict[str, str]]
+    sources: List[Dict[str, str]]
 
 class PromptSchemaOut(Schema):
     id: str
