@@ -40,9 +40,15 @@ def get_prompts(request,workspace_id,prompt_id):
         prompt = Prompt.objects.get(id=prompt_id)
         credential_info = Source.objects.filter(credential__workspace_id=workspace_id, credential__connector_id=prompt.type).select_related('credential').values('credential__name', 'credential__created_at', 'id')
         logger.debug(credential_info[0])
+        source_ids = []
         for info in credential_info.all():
-            source_id = str(info['credential__name'] +'$'+ str(info['credential__created_at']))
-            prompt.spec["properties"]["sourceId"]["enum"].append(source_id)
+            source={
+                "name" : str(info['credential__name'] +'$'+ str(info['credential__created_at'])),
+                "id":str(info['id'])
+            }
+            source_ids.append(source)
+        prompt.source_id = source_ids
+        logger.debug(prompt)
         return prompt
     except Exception:
         logger.exception("prompt listing error")
@@ -55,12 +61,8 @@ def custom_serializer(obj):
     
 @router.post("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
 def preview_data(request, workspace_id,prompt_id, prompt_req: PromptPreviewSchemaIn):
-    name,created_at = prompt_req.source_id.split("$")
-    logger.debug(name,created_at)
-    credential = Credential.objects.get(name=name,created_at=created_at)
-    source_id = Source.objects.get(credential_id = credential.id)
     prompt = Prompt.objects.get(id=prompt_id)
-    source_access_info = SourceAccessInfo.objects.get(source_id=source_id)
+    source_access_info = SourceAccessInfo.objects.get(source_id=prompt_req.source_id)
     storage_credentials = StorageCredentials.objects.get(id=source_access_info.storage_credentials.id)
     schema_name = storage_credentials.connector_config["schema"]
     table_name = f'{schema_name}.{prompt.table}'
