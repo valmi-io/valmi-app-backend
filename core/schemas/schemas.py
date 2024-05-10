@@ -7,7 +7,7 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
@@ -72,6 +72,7 @@ class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
         model_fields = ["id","name","description","type","spec","package_id","gated","table"]
+    source_id: List[Dict[str, str]]
 
 class PromptSchemaOut(Schema):
     id: str
