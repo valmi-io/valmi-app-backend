@@ -3,14 +3,12 @@ import json
 import logging
 import os
 from typing import List
-
 import psycopg2
 from ninja import Router
 from pydantic import Json
-
-from core.models import Credential, Prompt, Source, SourceAccessInfo, StorageCredentials
+from core.models import Credential, Prompt, Source, StorageCredentials
 from core.schemas.prompt import PromptPreviewSchemaIn
-from core.schemas.schemas import DetailSchema, PromptSchema, PromptSchemaOut
+from core.schemas.schemas import DetailSchema, PromptByIdSchema, PromptSchemaOut
 from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
@@ -34,21 +32,37 @@ def get_prompts(request):
         logger.exception("prompts listing error:"+ err)
         return (400, {"detail": "The list of prompts cannot be fetched."})
 
-@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
-def get_prompts(request,workspace_id,prompt_id):
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptByIdSchema, 400: DetailSchema})
+def get_prompt(request,workspace_id,prompt_id):
     try:
         logger.debug("listing prompts")
         prompt = Prompt.objects.get(id=prompt_id)
-        credential_info = Source.objects.filter(credential__workspace_id=workspace_id, credential__connector_id=prompt.type).select_related('credential').values('credential__name', 'credential__created_at', 'id')
-        logger.debug(credential_info[0])
-        sources = []
-        for info in credential_info.all():
-            source={
-                "name" : str(info['credential__name'] +'$'+ str(info['credential__created_at'])),
-                "id":str(info['id'])
-            }
-            sources.append(source)
-        prompt.sources = sources
+        if not PromptService.is_prompt_enabled(workspace_id,prompt):
+            detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
+            return 400, {"detail": detail_message}
+        credential_info = Source.objects.filter(
+            credential__workspace_id=workspace_id,
+            credential__connector_id=prompt.type
+        ).select_related('credential', 'source_access_info')
+        schemas = {}
+
+        for info in credential_info:
+            if source_access_info := info.source_access_info.first():
+                storage_id = source_access_info.storage_credentials.id
+                if storage_id not in schemas:
+                    schema = {
+                        "id": str(storage_id),
+                        "name": source_access_info.storage_credentials.connector_config["schema"],
+                        "sources": [],
+                    }
+                    schemas[storage_id] = schema
+                schemas[storage_id]["sources"].append({
+                    "name": f"{info.credential.name}${info.credential.created_at}",
+                    "id": str(info.id),
+                })
+        # Convert schemas dictionary to a list (optional)
+        final_schemas = list(schemas.values())
+        prompt.schemas = final_schemas
         logger.debug(prompt)
         return prompt
     except Exception:
@@ -60,11 +74,13 @@ def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     
-@router.post("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
+@router.post("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 400: DetailSchema})
 def preview_data(request, workspace_id,prompt_id, prompt_req: PromptPreviewSchemaIn):
     prompt = Prompt.objects.get(id=prompt_id)
-    source_access_info = SourceAccessInfo.objects.get(source_id=prompt_req.source_id)
-    storage_credentials = StorageCredentials.objects.get(id=source_access_info.storage_credentials.id)
+    if not PromptService.is_prompt_enabled(workspace_id,prompt):
+            detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
+            return 400, {"detail": detail_message}
+    storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
     schema_name = storage_credentials.connector_config["schema"]
     table_name = f'{schema_name}.{prompt.table}'
     query = PromptService().build(table_name, prompt_req.time_window, prompt_req.filters)

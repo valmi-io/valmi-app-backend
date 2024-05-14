@@ -18,7 +18,7 @@ class Filter(Schema):
     
 
 class PromptPreviewSchemaIn(Schema):
-    source_id: str
+    schema_id: str
     time_window: TimeWindow
     filters: list[Filter]
 

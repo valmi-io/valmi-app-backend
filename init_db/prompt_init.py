@@ -12,11 +12,13 @@ import uuid
 import requests
 import os
 from requests.auth import HTTPBasicAuth
-
+import logging
+logger = logging.getLogger(__name__)
 
 prompt_defs = json.loads(open(join(dirname(__file__), "test_prompt_def.json"), "r").read())
 
 for prompt_def in prompt_defs["definitions"]:
+    logger.debug(prompt_def)
     resp = requests.post(
         f"http://localhost:{os.environ['PORT']}/api/v1/superuser/prompts/create",
         json={

@@ -72,7 +72,12 @@ class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
         model_fields = ["id","name","description","type","spec","package_id","gated","table"]
-    sources: List[Dict[str, str]]
+
+class PromptByIdSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Prompt
+        model_fields = ["id","name","description","type","spec","package_id","gated","table"]
+    schemas: List[Dict]
 
 class PromptSchemaOut(Schema):
     id: str
@@ -117,7 +122,7 @@ class ExploreSchemaIn(Schema):
     name:str
     account: Dict = None
     prompt_id:str
-    source_id:str
+    schema_id:str
 
 class ExplorePreviewDataIn(Schema):
     prompt_id:str

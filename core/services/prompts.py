@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from core.models import Credential
 from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
 from core.schemas.prompt import TimeWindow, Filter
@@ -27,7 +28,11 @@ class PromptService():
         filters = list(filters)
         return template.render(table=table, timeWindow=timeWindowDict, filters=filterList)
 
-
+    @staticmethod
+    def is_prompt_enabled(workspace_id:str,prompt:object) -> bool:
+        connector_ids = list(Credential.objects.filter(workspace_id=workspace_id).values('connector_id').distinct())
+        connector_types = [connector['connector_id'] for connector in connector_ids]
+        return prompt.type in connector_types
 
 
         
