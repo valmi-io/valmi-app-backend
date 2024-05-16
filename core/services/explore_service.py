@@ -6,14 +6,18 @@ import uuid
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from os.path import dirname, join
+from decouple import config
+import requests
 from core.api import create_new_run
-from core.models import Credential, Destination, OAuthApiKeys, Source, SourceAccessInfo, StorageCredentials, Sync, Workspace
+from core.models import Credential, Destination, OAuthApiKeys, Source, StorageCredentials, Sync, Workspace
 logger = logging.getLogger(__name__)
-
+ACTIVATION_URL = config("ACTIVATION_SERVER")
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+
+
 class ExploreService:
     @staticmethod
-    def create_spreadsheet(name:str,refresh_token:str)->str:
+    def create_spreadsheet(name: str, refresh_token: str) -> str:
         logger.debug("create_spreadsheet")
         credentials_dict = {
             "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
@@ -24,7 +28,7 @@ class ExploreService:
         try:
             base_spreadsheet_url = "https://docs.google.com/spreadsheets/d/"
             credentials = Credentials.from_authorized_user_info(
-             credentials_dict, scopes=SPREADSHEET_SCOPES
+                credentials_dict, scopes=SPREADSHEET_SCOPES
             )
             service = build("sheets", "v4", credentials=credentials)
             # Create the spreadsheet
@@ -35,7 +39,7 @@ class ExploreService:
                 .execute()
             )
             spreadsheet_id = spreadsheet.get("spreadsheetId")
-            #Update the sharing settings to make the spreadsheet publicly accessible
+            # Update the sharing settings to make the spreadsheet publicly accessible
             drive_service = build('drive', 'v3', credentials=credentials)
             drive_service.permissions().create(
                 fileId=spreadsheet_id,
@@ -43,7 +47,7 @@ class ExploreService:
                     "role": "writer",
                     "type": "anyone",
                     "withLink": True
-                },  
+                },
                 fields="id"
             ).execute()
 
@@ -52,19 +56,18 @@ class ExploreService:
         except Exception as e:
             logger.exception(f"Error creating spreadsheet: {e}")
             raise Exception("spreadhseet creation failed")
-    
+
     @staticmethod
-    def create_source(shopify_source_id:str,workspace_id:str,account:object)->object:
+    def create_source(schema_id: str, query: str, workspace_id: str, account: object) -> object:
         try:
-            #creating source credentail
+            # creating source credentail
             credential = {"id": uuid.uuid4()}
             credential["workspace"] = Workspace.objects.get(id=workspace_id)
             credential["connector_id"] = "SRC_POSTGRES"
             credential["name"] = "SRC_POSTGRES"
             credential["account"] = account
             credential["status"] = "active"
-            source_access_info = SourceAccessInfo.objects.get(source_id=shopify_source_id)
-            storage_credential = StorageCredentials.objects.get(id = source_access_info.storage_credentials.id)
+            storage_credential = StorageCredentials.objects.get(id=schema_id)
             connector_config = {
                 "ssl": False,
                 "host": storage_credential.connector_config["host"],
@@ -77,52 +80,77 @@ class ExploreService:
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
             source = {
-            "name":"SRC_POSTGRES",
-            "id":uuid.uuid4()
+                "name": "SRC_POSTGRES",
+                "id": uuid.uuid4()
             }
-            #creating source object
+            # creating source object
             source["workspace"] = Workspace.objects.get(id=workspace_id)
             source["credential"] = Credential.objects.get(id=cred.id)
-            source_catalog = {}
+            url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
+            body = {
+                "ssl": False,
+                "host": storage_credential.connector_config["host"],
+                "port": storage_credential.connector_config["port"],
+                "user": storage_credential.connector_config["username"],
+                "database": storage_credential.connector_config["database"],
+                "password": storage_credential.connector_config["password"],
+                "namespace": storage_credential.connector_config["namespace"],
+                "query": query
+            }
+            config = {
+                'docker_image': 'valmiio/source-postgres',
+                'docker_tag': 'latest',
+                'config': body
+            }
+            response = requests.post(url, json=config)
+            response_json = response.json()
             json_file_path = join(dirname(__file__), 'source_catalog.json')
             with open(json_file_path, 'r') as openfile:
                 source_catalog = json.load(openfile)
+            # TODO : HARDCODED TABLE NAME
+            source_catalog["streams"][0]["stream"] = response_json["catalog"]["streams"][0]
+            namespace = storage_credential.connector_config["namespace"]
+            database = storage_credential.connector_config["database"]
+            table = "orders_with_product_data"
+            source_catalog["streams"][0]["stream"]["name"] = f"{database}.{namespace}.{table}"
             source["catalog"] = source_catalog
             source["status"] = "active"
+            logger.debug(source_catalog)
             result = Source.objects.create(**source)
             return result
         except Exception as e:
             logger.exception(f"Error creating source: {e}")
             raise Exception("unable to create source")
-    
+
     @staticmethod
-    def create_destination(spreadsheet_name:str,workspace_id:str,account:object)->List[Union[str, object]]:
+    def create_destination(spreadsheet_name: str, workspace_id: str, account: object) -> List[Union[str, object]]:
         try:
-            #creating destination credential
-            oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id,type="GOOGLE_LOGIN")
+            # creating destination credential
+            oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id, type="GOOGLE_LOGIN")
             credential = {"id": uuid.uuid4()}
             credential["workspace"] = Workspace.objects.get(id=workspace_id)
             credential["connector_id"] = "DEST_GOOGLE-SHEETS"
             credential["name"] = "DEST_GOOGLE-SHEETS"
             credential["account"] = account
             credential["status"] = "active"
-            spreadsheet_url = ExploreService.create_spreadsheet(spreadsheet_name,refresh_token=oauthkeys.oauth_config["refresh_token"])
+            spreadsheet_url = ExploreService.create_spreadsheet(
+                spreadsheet_name, refresh_token=oauthkeys.oauth_config["refresh_token"])
             connector_config = {
                 "spreadsheet_id": spreadsheet_url,
                 "credentials": {
-                "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
+                    "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
                     "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
                     "refresh_token": oauthkeys.oauth_config["refresh_token"],
                 },
             }
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
-            destination= {
-            "name":"DEST_GOOGLE-SHEETS",
-            "id":uuid.uuid4()
+            destination = {
+                "name": "DEST_GOOGLE-SHEETS",
+                "id": uuid.uuid4()
 
             }
-            #creating destination object
+            # creating destination object
             destination["workspace"] = Workspace.objects.get(id=workspace_id)
             destination["credential"] = Credential.objects.get(id=cred.id)
             destination_catalog = {}
@@ -132,21 +160,21 @@ class ExploreService:
             destination["catalog"] = destination_catalog
             result = Destination.objects.create(**destination)
             logger.info(result)
-            return [spreadsheet_url,result]
+            return [spreadsheet_url, result]
         except Exception as e:
             logger.exception(f"Error creating destination: {e}")
             raise Exception("unable to create destination")
-        
+
     @staticmethod
-    def create_sync(source:object,destination:object,workspace_id:str)->object:
+    def create_sync(source: object, destination: object, workspace_id: str) -> object:
         try:
             logger.debug("creating sync in service")
             logger.debug(source.id)
             sync_config = {
-            "name":"Warehouse to sheets",
-            "id":uuid.uuid4(),
-            "status":"active",
-            "ui_state":{}
+                "name": "Warehouse to sheets",
+                "id": uuid.uuid4(),
+                "status": "active",
+                "ui_state": {}
 
             }
             schedule = {"run_interval": 3600000}
@@ -161,10 +189,10 @@ class ExploreService:
             raise Exception("unable to create sync")
 
     @staticmethod
-    def create_run(request:object,workspace_id:str,sync_id:str,payload:object)->None:
+    def create_run(request: object, workspace_id: str, sync_id: str, payload: object) -> None:
         try:
-             response = create_new_run(request,workspace_id,sync_id,payload)
-             logger.debug(response)
+            response = create_new_run(request, workspace_id, sync_id, payload)
+            logger.debug(response)
         except Exception as e:
             logger.exception(f"Error creating run: {e}")
             raise Exception("unable to create run")

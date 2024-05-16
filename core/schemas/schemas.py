@@ -44,7 +44,7 @@ class OrganizationSchema(ModelSchema):
 class UserSchemaOut(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
-        model_fields = ["first_name", "email","username"]
+        model_fields = ["first_name", "email", "username"]
 
     organizations: list[OrganizationSchema] = None
 
@@ -52,10 +52,10 @@ class UserSchemaOut(ModelSchema):
 class CreatedUserSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
-        model_fields = ["first_name", "email","username"]
+        model_fields = ["first_name", "email", "username"]
     organizations: list[OrganizationSchema] = None
     auth_token: str
-    
+
 
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
@@ -66,18 +66,21 @@ class ConnectorSchema(ModelSchema):
 class PackageSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Package
-        model_fields = ["name","gated","scopes"]
+        model_fields = ["name", "gated", "scopes"]
+
 
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id","name","description","type","spec","package_id","gated","table"]
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
+
 
 class PromptByIdSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id","name","description","type","spec","package_id","gated","table"]
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
     schemas: List[Dict]
+
 
 class PromptSchemaOut(Schema):
     id: str
@@ -86,8 +89,11 @@ class PromptSchemaOut(Schema):
     type: str
     enabled: bool
 
+
 class ExploreStatusIn(Schema):
-    sync_id:str
+    sync_id: str
+
+
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
@@ -106,6 +112,7 @@ class CredentialSchemaIn(Schema):
     account: Dict = None
     name: str
 
+
 class ConnectionSchemaIn(Schema):
     account: Dict = None
     name: str
@@ -114,18 +121,19 @@ class ConnectionSchemaIn(Schema):
     schedule: Dict
     source_connector_type: str
     source_connector_config: Dict
-    
 
-    
+
 class ExploreSchemaIn(Schema):
     ready: bool = False
-    name:str
+    name: str
     account: Dict = None
-    prompt_id:str
-    schema_id:str
+    prompt_id: str
+    schema_id: str
+    query: str
+
 
 class ExplorePreviewDataIn(Schema):
-    prompt_id:str
+    prompt_id: str
 
 
 class CredentialSchemaUpdateIn(Schema):
@@ -164,7 +172,6 @@ class ExploreSchema(ModelSchema):
     account: AccountSchema = Field(None, alias="account")
     prompt: PromptSchema = Field(None, alias="prompt")
     workspace: WorkspaceSchema = Field(None, alias="workspace")
-
 
 
 class BaseSchemaIn(Schema):
@@ -274,7 +281,7 @@ class OAuthSchema(ModelSchema):
 
 
 class SocialAccount(Schema):
-    provider: str    
+    provider: str
     type: str
     access_token: str
     expires_at: int
@@ -282,9 +289,13 @@ class SocialAccount(Schema):
     scope: str
     token_type: str
     id_token: str
+
+
 class SocialUser(Schema):
     name: str
     email: str
+
+
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
     user: SocialUser
