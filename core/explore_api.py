@@ -103,9 +103,11 @@ def get_explore_status(request, workspace_id, explore_id):
         #     print(response)
         #     return "sync got failed. Please re-try again"
         if status == '"running"':
+            explore.ready = False
             response["status"] = "running"
             return json.dumps(response)
         if status == '"failed"':
+            explore.ready = False
             response["status"] = "failed"
             return json.dumps(response)
         explore.ready = True
