@@ -88,8 +88,10 @@ def get_explore_status(request, workspace_id, explore_id):
     try:
         logger.debug("getting_explore_status")
         explore = Explore.objects.get(id=explore_id)
+        response = {}
         if explore.ready:
-            return "sync completed"
+            response["status"] = "success"
+            return json.dumps(response)
         sync_id = explore.sync.id
         response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latestRunStatus")
         status = response.text
@@ -100,7 +102,6 @@ def get_explore_status(request, workspace_id, explore_id):
         #     response = create_new_run(request,workspace_id,sync_id,payload)
         #     print(response)
         #     return "sync got failed. Please re-try again"
-        response = {}
         if status == '"running"':
             response["status"] = "running"
             return json.dumps(response)
