@@ -124,7 +124,6 @@ class ConnectionSchemaIn(Schema):
 
 
 class ExploreSchemaIn(Schema):
-    ready: bool = False
     name: str
     account: Dict = None
     prompt_id: str

@@ -61,6 +61,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         del data["query"]
         data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
+        data["ready"] = False
         data["spreadsheet_url"] = spreadsheet_url
         explore = Explore.objects.create(**data)
         # create run
