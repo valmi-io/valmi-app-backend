@@ -8,7 +8,6 @@ Author: Rajashekar Varkala @ valmi.io
 
 from datetime import datetime
 from typing import Dict, Optional
-from enum import Enum
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
@@ -267,19 +266,10 @@ class SocialAccount(Schema):
     id_token: str
 
 
-class UserRole(Enum):
-    ENGINEERING = 'engineering'
-    MARKETING = 'marketing'
-    OTHER = 'other'
-
-class UserMetaDetails(Schema):
-    role: UserRole
-    promotions: bool
-
 class SocialUser(Schema):
     name: str
     email: str
-    meta: Optional[UserMetaDetails]
+    meta: Optional[dict]
 
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
