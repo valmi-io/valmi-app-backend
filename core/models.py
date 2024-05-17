@@ -9,7 +9,6 @@ Author: Rajashekar Varkala @ valmi.io
 import uuid
 from enum import Enum
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -31,6 +30,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
     organizations = models.ManyToManyField(to="Organization", related_name="users", blank=True)
+    meta = models.JSONField(default=dict)
 
     def __str__(self):
         return f"{self.email} - {self.first_name} {self.last_name} - {self.organizations.all()}"
@@ -39,7 +39,6 @@ class User(AbstractUser):
 User._meta.get_field("email")._unique = True
 User._meta.get_field("email").blank = False
 User._meta.get_field("email").null = False
-User = get_user_model()
 
 
 class Organization(models.Model):
