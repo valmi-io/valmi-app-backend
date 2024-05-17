@@ -7,7 +7,7 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
@@ -290,6 +290,7 @@ class SocialUser(Schema):
     name: str
     email: str
     meta: Optional[dict]
+
 
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
