@@ -10,6 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='user',
+            name='meta',
+            field=models.JSONField(default=dict),
+        ),
         migrations.RenameField(
             model_name='prompt',
             old_name='parameters',
