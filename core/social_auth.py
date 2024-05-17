@@ -6,7 +6,6 @@ from pydantic import Json
 from rest_framework.authtoken.models import Token
 from core.schemas import DetailSchema, SocialAuthLoginSchema
 from core.models import User, Organization, Workspace, OAuthApiKeys
-from core.services import warehouse_credentials
 import binascii
 import os
 import uuid
@@ -39,13 +38,14 @@ def login(request, payload: SocialAuthLoginSchema):
     account = req["account"]
 
     email = user_data["email"]
-
+    
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
         user = User()
         user.email = user_data["email"]
         user.username = user_data["name"]
+        user.meta = user_data['meta']
         user.password = generate_key()
         user.save(force_insert=True)
         org = Organization(name="Default Organization", id=uuid.uuid4())

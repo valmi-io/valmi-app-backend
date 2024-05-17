@@ -8,14 +8,10 @@ Author: Rajashekar Varkala @ valmi.io
 
 from datetime import datetime
 from typing import Dict, Optional
-
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 from .models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
-
-
-User = get_user_model()
 
 
 def camel_to_snake(s):
@@ -268,9 +264,13 @@ class SocialAccount(Schema):
     scope: str
     token_type: str
     id_token: str
+
+
 class SocialUser(Schema):
     name: str
     email: str
+    meta: Optional[dict]
+
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
     user: SocialUser
