@@ -5,10 +5,10 @@ RUN pip install -r /tmp/requirements.txt
 
 WORKDIR /workspace
 
-RUN groupadd -r valmi_group && useradd -r -g valmi_group valmi_user
-RUN chown  -R valmi_user:valmi_group /workspace
-
-USER valmi_user 
+# creating & using a valmi_user, isnt allowing to perform any crud operations on /workspace files
+# RUN groupadd -r valmi_group && useradd -r -g valmi_group valmi_user
+# RUN chown  -R valmi_user:valmi_group /workspace
+# USER valmi_user 
 
 ENV PYTHONUNBUFFERED 1
 
