@@ -1,26 +1,18 @@
-"""
-Copyright (c) 2024 valmi.io <https://github.com/valmi-io>
-
-Created Date: Wednesday, March 8th 2023, 9:56:52 pm
-Author: Rajashekar Varkala @ valmi.io
-
-"""
-
 import json
 import logging
 import time
 import uuid
-import uuid
 from datetime import datetime
 from typing import Dict, List, Optional
+
 import requests
 from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
+from core.routes.api_config import SHORT_TIMEOUT, LONG_TIMEOUT
 from core.schemas.schemas import (
     ConnectionSchemaIn,
     ConnectorConfigSchemaIn,
-    ConnectorSchema,
     CredentialSchema,
     CredentialSchemaIn,
     CredentialSchemaUpdateIn,
@@ -37,40 +29,21 @@ from core.schemas.schemas import (
     SyncSchemaInWithSourcePayload,
     SyncSchemaUpdateIn,
     SyncStartStopSchemaIn,
-    UserSchemaOut,
     CreateConfigSchemaIn
 )
 from core.services.warehouse_credentials import DefaultWarehouse
-from .models import Account, Connector, Credential, Destination, Source, SourceAccessInfo, StorageCredentials, Sync, User, Workspace, OAuthApiKeys
+from core.models import Account, Connector, Credential, Destination, Source, SourceAccessInfo, StorageCredentials, Sync, Workspace, OAuthApiKeys
 from valmi_app_backend.utils import replace_values_in_json
 router = Router()
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 CONNECTOR_PREFIX_URL = config("ACTIVATION_SERVER") + "/connectors"
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 ACTIVE = "active"
 INACTIVE = "inactive"
 DELETED = "deleted"
-
-LONG_TIMEOUT = 60
-SHORT_TIMEOUT = 60
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
-
-def get_workspaces(user):
-    queryset = User.objects.prefetch_related("organizations").get(id=user.id)
-    for organization in queryset.organizations.all():
-        for workspace in organization.workspaces.all():
-            yield workspace
-
-
-@router.get("/spaces/", response=UserSchemaOut)
-def list_spaces(request):
-    user_id = request.user.id
-    queryset = User.objects.prefetch_related("organizations").get(id=user_id)
-    logger.debug(queryset)
-    return queryset
 
 
 @router.get("/workspaces/{workspace_id}/connectors/{connector_type}/spec", response=Json)
@@ -515,30 +488,6 @@ def get_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
     ).text
 
 
-@router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def get_connectors(request):
-    # check for admin permissions
-    try:
-        logger.debug("listing connectors")
-        connectors = Connector.objects.all()
-
-        logger.info(f"connectors - {connectors}")
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        for conn in connectors:
-            logger.info(f"conn{conn}")
-            arr = conn.type.split("_")
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-        return src_dst_dict
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of connectors cannot be fetched."})
-
-
 @router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/logs", response=Json)
 def get_logs(
         request,
@@ -568,74 +517,3 @@ def get_samples(
         params={"collector": connector, "metric_type": metric_type},
         timeout=LONG_TIMEOUT,
     ).text
-
-
-@router.get("/connectors/{workspace_id}/configured", response={200: Dict[str, List[ConnectorSchema]],
-                                                               400: DetailSchema})
-def get_connectors_configured(request, workspace_id):
-
-    try:
-        # Get the connectors that match the criteria
-        logger.debug("listing all configured connectors")
-        workspace = Workspace.objects.get(id=workspace_id)
-
-        configured_connectors = OAuthApiKeys.objects.filter(workspace=workspace).values('type')
-
-        connectors = Connector.objects.filter(
-            oauth=True,
-            oauth_keys="private",
-            type__in=configured_connectors)
-
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        logger.debug("Connectors:-", connectors)
-        for conn in connectors:
-            arr = conn.type.split("_")
-            logger.debug("Arr:_", arr)
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-
-        return src_dst_dict
-
-    except Workspace.DoesNotExist:
-        return (400, {"detail": "Workspace not found."})
-
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of  connectors cannot be fetched."})
-
-
-@router.get("/connectors/{workspace_id}/not-configured",
-            response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def get_connectors_not_configured(request, workspace_id):
-
-    try:
-        # Get the connectors that match the criteria
-
-        workspace = Workspace.objects.get(id=workspace_id)
-
-        configured_connectors = OAuthApiKeys.objects.filter(workspace=workspace).values('type')
-
-        connectors = Connector.objects.filter(
-            oauth=True,
-            oauth_keys="private"
-        ).exclude(type__in=configured_connectors)
-
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        logger.debug("Connectors:-", connectors)
-        for conn in connectors:
-            arr = conn.type.split("_")
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-        return src_dst_dict
-
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of connectors cannot be fetched."})

@@ -14,7 +14,7 @@ from ninja import Router
 
 from core.schemas.schemas import ConnectorSchema, DetailSchema, PackageSchema, PromptSchema, SyncSchema
 
-from .models import (
+from ..models import (
     Connector,
     Package,
     Prompt,

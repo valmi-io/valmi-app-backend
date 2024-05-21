@@ -10,15 +10,20 @@ import requests
 from core.models import Account, Explore, Prompt, Workspace
 from core.schemas.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
 from ninja import Router
+from pydantic import Json
+
+from core.models import Account, Explore, Prompt, StorageCredentials, Workspace
+from core.schemas import (DetailSchema, ExploreSchema, ExploreSchemaIn,
+                          SyncStartStopSchemaIn)
 from core.services.explore_service import ExploreService
+
 logger = logging.getLogger(__name__)
 
 router = Router()
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 
-
-@router.get("/workspaces/{workspace_id}", response={200: List[ExploreSchema], 400: DetailSchema})
-def get_explores(request, workspace_id):
+@router.get("/workspaces/{workspace_id}/explores", response={200: List[ExploreSchema], 400: DetailSchema})
+def get_explores(request,workspace_id):
     try:
         logger.debug("listing explores")
         workspace = Workspace.objects.get(id=workspace_id)
@@ -28,8 +33,8 @@ def get_explores(request, workspace_id):
         return (400, {"detail": "The list of explores cannot be fetched."})
 
 
-@router.post("/workspaces/{workspace_id}/create", response={200: ExploreSchema, 400: DetailSchema})
-def create_explore(request, workspace_id, payload: ExploreSchemaIn):
+@router.post("/workspaces/{workspace_id}/explores/create",response={200: ExploreSchema, 400: DetailSchema})
+def create_explore(request, workspace_id,payload: ExploreSchemaIn):
     data = payload.dict()
     try:
         data["id"] = uuid.uuid4()
@@ -72,8 +77,8 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         return (400, {"detail": "The specific explore cannot be created."})
 
 
-@router.get("/workspaces/{workspace_id}/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
-def get_explore(request, workspace_id, explore_id):
+@router.get("/workspaces/{workspace_id}/explores/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
+def get_explores(request,workspace_id,explore_id):
     try:
         logger.debug("listing explores")
         return Explore.objects.get(id=explore_id)
@@ -82,8 +87,8 @@ def get_explore(request, workspace_id, explore_id):
         return (400, {"detail": "The  explore cannot be fetched."})
 
 
-@router.get("/workspaces/{workspace_id}/{explore_id}/status", response={200: Json, 400: DetailSchema})
-def get_explore_status(request, workspace_id, explore_id):
+@router.get("/workspaces/{workspace_id}/explores/{explore_id}/status", response={200: Json, 400: DetailSchema})
+def get_explore_status(request,workspace_id,explore_id):
     try:
         logger.debug("getting_explore_status")
         explore = Explore.objects.get(id=explore_id)
