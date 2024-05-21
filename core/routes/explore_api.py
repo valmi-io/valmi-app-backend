@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import json
@@ -67,7 +68,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         data["spreadsheet_url"] = spreadsheet_url
         explore = Explore.objects.create(**data)
         # create run
-        ExploreService.wait_for_run(5)
+        asyncio.run(ExploreService.wait_for_run(5))
         payload = SyncStartStopSchemaIn(full_refresh=True)
         ExploreService.create_run(request, workspace_id, sync.id, payload)
         return explore
