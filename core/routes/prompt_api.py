@@ -1,15 +1,15 @@
 import logging
 from typing import List
 
-from core.models import Prompt
-from core.schemas import DetailSchema, PromptSchema
 from ninja import Router
 
-logger = logging.getLogger(__name__)
+from core.models import Prompt
+from core.schemas import DetailSchema, PromptSchema
 
+logger = logging.getLogger(__name__)
 router = Router()
 
-@router.get("/", response={200: List[PromptSchema], 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/prompts", response={200: List[PromptSchema], 400: DetailSchema})
 def get_prompts(request):
     try:
         logger.debug("listing prompts")
@@ -19,7 +19,7 @@ def get_prompts(request):
         logger.exception("prompts listing error")
         return (400, {"detail": "The list of prompts cannot be fetched."})
 
-@router.get("/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
 def get_prompts(request,prompt_id):
     try:
         logger.debug("listing prompts")

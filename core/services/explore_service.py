@@ -1,13 +1,17 @@
 import json
 import logging
 import os
-from typing import List, Union
 import uuid
+from os.path import dirname, join
+from typing import List, Union
+
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from os.path import dirname, join
-from core.api import create_new_run
-from core.models import Credential, Destination, OAuthApiKeys, Source, StorageCredentials, Sync, Workspace
+
+from core.models import (Credential, Destination, OAuthApiKeys, Source,
+                         StorageCredentials, Sync, Workspace)
+from core.routes.workspace_api import create_new_run
+
 logger = logging.getLogger(__name__)
 
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
