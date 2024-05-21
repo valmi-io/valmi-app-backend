@@ -200,6 +200,7 @@ def create_connection_with_default_warehouse(request, workspace_id,payload: Conn
 @router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
 def storage_credentials(request, workspace_id):
     config={}
+    logger.info("came here in storeage")
     try:
         creds = StorageCredentials.objects.filter(workspace_id=workspace_id).get(
                     connector_config__shopify_store="chitumalla-store"

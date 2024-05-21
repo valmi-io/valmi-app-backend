@@ -67,7 +67,14 @@ class PackageSchema(ModelSchema):
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id","name","description","query","parameters","package_id","gated","table"]
+        model_fields = ["id","name","description","type","spec","package_id","gated","table"]
+
+class PromptSchemaOut(Schema):
+    id: str
+    name: str
+    description: str
+    type: str
+    enabled: bool
 
 class ExploreStatusIn(Schema):
     sync_id:str
