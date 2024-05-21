@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 
-@router.get("", response={200: List[ExploreSchema], 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/explores", response={200: List[ExploreSchema], 400: DetailSchema})
 def get_explores(request,workspace_id):
     try:
         logger.debug("listing explores")
@@ -33,7 +33,7 @@ def get_explores(request,workspace_id):
         return (400, {"detail": "The list of explores cannot be fetched."})
 
 
-@router.post("/create",response={200: ExploreSchema, 400: DetailSchema})
+@router.post("/workspaces/{workspace_id}/explores/create",response={200: ExploreSchema, 400: DetailSchema})
 def create_explore(request, workspace_id,payload: ExploreSchemaIn):
     data = payload.dict()
     try:
@@ -78,7 +78,7 @@ def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     
-@router.get("/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}/preview",response={200: Json, 404: DetailSchema})
 def preview_data(request, workspace_id,prompt_id):
     prompt = Prompt.objects.get(id=prompt_id)
     storage_cred = StorageCredentials.objects.get(workspace_id=workspace_id)
@@ -105,7 +105,7 @@ def preview_data(request, workspace_id,prompt_id):
     return json.dumps(items, indent=4, default=custom_serializer)
 
 
-@router.get("/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/explores/{explore_id}", response={200: ExploreSchema, 400: DetailSchema})
 def get_explores(request,workspace_id,explore_id):
     try:
         logger.debug("listing explores")
@@ -115,7 +115,7 @@ def get_explores(request,workspace_id,explore_id):
         return (400, {"detail": "The  explore cannot be fetched."})
 
 
-@router.get("/{explore_id}/status", response={200: Json, 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/explores/{explore_id}/status", response={200: Json, 400: DetailSchema})
 def get_explore_status(request,workspace_id,explore_id):
     try:
         logger.debug("getting_explore_status")
