@@ -13,9 +13,8 @@ import requests
 from ninja import Router
 from pydantic import Json
 from decouple import config
-from core.api import SHORT_TIMEOUT
 from core.schemas.schemas import GenericJsonSchema
-from .models import ValmiUserIDJitsuApiToken
+from core.models import ValmiUserIDJitsuApiToken
 from typing import Optional
 
 import requests
@@ -24,7 +23,6 @@ from ninja import Router
 from pydantic import Json
 
 from core.routes.api_config import SHORT_TIMEOUT
-from core.schemas import GenericJsonSchema
 
 from ..models import ValmiUserIDJitsuApiToken
 

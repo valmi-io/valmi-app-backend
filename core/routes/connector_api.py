@@ -3,14 +3,15 @@ from typing import Dict, List
 
 from ninja import Router
 
-from core.schemas import ConnectorSchema, DetailSchema
+from core.schemas.schemas import ConnectorSchema, DetailSchema
 
-from ..models import Connector, OAuthApiKeys, Workspace
+from core.models import Connector, OAuthApiKeys, Workspace
 
 router = Router()
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 @router.get("/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors(request):
@@ -37,7 +38,7 @@ def get_connectors(request):
 
 
 @router.get("{workspace_id}/configured", response={200: Dict[str, List[ConnectorSchema]],
-                                                               400: DetailSchema})
+                                                   400: DetailSchema})
 def get_connectors_configured(request, workspace_id):
 
     try:

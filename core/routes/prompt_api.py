@@ -8,14 +8,15 @@ import psycopg2
 from pydantic import Json
 from core.models import Credential, Prompt, Source, StorageCredentials
 from core.schemas.prompt import PromptPreviewSchemaIn
-from core.schemas.schemas import DetailSchema, PromptByIdSchema, PromptSchemaOut
+from core.schemas.schemas import DetailSchema
 from core.services.prompts import PromptService
 
-from core.models import Prompt
-from core.schemas import DetailSchema, PromptSchema
+from core.models import Prompt, StorageCredentials
+from core.schemas.schemas import DetailSchema, PromptSchema
 
 logger = logging.getLogger(__name__)
 router = Router()
+
 
 @router.get("/workspaces/{workspace_id}/prompts", response={200: List[PromptSchema], 400: DetailSchema})
 def get_prompts(request):
@@ -34,8 +35,9 @@ def get_prompts(request):
         logger.exception("prompts listing error:" + err)
         return (400, {"detail": "The list of prompts cannot be fetched."})
 
+
 @router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
-def get_prompts(request,prompt_id):
+def get_prompts(request, workspace_id, prompt_id):
     try:
         logger.debug("listing prompts")
         prompt = Prompt.objects.get(id=prompt_id)

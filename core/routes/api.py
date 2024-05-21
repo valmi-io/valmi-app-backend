@@ -6,6 +6,7 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
+from core.schemas.schemas import UserSchemaOut
 import logging
 from typing import Any, Optional
 
@@ -28,14 +29,15 @@ from core.routes.stream_api import router as stream_api_router
 from core.routes.workspace_api import router as workspace_api_router
 from valmi_app_backend.utils import BearerAuthentication
 
-from ..models import User
+from core.models import User
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-from core.schemas import UserSchemaOut
 
 auth_enabled = config("AUTHENTICATION", default=True, cast=bool)
+
+
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
         if auth_enabled == False:
@@ -113,6 +115,7 @@ class AuthBearer(HttpBearer):
             return token
         return None
 
+
 def get_workspaces(user):
     queryset = User.objects.prefetch_related("organizations").get(id=user.id)
     for organization in queryset.organizations.all():
@@ -121,14 +124,14 @@ def get_workspaces(user):
 
 
 router = Router()
+
+
 @router.get("/spaces/", response=UserSchemaOut)
 def list_spaces(request):
     user_id = request.user.id
     queryset = User.objects.prefetch_related("organizations").get(id=user_id)
     logger.debug(queryset)
     return queryset
-
-
 
 
 api = NinjaAPI(
@@ -141,12 +144,12 @@ api = NinjaAPI(
 
 api.add_router("/auth/social", social_api_router)
 
-api.add_router("v1/", router, auth=[AuthBearer(),BasicAuth()])
+api.add_router("v1/", router, auth=[AuthBearer(), BasicAuth()])
 router.add_router("superuser/", superuser_api_router, auth=[BasicAuth()])
-router.add_router("streams/",stream_api_router, tags = ["streams"])
+router.add_router("streams/", stream_api_router, tags=["streams"])
 router.add_router("oauth/", oauth_api_router, tags=["oauth"])
 router.add_router("connectors", connector_api_router, tags=["connectors"])
-router.add_router("packages", package_api_router, tags = ["packages"])
+router.add_router("packages", package_api_router, tags=["packages"])
 router.add_router("", workspace_api_router, tags=["workspaces"])
-router.add_router("", prompt_api_router, tags = ["prompts"])
-router.add_router("", explore_api_router, tags = ["explores"])
+router.add_router("", prompt_api_router, tags=["prompts"])
+router.add_router("", explore_api_router, tags=["explores"])

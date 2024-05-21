@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from os.path import dirname, join
 from decouple import config
 import requests
-from core.api import create_new_run
+from core.routes.workspace_api import create_new_run
 from core.models import Credential, Destination, OAuthApiKeys, Prompt, Source, StorageCredentials, Sync, Workspace
 from core.schemas.prompt import Filter, TimeWindow
 from core.services.prompts import PromptService
