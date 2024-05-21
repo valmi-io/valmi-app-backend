@@ -7,11 +7,12 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
-from .models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
+from core.models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
+from core.schemas.prompt import Filter, TimeWindow
 
 
 def camel_to_snake(s):
@@ -40,7 +41,7 @@ class OrganizationSchema(ModelSchema):
 class UserSchemaOut(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
-        model_fields = ["first_name", "email","username"]
+        model_fields = ["first_name", "email", "username"]
 
     organizations: list[OrganizationSchema] = None
 
@@ -48,10 +49,10 @@ class UserSchemaOut(ModelSchema):
 class CreatedUserSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = User
-        model_fields = ["first_name", "email","username"]
+        model_fields = ["first_name", "email", "username"]
     organizations: list[OrganizationSchema] = None
     auth_token: str
-    
+
 
 class ConnectorSchema(ModelSchema):
     class Config(CamelSchemaConfig):
@@ -62,15 +63,34 @@ class ConnectorSchema(ModelSchema):
 class PackageSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Package
-        model_fields = ["name","gated","scopes"]
+        model_fields = ["name", "gated", "scopes"]
+
 
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id","name","description","query","parameters","package_id","gated","table"]
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
+
+
+class PromptByIdSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Prompt
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
+    schemas: List[Dict]
+
+
+class PromptSchemaOut(Schema):
+    id: str
+    name: str
+    description: str
+    type: str
+    enabled: bool
+
 
 class ExploreStatusIn(Schema):
-    sync_id:str
+    sync_id: str
+
+
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
@@ -89,25 +109,28 @@ class CredentialSchemaIn(Schema):
     account: Dict = None
     name: str
 
+
 class ConnectionSchemaIn(Schema):
     account: Dict = None
-    shopify_store: str
+    name: str
     source_catalog: Dict
     destination_catalog: Dict
     schedule: Dict
     source_connector_type: str
     source_connector_config: Dict
-    
 
-    
+
 class ExploreSchemaIn(Schema):
-    ready: bool = False
-    name:str
+    name: str
     account: Dict = None
-    prompt_id:str
+    prompt_id: str
+    schema_id: str
+    time_window: TimeWindow
+    filters: list[Filter]
+
 
 class ExplorePreviewDataIn(Schema):
-    prompt_id:str
+    prompt_id: str
 
 
 class CredentialSchemaUpdateIn(Schema):
@@ -148,7 +171,6 @@ class ExploreSchema(ModelSchema):
     workspace: WorkspaceSchema = Field(None, alias="workspace")
 
 
-
 class BaseSchemaIn(Schema):
     workspace_id: UUID4
 
@@ -185,6 +207,14 @@ class SyncSchemaIn(Schema):
     name: str
     source_id: UUID4
     destination_id: UUID4
+    schedule: Dict
+    ui_state: Optional[Dict]
+
+
+class SyncSchemaInWithSourcePayload(Schema):
+    name: str
+    source: Dict
+    account: Optional[Dict]
     schedule: Dict
     ui_state: Optional[Dict]
 
@@ -256,7 +286,7 @@ class OAuthSchema(ModelSchema):
 
 
 class SocialAccount(Schema):
-    provider: str    
+    provider: str
     type: str
     access_token: str
     expires_at: int
@@ -270,6 +300,7 @@ class SocialUser(Schema):
     name: str
     email: str
     meta: Optional[dict]
+
 
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount

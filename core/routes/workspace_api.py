@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -8,23 +9,31 @@ import requests
 from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
-
-from core.routes.api_config import LONG_TIMEOUT, SHORT_TIMEOUT
-from core.schemas import (ConnectionSchemaIn, ConnectorConfigSchemaIn,
-                          CreateConfigSchemaIn, CredentialSchema,
-                          CredentialSchemaIn, CredentialSchemaUpdateIn,
-                          DestinationSchema, DestinationSchemaIn, DetailSchema,
-                          FailureSchema, SourceSchema, SourceSchemaIn,
-                          SuccessSchema, SyncIdSchema, SyncSchema,
-                          SyncSchemaIn, SyncSchemaUpdateIn,
-                          SyncStartStopSchemaIn)
-from core.services import warehouse_credentials
+from core.routes.api_config import SHORT_TIMEOUT, LONG_TIMEOUT
+from core.schemas.schemas import (
+    ConnectionSchemaIn,
+    ConnectorConfigSchemaIn,
+    CredentialSchema,
+    CredentialSchemaIn,
+    CredentialSchemaUpdateIn,
+    DestinationSchema,
+    DestinationSchemaIn,
+    DetailSchema,
+    FailureSchema,
+    SourceSchema,
+    SourceSchemaIn,
+    SuccessSchema,
+    SyncIdSchema,
+    SyncSchema,
+    SyncSchemaIn,
+    SyncSchemaInWithSourcePayload,
+    SyncSchemaUpdateIn,
+    SyncStartStopSchemaIn,
+    CreateConfigSchemaIn
+)
+from core.services.warehouse_credentials import DefaultWarehouse
+from core.models import Account, Connector, Credential, Destination, Source, SourceAccessInfo, StorageCredentials, Sync, Workspace, OAuthApiKeys
 from valmi_app_backend.utils import replace_values_in_json
-
-from ..models import (Account, Connector, Credential, Destination,
-                      OAuthApiKeys, Source, StorageCredentials, Sync,
-                      Workspace)
-
 router = Router()
 
 # Get an instance of a logger
@@ -35,8 +44,6 @@ ACTIVATION_URL = config("ACTIVATION_SERVER")
 ACTIVE = "active"
 INACTIVE = "inactive"
 DELETED = "deleted"
-
-
 
 
 @router.get("/workspaces/{workspace_id}/connectors/{connector_type}/spec", response=Json)
@@ -168,42 +175,47 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     except Exception:
         logger.exception("Credential error")
         return {"detail": "The specific credential cannot be created."}
-    
+
 
 @router.post("/workspaces/{workspace_id}/connection/DefaultWarehouse", response={200: SuccessSchema, 400: DetailSchema})
-def create_connection_with_default_warehouse(request, workspace_id,payload: ConnectionSchemaIn):
+def create_connection_with_default_warehouse(request, workspace_id, payload: ConnectionSchemaIn):
     data = payload.dict()
     try:
-        source_credential_payload = CredentialSchemaIn(name=data["shopify_store"],account=data["account"],connector_type=data["source_connector_type"],connector_config=data["source_connector_config"])
-        source_credential = create_credential(request,workspace_id,source_credential_payload)
-        workspace = Workspace.objects.get(id = workspace_id)
-        warehouse_credentials.DefaultWarehouse.create(workspace,data["shopify_store"])
-        storage_credentials = StorageCredentials.objects.filter(workspace_id=workspace_id).get(
-                connector_config__shopify_store=data["shopify_store"]
-        )         
-        destination_credential_payload = CredentialSchemaIn(name="default warehouse",account=data["account"],connector_type="DEST_POSTGRES-DEST",connector_config=storage_credentials.connector_config)
-        destination_credential = create_credential(request,workspace_id,destination_credential_payload)
-        source_payload = SourceSchemaIn(name="shopify",credential_id=source_credential.id,catalog = data["source_catalog"])
-        source = create_source(request,workspace_id,source_payload)
-        destination_payload = DestinationSchemaIn(name="default warehouse",credential_id=destination_credential.id,catalog = data["destination_catalog"])
-        destination = create_destination(request,workspace_id,destination_payload)
-        sync_payload = SyncSchemaIn(name="shopify to default warehouse",source_id=source.id,destination_id=destination.id,schedule=data["schedule"])
-        sync = create_sync(request,workspace_id,sync_payload)
+        source_credential_payload = CredentialSchemaIn(
+            name=data["name"], account=data["account"], connector_type=data["source_connector_type"], connector_config=data["source_connector_config"])
+        source_credential = create_credential(request, workspace_id, source_credential_payload)
+        source_payload = SourceSchemaIn(name="shopify", credential_id=source_credential.id,
+                                        catalog=data["source_catalog"])
+        source = create_source(request, workspace_id, source_payload)
+        workspace = Workspace.objects.get(id=workspace_id)
+        storage_credentials = DefaultWarehouse.create(workspace)
+        source_access_info = {"source": source, "storage_credentials": storage_credentials}
+        SourceAccessInfo.objects.create(**source_access_info)
+        destination_credential_payload = CredentialSchemaIn(
+            name="default warehouse", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
+        destination_credential = create_credential(request, workspace_id, destination_credential_payload)
+        destination_payload = DestinationSchemaIn(
+            name="default warehouse", credential_id=destination_credential.id, catalog=data["destination_catalog"])
+        destination = create_destination(request, workspace_id, destination_payload)
+        sync_payload = SyncSchemaIn(name="shopify to default warehouse", source_id=source.id,
+                                    destination_id=destination.id, schedule=data["schedule"])
+        sync = create_sync(request, workspace_id, sync_payload)
         run_payload = SyncStartStopSchemaIn(full_refresh=True)
-        response = create_new_run(request,workspace_id,sync.id,run_payload)
+        time.sleep(6)
+        response = create_new_run(request, workspace_id, sync.id, run_payload)
         logger.debug(response)
         return "starting sync from shopify to default warehouse"
     except Exception as e:
-        logger.debug(e.message)
+        logger.exception(e)
         return {"detail": "The specific connection cannot be created."}
 
-@router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
+
+@router.get("/workspaces/{workspace_id}/storage-credentials", response={200: Json, 400: DetailSchema})
 def storage_credentials(request, workspace_id):
-    config={}
+    config = {}
+    logger.info("came here in storeage")
     try:
-        creds = StorageCredentials.objects.filter(workspace_id=workspace_id).get(
-                    connector_config__shopify_store="chitumalla-store"
-                )
+        creds = StorageCredentials.objects.get(workspace_id=workspace_id)
         config['username'] = creds.connector_config["username"]
         config['password'] = creds.connector_config["password"]
         config["namespace"] = creds.connector_config["namespace"]
@@ -290,22 +302,67 @@ def create_destination(request, workspace_id, payload: DestinationSchemaIn):
 def create_sync(request, workspace_id, payload: SyncSchemaIn):
     data = payload.dict()
     try:
-        logger.debug(dict)
-        logger.debug(payload.source_id)
-        logger.debug(payload.destination_id)
-        data["id"] = uuid.uuid4()
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
-        data["source"] = Source.objects.get(id=payload.source_id)
-        data["destination"] = Destination.objects.get(id=payload.destination_id)
-
+        data["source"] = Source.objects.get(id=data["source_id"])
+        data["destination"] = Destination.objects.get(id=data["destination_id"])
         del data["source_id"]
         del data["destination_id"]
-        logger.debug(data["schedule"])
+        schedule = {}
+        if len(data["schedule"]) == 0:
+            schedule["run_interval"] = 3600000
+            data["schedule"] = schedule
+        data["workspace"] = Workspace.objects.get(id=workspace_id)
+        data["id"] = uuid.uuid4()
+        logger.debug(data)
         sync = Sync.objects.create(**data)
         return sync
     except Exception:
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}
+
+
+@router.post("/workspaces/{workspace_id}/syncs/create_with_defaults", response={200: SyncSchema, 400: DetailSchema})
+def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
+    data = payload.dict()
+    source_config = data["source"]["config"]
+    catalog = data["source"]["catalog"]
+    for stream in catalog["streams"]:
+        primary_key = [["id"]]
+        stream["primary_key"] = primary_key
+        stream["destination_sync_mode"] = "append_dedup"
+    # creating source credential
+    source_credential_payload = CredentialSchemaIn(
+        name=source_config["name"], account=data["account"], connector_type=source_config["source_connector_type"],
+        connector_config=source_config["source_connector_config"])
+    source_credential = create_credential(request, workspace_id, source_credential_payload)
+    # creating source
+    source_payload = SourceSchemaIn(
+        name="shopify", credential_id=source_credential.id, catalog=catalog)
+    source = create_source(request, workspace_id, source_payload)
+    workspace = Workspace.objects.get(id=workspace_id)
+    # creating default warehouse
+    storage_credentials = DefaultWarehouse.create(workspace)
+    source_access_info = {"source": source, "storage_credentials": storage_credentials}
+    SourceAccessInfo.objects.create(**source_access_info)
+    # creating destination credential
+    destination_credential_payload = CredentialSchemaIn(
+        name="default warehouse", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
+    destination_credential = create_credential(request, workspace_id, destination_credential_payload)
+    # creating destination
+    destination_payload = DestinationSchemaIn(
+        name="default warehouse", credential_id=destination_credential.id, catalog=catalog)
+    destination = create_destination(request, workspace_id, destination_payload)
+    data["source"] = Source.objects.get(id=source.id)
+    data["destination"] = Destination.objects.get(id=destination.id)
+    del data["account"]
+    schedule = {}
+    if len(data["schedule"]) == 0:
+        schedule["run_interval"] = 3600000
+        data["schedule"] = schedule
+    data["workspace"] = Workspace.objects.get(id=workspace_id)
+    data["id"] = uuid.uuid4()
+    logger.debug(data)
+    sync = Sync.objects.create(**data)
+    return sync
 
 
 @router.post("/workspaces/{workspace_id}/syncs/update", response={200: SyncSchema, 400: DetailSchema})
@@ -460,5 +517,3 @@ def get_samples(
         params={"collector": connector, "metric_type": metric_type},
         timeout=LONG_TIMEOUT,
     ).text
-
-
