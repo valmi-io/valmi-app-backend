@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
 from core.models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
+from core.schemas.prompt import Filter, TimeWindow
 
 
 def camel_to_snake(s):
@@ -124,7 +125,8 @@ class ExploreSchemaIn(Schema):
     account: Dict = None
     prompt_id: str
     schema_id: str
-    query: str
+    time_window: TimeWindow
+    filters: list[Filter]
 
 
 class ExplorePreviewDataIn(Schema):
@@ -203,7 +205,7 @@ class DestinationSchema(ModelSchema):
 
 class SyncSchemaIn(Schema):
     name: str
-    source_id:Optional[UUID4] = None
+    source_id: Optional[UUID4] = None
     destination_id: Optional[UUID4] = None
     schedule: Dict
     account: Optional[Dict]

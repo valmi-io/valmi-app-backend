@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -9,7 +10,9 @@ from os.path import dirname, join
 from decouple import config
 import requests
 from core.api import create_new_run
-from core.models import Credential, Destination, OAuthApiKeys, Source, StorageCredentials, Sync, Workspace
+from core.models import Credential, Destination, OAuthApiKeys, Prompt, Source, StorageCredentials, Sync, Workspace
+from core.schemas.prompt import Filter, TimeWindow
+from core.services.prompts import PromptService
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
@@ -58,7 +61,7 @@ class ExploreService:
             raise Exception("spreadhseet creation failed")
 
     @staticmethod
-    def create_source(schema_id: str, query: str, workspace_id: str, account: object) -> object:
+    def create_source(prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], workspace_id: str, account: object) -> object:
         try:
             # creating source credentail
             credential = {"id": uuid.uuid4()}
@@ -86,6 +89,13 @@ class ExploreService:
             # creating source object
             source["workspace"] = Workspace.objects.get(id=workspace_id)
             source["credential"] = Credential.objects.get(id=cred.id)
+            # building query
+            logger.debug(type(time_window))
+            prompt = Prompt.objects.get(id=prompt_id)
+            namespace = storage_credential.connector_config["namespace"]
+            table = f'{namespace}.{prompt.table}'
+            query = PromptService().build(table, time_window, filters)
+            # creating source cayalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
             body = {
                 "ssl": False,
@@ -107,12 +117,11 @@ class ExploreService:
             json_file_path = join(dirname(__file__), 'source_catalog.json')
             with open(json_file_path, 'r') as openfile:
                 source_catalog = json.load(openfile)
-            # TODO : HARDCODED TABLE NAME
             source_catalog["streams"][0]["stream"] = response_json["catalog"]["streams"][0]
-            namespace = storage_credential.connector_config["namespace"]
             database = storage_credential.connector_config["database"]
-            table = "orders_with_product_data"
-            source_catalog["streams"][0]["stream"]["name"] = f"{database}.{namespace}.{table}"
+            source_catalog["streams"][0]["stream"][
+                "name"
+            ] = f"{database}.{namespace}.{table}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)
@@ -187,6 +196,10 @@ class ExploreService:
         except Exception as e:
             logger.exception(f"Error creating sync: {e}")
             raise Exception("unable to create sync")
+
+    @staticmethod
+    async def wait_for_run(time: int):
+        await asyncio.sleep(time)
 
     @staticmethod
     def create_run(request: object, workspace_id: str, sync_id: str, payload: object) -> None:

@@ -1,7 +1,6 @@
 import json
 import logging
 import json
-import time
 from typing import List
 import uuid
 from decouple import config
@@ -45,8 +44,8 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             account = Account.objects.create(**account_info)
             data["account"] = account
         # create source
-        source = ExploreService.create_source(data["schema_id"], data["query"], workspace_id, account)
-        time.sleep(6)
+        source = ExploreService.create_source(
+            data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
        # create destination
         spreadsheet_name = f"valmiio {prompt.name} sheet"
         destination_data = ExploreService.create_destination(spreadsheet_name, workspace_id, account)
@@ -54,17 +53,17 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         destination = destination_data[1]
         # create sync
         sync = ExploreService.create_sync(source, destination, workspace_id)
-        # await asyncio.sleep(5)
-        time.sleep(5)
         # creating explore
         del data["schema_id"]
-        del data["query"]
+        del data["filters"]
+        del data["time_window"]
         data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
         data["ready"] = False
         data["spreadsheet_url"] = spreadsheet_url
         explore = Explore.objects.create(**data)
         # create run
+        ExploreService.wait_for_run(5)
         payload = SyncStartStopSchemaIn(full_refresh=True)
         ExploreService.create_run(request, workspace_id, sync.id, payload)
         return explore
