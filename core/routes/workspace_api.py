@@ -1,48 +1,34 @@
-"""
-Copyright (c) 2024 valmi.io <https://github.com/valmi-io>
-
-Created Date: Wednesday, March 8th 2023, 9:56:52 pm
-Author: Rajashekar Varkala @ valmi.io
-
-"""
-
 import json
 import logging
 import uuid
-import uuid
 from datetime import datetime
 from typing import Dict, List, Optional
+
 import requests
 from decouple import Csv, config
 from ninja import Router
 from pydantic import UUID4, Json
-from core.schemas import (
-    ConnectionSchemaIn,
-    ConnectorConfigSchemaIn,
-    ConnectorSchema,
-    CredentialSchema,
-    CredentialSchemaIn,
-    CredentialSchemaUpdateIn,
-    DestinationSchema,
-    DestinationSchemaIn,
-    DetailSchema,
-    FailureSchema,
-    SourceSchema,
-    SourceSchemaIn,
-    SuccessSchema,
-    SyncIdSchema,
-    SyncSchema,
-    SyncSchemaIn,
-    SyncSchemaUpdateIn,
-    SyncStartStopSchemaIn,
-    UserSchemaOut,
-    CreateConfigSchemaIn
-)
-from .models import Account, Connector, Credential, Destination, Source, StorageCredentials, Sync, User, Workspace, OAuthApiKeys
-from valmi_app_backend.utils import replace_values_in_json
+
+from core.routes.api_config import LONG_TIMEOUT, SHORT_TIMEOUT
+from core.schemas import (ConnectionSchemaIn, ConnectorConfigSchemaIn,
+                          CreateConfigSchemaIn, CredentialSchema,
+                          CredentialSchemaIn, CredentialSchemaUpdateIn,
+                          DestinationSchema, DestinationSchemaIn, DetailSchema,
+                          FailureSchema, SourceSchema, SourceSchemaIn,
+                          SuccessSchema, SyncIdSchema, SyncSchema,
+                          SyncSchemaIn, SyncSchemaUpdateIn,
+                          SyncStartStopSchemaIn)
 from core.services import warehouse_credentials
+from valmi_app_backend.utils import replace_values_in_json
+
+from ..models import (Account, Connector, Credential, Destination,
+                      OAuthApiKeys, Source, StorageCredentials, Sync,
+                      Workspace)
 
 router = Router()
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 CONNECTOR_PREFIX_URL = config("ACTIVATION_SERVER") + "/connectors"
 ACTIVATION_URL = config("ACTIVATION_SERVER")
@@ -50,29 +36,10 @@ ACTIVE = "active"
 INACTIVE = "inactive"
 DELETED = "deleted"
 
-LONG_TIMEOUT = 60
-SHORT_TIMEOUT = 60
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
 
 
-def get_workspaces(user):
-    queryset = User.objects.prefetch_related("organizations").get(id=user.id)
-    for organization in queryset.organizations.all():
-        for workspace in organization.workspaces.all():
-            yield workspace
 
-
-@router.get("/spaces/", response=UserSchemaOut)
-def list_spaces(request):
-    user_id = request.user.id
-    queryset = User.objects.prefetch_related("organizations").get(id=user_id)
-    logger.debug(queryset)
-    return queryset
-
-
-@router.get("/workspaces/{workspace_id}/connectors/{connector_type}/spec", response=Json)
+@router.get("/connectors/{connector_type}/spec", response=Json)
 def connector_spec(request, workspace_id, connector_type):
     # workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
@@ -84,7 +51,7 @@ def connector_spec(request, workspace_id, connector_type):
     ).text
 
 
-@router.post("/workspaces/{workspace_id}/connectors/{connector_type}/check", response=Dict)
+@router.post("/connectors/{connector_type}/check", response=Dict)
 def connector_check(request, workspace_id, connector_type, payload: ConnectorConfigSchemaIn):
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
@@ -114,7 +81,7 @@ def connector_check(request, workspace_id, connector_type, payload: ConnectorCon
     ).json()
 
 
-@router.post("/workspaces/{workspace_id}/connectors/{connector_type}/discover", response=Dict)
+@router.post("/connectors/{connector_type}/discover", response=Dict)
 def connector_discover(request, workspace_id, connector_type, payload: ConnectorConfigSchemaIn):
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
@@ -143,7 +110,7 @@ def connector_discover(request, workspace_id, connector_type, payload: Connector
     ).json()
 
 
-@router.post("/workspaces/{workspace_id}/connectors/{connector_type}/create", response=Dict)
+@router.post("/connectors/{connector_type}/create", response=Dict)
 def connector_create(request, workspace_id, connector_type, payload: CreateConfigSchemaIn):
     workspace = Workspace.objects.get(id=workspace_id)
     connector = Connector.objects.get(type=connector_type)
@@ -172,14 +139,14 @@ def connector_create(request, workspace_id, connector_type, payload: CreateConfi
     return res
 
 
-@router.get("/workspaces/{workspace_id}/credentials/", response=List[CredentialSchema])
+@router.get("/credentials/", response=List[CredentialSchema])
 def list_credentials(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
     queryset = Credential.objects.filter(workspace=workspace).order_by("-created_at")
     return queryset
 
 
-@router.post("/workspaces/{workspace_id}/credentials/create", response={200: CredentialSchema, 400: DetailSchema})
+@router.post("/credentials/create", response={200: CredentialSchema, 400: DetailSchema})
 def create_credential(request, workspace_id, payload: CredentialSchemaIn):
     data = payload.dict()
     try:
@@ -203,7 +170,7 @@ def create_credential(request, workspace_id, payload: CredentialSchemaIn):
         return {"detail": "The specific credential cannot be created."}
     
 
-@router.post("/workspaces/{workspace_id}/connection/DefaultWarehouse", response={200: SuccessSchema, 400: DetailSchema})
+@router.post("/connection/DefaultWarehouse", response={200: SuccessSchema, 400: DetailSchema})
 def create_connection_with_default_warehouse(request, workspace_id,payload: ConnectionSchemaIn):
     data = payload.dict()
     try:
@@ -230,7 +197,7 @@ def create_connection_with_default_warehouse(request, workspace_id,payload: Conn
         logger.debug(e.message)
         return {"detail": "The specific connection cannot be created."}
 
-@router.get("/workspaces/{workspace_id}/storage-credentials",response={200: Json, 400: DetailSchema})
+@router.get("/storage-credentials",response={200: Json, 400: DetailSchema})
 def storage_credentials(request, workspace_id):
     config={}
     try:
@@ -250,7 +217,7 @@ def storage_credentials(request, workspace_id):
     return json.dumps(config)
 
 
-@router.post("/workspaces/{workspace_id}/credentials/update", response={200: CredentialSchema, 400: DetailSchema})
+@router.post("/credentials/update", response={200: CredentialSchema, 400: DetailSchema})
 def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
     data = payload.dict()
     try:
@@ -274,14 +241,14 @@ def update_credential(request, workspace_id, payload: CredentialSchemaUpdateIn):
         return {"detail": "The specific credential cannot be created."}
 
 
-@router.get("/workspaces/{workspace_id}/sources/", response=List[SourceSchema])
+@router.get("/sources/", response=List[SourceSchema])
 def list_sources(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
     queryset = Source.objects.filter(workspace=workspace)
     return queryset
 
 
-@router.post("/workspaces/{workspace_id}/sources/create", response={200: SourceSchema, 400: DetailSchema})
+@router.post("/sources/create", response={200: SourceSchema, 400: DetailSchema})
 def create_source(request, workspace_id, payload: SourceSchemaIn):
     data = payload.dict()
     logger.debug("Creating source")
@@ -297,14 +264,14 @@ def create_source(request, workspace_id, payload: SourceSchemaIn):
         return {"detail": "The specific source cannot be created."}
 
 
-@router.get("/workspaces/{workspace_id}/destinations/", response=List[DestinationSchema])
+@router.get("/destinations/", response=List[DestinationSchema])
 def list_definitions(request, workspace_id):
     workspace = Workspace.objects.get(id=workspace_id)
     queryset = Destination.objects.filter(workspace=workspace)
     return queryset
 
 
-@router.post("/workspaces/{workspace_id}/destinations/create", response={200: DestinationSchema, 400: DetailSchema})
+@router.post("/destinations/create", response={200: DestinationSchema, 400: DetailSchema})
 def create_destination(request, workspace_id, payload: DestinationSchemaIn):
     data = payload.dict()
     logger.debug(dict)
@@ -319,7 +286,7 @@ def create_destination(request, workspace_id, payload: DestinationSchemaIn):
         return {"detail": "The specific destination cannot be created."}
 
 
-@router.post("/workspaces/{workspace_id}/syncs/create", response={200: SyncSchema, 400: DetailSchema})
+@router.post("/syncs/create", response={200: SyncSchema, 400: DetailSchema})
 def create_sync(request, workspace_id, payload: SyncSchemaIn):
     data = payload.dict()
     try:
@@ -341,7 +308,7 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
         return {"detail": "The specific sync cannot be created."}
 
 
-@router.post("/workspaces/{workspace_id}/syncs/update", response={200: SyncSchema, 400: DetailSchema})
+@router.post("/syncs/update", response={200: SyncSchema, 400: DetailSchema})
 def update_sync(request, workspace_id, payload: SyncSchemaUpdateIn):
     data = payload.dict()
     try:
@@ -364,7 +331,7 @@ def update_sync(request, workspace_id, payload: SyncSchemaUpdateIn):
         return {"detail": "The specific sync cannot be created."}
 
 
-@router.post("/workspaces/{workspace_id}/syncs/enable", response={200: SuccessSchema, 502: FailureSchema})
+@router.post("/syncs/enable", response={200: SuccessSchema, 502: FailureSchema})
 def enable_sync(request, workspace_id, payload: SyncIdSchema):
     try:
         sync_id = payload.sync_id
@@ -377,7 +344,7 @@ def enable_sync(request, workspace_id, payload: SyncIdSchema):
         return (502, FailureSchema())
 
 
-@router.post("/workspaces/{workspace_id}/syncs/disable", response={200: SuccessSchema, 502: FailureSchema})
+@router.post("/syncs/disable", response={200: SuccessSchema, 502: FailureSchema})
 def disable_sync(request, workspace_id, payload: SyncIdSchema):
     try:
         sync_id = payload.sync_id
@@ -390,7 +357,7 @@ def disable_sync(request, workspace_id, payload: SyncIdSchema):
         return (502, FailureSchema())
 
 
-@router.delete("/workspaces/{workspace_id}/syncs/delete", response={200: SuccessSchema, 502: FailureSchema})
+@router.delete("/syncs/delete", response={200: SuccessSchema, 502: FailureSchema})
 def delete_sync(request, workspace_id, payload: SyncIdSchema):
     try:
         sync_id = payload.sync_id
@@ -403,7 +370,7 @@ def delete_sync(request, workspace_id, payload: SyncIdSchema):
         return (502, FailureSchema())
 
 
-@router.get("/workspaces/{workspace_id}/syncs/", response=List[SyncSchema])
+@router.get("/syncs/", response=List[SyncSchema])
 def list_syncs(request, workspace_id):
     # use request.user_id to check access control in the middleware
     workspace = Workspace.objects.get(id=workspace_id)
@@ -415,13 +382,13 @@ def list_syncs(request, workspace_id):
 
 
 # TODO: Activation Server sends dummy wordspace_id for the sync details. Need to fix it.
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}", response=SyncSchema)
+@router.get("/syncs/{sync_id}", response=SyncSchema)
 def get_sync(request, workspace_id, sync_id):
     sync = Sync.objects.get(id=sync_id)
     return sync
 
 
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/", response=Json)
+@router.get("/syncs/{sync_id}/runs/", response=Json)
 def get_sync_runs(
     request,
     workspace_id,
@@ -436,7 +403,7 @@ def get_sync_runs(
     ).text
 
 
-@router.post("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/abort", response=Json)
+@router.post("/syncs/{sync_id}/runs/{run_id}/abort", response=Json)
 def abort_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
     return requests.post(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}/abort",
@@ -444,7 +411,7 @@ def abort_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
     ).text
 
 
-@router.post("/workspaces/{workspace_id}/syncs/{sync_id}/runs/create", response=Json)
+@router.post("/syncs/{sync_id}/runs/create", response=Json)
 def create_new_run(request, workspace_id, sync_id: UUID4, payload: SyncStartStopSchemaIn):
     # Prepare run time args for the sync
     run_time_args_config = {"run_time_args": {"full_refresh": payload.full_refresh}}
@@ -456,7 +423,7 @@ def create_new_run(request, workspace_id, sync_id: UUID4, payload: SyncStartStop
     ).text
 
 
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}", response=Json)
+@router.get("/syncs/{sync_id}/runs/{run_id}", response=Json)
 def get_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
     return requests.get(
         f"{ACTIVATION_URL}/syncs/{sync_id}/runs/{run_id}",
@@ -464,31 +431,7 @@ def get_run(request, workspace_id, sync_id: UUID4, run_id: UUID4):
     ).text
 
 
-@router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def get_connectors(request):
-    # check for admin permissions
-    try:
-        logger.debug("listing connectors")
-        connectors = Connector.objects.all()
-
-        logger.info(f"connectors - {connectors}")
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        for conn in connectors:
-            logger.info(f"conn{conn}")
-            arr = conn.type.split("_")
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-        return src_dst_dict
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of connectors cannot be fetched."})
-
-
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/logs", response=Json)
+@router.get("/syncs/{sync_id}/runs/{run_id}/logs", response=Json)
 def get_logs(
         request,
         workspace_id: UUID4,
@@ -504,7 +447,7 @@ def get_logs(
     ).text
 
 
-@router.get("/workspaces/{workspace_id}/syncs/{sync_id}/runs/{run_id}/samples", response=Json)
+@router.get("/syncs/{sync_id}/runs/{run_id}/samples", response=Json)
 def get_samples(
         request,
         workspace_id: UUID4,
@@ -519,72 +462,3 @@ def get_samples(
     ).text
 
 
-@router.get("/connectors/{workspace_id}/configured", response={200: Dict[str, List[ConnectorSchema]],
-                                                               400: DetailSchema})
-def get_connectors_configured(request, workspace_id):
-
-    try:
-        # Get the connectors that match the criteria
-        logger.debug("listing all configured connectors")
-        workspace = Workspace.objects.get(id=workspace_id)
-
-        configured_connectors = OAuthApiKeys.objects.filter(workspace=workspace).values('type')
-
-        connectors = Connector.objects.filter(
-            oauth=True,
-            oauth_keys="private",
-            type__in=configured_connectors)
-
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        logger.debug("Connectors:-", connectors)
-        for conn in connectors:
-            arr = conn.type.split("_")
-            logger.debug("Arr:_", arr)
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-
-        return src_dst_dict
-
-    except Workspace.DoesNotExist:
-        return (400, {"detail": "Workspace not found."})
-
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of  connectors cannot be fetched."})
-
-
-@router.get("/connectors/{workspace_id}/not-configured",
-            response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def get_connectors_not_configured(request, workspace_id):
-
-    try:
-        # Get the connectors that match the criteria
-
-        workspace = Workspace.objects.get(id=workspace_id)
-
-        configured_connectors = OAuthApiKeys.objects.filter(workspace=workspace).values('type')
-
-        connectors = Connector.objects.filter(
-            oauth=True,
-            oauth_keys="private"
-        ).exclude(type__in=configured_connectors)
-
-        src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
-        src_dst_dict["SRC"] = []
-        src_dst_dict["DEST"] = []
-        logger.debug("Connectors:-", connectors)
-        for conn in connectors:
-            arr = conn.type.split("_")
-            if arr[0] == "SRC":
-                src_dst_dict["SRC"].append(conn)
-            elif arr[0] == "DEST":
-                src_dst_dict["DEST"].append(conn)
-        return src_dst_dict
-
-    except Exception:
-        logger.exception("connector listing error")
-        return (400, {"detail": "The list of connectors cannot be fetched."})

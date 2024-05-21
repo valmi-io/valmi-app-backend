@@ -16,7 +16,7 @@ from typing import List
 from ninja import Router
 from pydantic import Json
 
-from .models import Connector, Workspace, OAuthApiKeys
+from ..models import Connector, Workspace, OAuthApiKeys
 
 from core.schemas import (
     DetailSchema,
