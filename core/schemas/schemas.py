@@ -203,9 +203,12 @@ class DestinationSchema(ModelSchema):
 
 class SyncSchemaIn(Schema):
     name: str
-    source_id: UUID4
-    destination_id: UUID4
+    source_id:Optional[UUID4] = None
+    destination_id: Optional[UUID4] = None
     schedule: Dict
+    account: Optional[Dict]
+    source_config: Optional[Dict]
+    source_catalog: Optional[Dict]
     ui_state: Optional[Dict]
 
 
