@@ -323,15 +323,6 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
 @router.post("/workspaces/{workspace_id}/syncs/create_with_defaults", response={200: SyncSchema, 400: DetailSchema})
 def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
     data = payload.dict()
-    key_to_check = "schedule"
-    if data["schedule"] is None:
-        schedule = {"run_interval": 3600000}
-        data["schedule"] = schedule
-        logger.debug("---------------------------------------")
-        logger.debug(data["schedule"]["run_interval"])
-    return
-    logger.debug(data)
-    source_config = data["source"]["config"]
     catalog = data["source"]["catalog"]
     for stream in catalog["streams"]:
         primary_key = [["id"]]
@@ -339,8 +330,8 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         stream["destination_sync_mode"] = "append_dedup"
     # creating source credential
     source_credential_payload = CredentialSchemaIn(
-        name=source_config["name"], account=data["account"], connector_type=source_config["source_connector_type"],
-        connector_config=source_config["source_connector_config"])
+        name="shopify", account=data["account"], connector_type=data["source"]["type"],
+        connector_config=data["source"]["config"])
     source_credential = create_credential(request, workspace_id, source_credential_payload)
     # creating source
     source_payload = SourceSchemaIn(
@@ -362,17 +353,13 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
     data["source"] = Source.objects.get(id=source.id)
     data["destination"] = Destination.objects.get(id=destination.id)
     del data["account"]
-    key_to_check = "schedule"
-    value = data.get(key_to_check)
-    if "schedule" not in data:
+    if data["schedule"] is None:
         schedule = {"run_interval": 3600000}
-        data[key_to_check] = schedule
-        logger.debug(data["schedule"])
+        data["schedule"] = schedule
     data["workspace"] = Workspace.objects.get(id=workspace_id)
-    key_to_check = "ui_state"
-    if key_to_check not in data:
+    if data["ui_state"] is None:
         ui_state = {}
-        data[key_to_check] = ui_state
+        data["ui_state"] = ui_state
     data["id"] = uuid.uuid4()
     logger.debug(data)
     sync = Sync.objects.create(**data)
