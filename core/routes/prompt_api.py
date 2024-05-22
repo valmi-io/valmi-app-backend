@@ -26,7 +26,10 @@ def get_prompts(request, workspace_id):
         connector_types = [connector['connector_id'] for connector in connector_ids]
         for prompt in prompts:
             prompt["id"] = str(prompt["id"])
-            prompt["enabled"] = bool(PromptService.is_prompt_enabled(workspace_id, prompt))
+            if prompt["type"] in connector_types:
+                prompt["enabled"] = True
+            else:
+                prompt["enabled"] = False
         return prompts
     except Exception as err:
         logger.exception("prompts listing error:" + err)
