@@ -9,7 +9,8 @@ import json
 from pydantic import Json
 import requests
 from core.models import Account, Explore, Prompt, Workspace
-from core.schemas.schemas import DetailSchema, ExploreSchema, ExploreSchemaIn, SyncStartStopSchemaIn
+from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
+from core.schemas.explore import ExploreSchema, ExploreSchemaIn, ExploreSchemaOut
 from ninja import Router
 from pydantic import Json
 
@@ -22,12 +23,17 @@ router = Router()
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 
 
-@router.get("/workspaces/{workspace_id}/explores", response={200: List[ExploreSchema], 400: DetailSchema})
+@router.get("/workspaces/{workspace_id}/explores", response={200: List[ExploreSchemaOut], 400: DetailSchema})
 def get_explores(request, workspace_id):
     try:
         logger.debug("listing explores")
         workspace = Workspace.objects.get(id=workspace_id)
-        return Explore.objects.filter(workspace=workspace).order_by('created_at')
+        explores = Explore.objects.filter(workspace=workspace).order_by('created_at')
+        for explore in explores:
+            explore.prompt_id = explore.prompt.id
+            explore.workspace_id = explore.workspace.id
+            explore.last_successful_time = ExploreService.get_last_sync_successful_time(request, explore.sync.id)
+        return explores
     except Exception:
         logger.exception("explores listing error")
         return (400, {"detail": "The list of explores cannot be fetched."})
@@ -69,7 +75,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         explore = Explore.objects.create(**data)
         # create run
         asyncio.run(ExploreService.wait_for_run(5))
-        payload = SyncStartStopSchemaIn(full_refresh=True)
+        payload = SyncStartStopSchemaIn(full_refresh=False)
         ExploreService.create_run(request, workspace_id, sync.id, payload)
         return explore
     except Exception as e:

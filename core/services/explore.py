@@ -211,3 +211,9 @@ class ExploreService:
         except Exception as e:
             logger.exception(f"Error creating run: {e}")
             raise Exception("unable to create run")
+
+    @staticmethod
+    def get_last_sync_successful_time(request: object, sync_id: object) -> str:
+        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
+        status = response.text
+        print(status)

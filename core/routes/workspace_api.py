@@ -323,6 +323,14 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
 @router.post("/workspaces/{workspace_id}/syncs/create_with_defaults", response={200: SyncSchema, 400: DetailSchema})
 def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
     data = payload.dict()
+    key_to_check = "schedule"
+    if data["schedule"] is None:
+        schedule = {"run_interval": 3600000}
+        data["schedule"] = schedule
+        logger.debug("---------------------------------------")
+        logger.debug(data["schedule"]["run_interval"])
+    return
+    logger.debug(data)
     source_config = data["source"]["config"]
     catalog = data["source"]["catalog"]
     for stream in catalog["streams"]:
@@ -354,11 +362,17 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
     data["source"] = Source.objects.get(id=source.id)
     data["destination"] = Destination.objects.get(id=destination.id)
     del data["account"]
-    schedule = {}
-    if len(data["schedule"]) == 0:
-        schedule["run_interval"] = 3600000
-        data["schedule"] = schedule
+    key_to_check = "schedule"
+    value = data.get(key_to_check)
+    if "schedule" not in data:
+        schedule = {"run_interval": 3600000}
+        data[key_to_check] = schedule
+        logger.debug(data["schedule"])
     data["workspace"] = Workspace.objects.get(id=workspace_id)
+    key_to_check = "ui_state"
+    if key_to_check not in data:
+        ui_state = {}
+        data[key_to_check] = ui_state
     data["id"] = uuid.uuid4()
     logger.debug(data)
     sync = Sync.objects.create(**data)
