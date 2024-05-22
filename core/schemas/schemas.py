@@ -197,7 +197,7 @@ class SyncSchemaUpdateIn(Schema):
     name: str
     source_id: UUID4
     destination_id: UUID4
-    schedule: Dict
+    schedule: Optional[Dict]
     ui_state: Optional[Dict]
 
 
