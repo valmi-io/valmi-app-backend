@@ -14,7 +14,7 @@ from ninja import Router
 from pydantic import Json
 
 from core.models import Account, Explore, Prompt, Workspace
-from core.services.explore_service import ExploreService
+from core.services.explore import ExploreService
 
 logger = logging.getLogger(__name__)
 
