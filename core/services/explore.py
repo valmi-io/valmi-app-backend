@@ -1,5 +1,4 @@
 import asyncio
-from datetime import datetime
 import json
 import logging
 import os
@@ -214,15 +213,12 @@ class ExploreService:
             raise Exception("unable to create run")
 
     @staticmethod
+    @staticmethod
     def get_last_sync_successful_time(sync_id: object) -> str:
         response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
         json_string = response.content.decode('utf-8')
         dict_data = json.loads(json_string)
-        if dict_data.get('found') == True:
-            timestamp = datetime.strptime(dict_data.get('timestamp'), "%Y-%m-%dT%H:%M:%S.%f")
-            timestamp = timestamp.replace(microsecond=0)
-            return timestamp.isoformat()
-        return ""
+        return dict_data.get('run_end_at') if dict_data.get('found') == True else ""
 
     @staticmethod
     def is_explore_running(sync_id: str) -> dict:
