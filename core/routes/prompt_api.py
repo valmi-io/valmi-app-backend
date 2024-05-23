@@ -26,10 +26,7 @@ def get_prompts(request, workspace_id):
         connector_types = [connector['connector_id'] for connector in connector_ids]
         for prompt in prompts:
             prompt["id"] = str(prompt["id"])
-            if prompt["type"] in connector_types:
-                prompt["enabled"] = True
-            else:
-                prompt["enabled"] = False
+            prompt["enabled"] = PromptService.is_enabled(workspace_id, prompt)
         return prompts
     except Exception as err:
         logger.exception("prompts listing error:" + err)
@@ -41,7 +38,7 @@ def get_prompt(request, workspace_id, prompt_id):
     try:
         logger.debug("listing prompts")
         prompt = Prompt.objects.get(id=prompt_id)
-        if not PromptService.is_prompt_enabled(workspace_id, prompt):
+        if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
             return 400, {"detail": detail_message}
         credential_info = Source.objects.filter(
@@ -83,7 +80,7 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSchemaIn):
     try:
         prompt = Prompt.objects.get(id=prompt_id)
-        if not PromptService.is_prompt_enabled(workspace_id, prompt):
+        if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
             return 400, {"detail": detail_message}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)

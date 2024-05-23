@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from ninja import Field, ModelSchema, Schema
 from core.models import Explore
 from core.schemas.prompt import Filter, TimeWindow
@@ -6,14 +6,19 @@ from core.schemas.schemas import AccountSchema, CamelSchemaConfig, PromptSchema,
 
 
 class ExploreSchemaOut(Schema):
-    ready:bool
-    name:str
-    spreadsheet_url:str
-    id:str
-    prompt_id:str
-    workspace_id:str
-    last_successful_time:str
-    created_at:str
+    ready: bool
+    name: str
+    spreadsheet_url: str
+    id: str
+    prompt_id: str
+    enabled: bool
+    workspace_id: str
+    last_sync_succeeded_at: str
+    last_sync_created_at: str
+    last_sync_result: str
+    sync_state: str
+    sync_id: str
+
 
 class ExploreSchema(ModelSchema):
     class Config(CamelSchemaConfig):

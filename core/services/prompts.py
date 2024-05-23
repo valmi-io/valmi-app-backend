@@ -38,7 +38,9 @@ class PromptService():
         return template.render(table=table, timeWindow=timeWindowDict, filters=filterList)
 
     @staticmethod
-    def is_prompt_enabled(workspace_id: str, prompt: object) -> bool:
+    def is_enabled(workspace_id: str, prompt: object) -> bool:
         connector_ids = list(Credential.objects.filter(workspace_id=workspace_id).values('connector_id').distinct())
         connector_types = [connector['connector_id'] for connector in connector_ids]
+        if isinstance(prompt, dict):
+            return prompt["type"] in connector_types
         return prompt.type in connector_types

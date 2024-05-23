@@ -30,9 +30,28 @@ def get_explores(request, workspace_id):
         workspace = Workspace.objects.get(id=workspace_id)
         explores = Explore.objects.filter(workspace=workspace).order_by('created_at')
         for explore in explores:
-            explore.prompt_id = explore.prompt.id
-            explore.workspace_id = explore.workspace.id
-            explore.last_successful_time = ExploreService.get_last_sync_successful_time(request, explore.sync.id)
+            explore.prompt_id = str(explore.prompt.id)
+            explore.workspace_id = str(explore.workspace.id)
+            explore.id = str(explore.id)
+            explore_sync_status = ExploreService.is_explore_running(explore.sync.id)
+            if explore_sync_status.get('enabled') == False:
+                explore.enabled = False
+                explore.sync_state = 'IDLE'
+                explore.last_sync_result = 'UNKNOWN'
+                explore.last_sync_created_at = ""
+                explore.last_sync_succeeded_at = ""
+                explore.sync_id = ""
+                continue
+            explore.enabled = True
+            explore.sync_id = str(explore.sync.id)
+            explore.last_sync_succeeded_at = ExploreService.get_last_sync_successful_time(explore.sync.id)
+            if explore_sync_status.get('is_running') == True:
+                explore.sync_state = 'RUNNING'
+                explore.last_sync_result = 'UNKNOWN'
+            else:
+                explore.last_sync_result = explore_sync_status.get('status')
+                explore.sync_state = 'IDLE'
+            explore.last_sync_created_at = explore_sync_status.get('created_at')
         return explores
     except Exception:
         logger.exception("explores listing error")
