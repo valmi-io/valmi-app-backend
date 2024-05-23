@@ -220,7 +220,7 @@ class ExploreService:
         return dict_data.get('run_end_at') if dict_data.get('found') == True else ""
 
     @staticmethod
-    def is_running(sync_id: str) -> dict:
+    def is_sync_created_or_running(sync_id: str) -> dict:
         response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latest_sync_info")
         json_string = response.content.decode('utf-8')
         dict_data = json.loads(json_string)

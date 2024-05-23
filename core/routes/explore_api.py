@@ -33,8 +33,9 @@ def get_explores(request, workspace_id):
             explore.prompt_id = str(explore.prompt.id)
             explore.workspace_id = str(explore.workspace.id)
             explore.id = str(explore.id)
-            explore_sync_status = ExploreService.is_running(explore.sync.id)
+            explore_sync_status = ExploreService.is_sync_created_or_running(explore.sync.id)
             if explore_sync_status.get('enabled') == False:
+
                 explore.enabled = False
                 explore.sync_state = 'IDLE'
                 explore.last_sync_result = 'UNKNOWN'
