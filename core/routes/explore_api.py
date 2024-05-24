@@ -38,7 +38,6 @@ def get_explores(request, workspace_id):
                 explore.last_sync_succeeded_at = ""
                 continue
             explore.enabled = True
-            explore.last_sync_succeeded_at = ExploreService.get_last_sync_successful_time(explore.sync.id)
             if explore_sync_status.get('is_running') == True:
                 explore.sync_state = 'RUNNING'
                 explore.last_sync_result = 'UNKNOWN'
@@ -46,6 +45,7 @@ def get_explores(request, workspace_id):
                 explore.last_sync_result = explore_sync_status.get('status').upper()
                 explore.sync_state = 'IDLE'
             explore.last_sync_created_at = explore_sync_status.get('created_at')
+            explore.last_sync_succeeded_at = ExploreService.get_last_sync_successful_time(explore.sync.id)
         return explores
     except Exception:
         logger.exception("explores listing error")
