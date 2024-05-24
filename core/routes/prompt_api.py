@@ -83,6 +83,8 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
             return 400, {"detail": detail_message}
+        if not PromptService.is_sync_finished(prompt_req.schema_id):
+            return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_name = f'{schema_name}.{prompt.table}'

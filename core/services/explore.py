@@ -213,7 +213,7 @@ class ExploreService:
             raise Exception("unable to create run")
 
     @staticmethod
-    def get_last_sync_successful_time(sync_id: object) -> str:
+    def get_last_sync_successful_time(sync_id: str) -> str:
         response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
         json_string = response.content.decode('utf-8')
         dict_data = json.loads(json_string)
