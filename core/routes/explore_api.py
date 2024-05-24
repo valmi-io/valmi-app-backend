@@ -31,17 +31,17 @@ def get_explores(request, workspace_id):
         explores = Explore.objects.filter(workspace=workspace).order_by('created_at')
         for explore in explores:
             explore.prompt_id = str(explore.prompt.id)
+            explore.description = Prompt.objects.get(id=explore.prompt.id).description
             explore.workspace_id = str(explore.workspace.id)
             explore.id = str(explore.id)
+            explore.sync_id = str(explore.sync.id)
             explore_sync_status = ExploreService.is_sync_created_or_running(explore.sync.id)
             if explore_sync_status.get('enabled') == False:
-
                 explore.enabled = False
                 explore.sync_state = 'IDLE'
                 explore.last_sync_result = 'UNKNOWN'
                 explore.last_sync_created_at = ""
                 explore.last_sync_succeeded_at = ""
-                explore.sync_id = ""
                 continue
             explore.enabled = True
             explore.sync_id = str(explore.sync.id)
@@ -50,7 +50,7 @@ def get_explores(request, workspace_id):
                 explore.sync_state = 'RUNNING'
                 explore.last_sync_result = 'UNKNOWN'
             else:
-                explore.last_sync_result = explore_sync_status.get('status')
+                explore.last_sync_result = explore_sync_status.get('status').upper()
                 explore.sync_state = 'IDLE'
             explore.last_sync_created_at = explore_sync_status.get('created_at')
         return explores
@@ -78,7 +78,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         source = ExploreService.create_source(
             data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
        # create destination
-        spreadsheet_name = f"valmiio {prompt.name} sheet"
+        spreadsheet_name = f"valmi.io {prompt.name} sheet"
         destination_data = ExploreService.create_destination(spreadsheet_name, workspace_id, account)
         spreadsheet_url = destination_data[0]
         destination = destination_data[1]
@@ -88,7 +88,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         del data["schema_id"]
         del data["filters"]
         del data["time_window"]
-        data["name"] = f"valmiio {prompt.name}"
+        # data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
         data["ready"] = False
         data["spreadsheet_url"] = spreadsheet_url

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from ninja import Field, ModelSchema, Schema
 from core.models import Explore
 from core.schemas.prompt import Filter, TimeWindow
@@ -12,6 +12,7 @@ class ExploreSchemaOut(Schema):
     id: str
     prompt_id: str
     enabled: bool
+    description: str
     workspace_id: str
     last_sync_succeeded_at: str
     last_sync_created_at: str
