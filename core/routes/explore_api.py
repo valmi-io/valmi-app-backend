@@ -1,18 +1,12 @@
 import asyncio
-import json
 import logging
-import json
 from typing import List
 import uuid
 from decouple import config
-import json
-from pydantic import Json
-import requests
 from core.models import Account, Explore, Prompt, Workspace
 from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
 from core.schemas.explore import ExploreSchema, ExploreSchemaIn, ExploreSchemaOut
 from ninja import Router
-from pydantic import Json
 
 from core.models import Account, Explore, Prompt, Workspace
 from core.services.explore import ExploreService
@@ -110,40 +104,4 @@ def get_explores(request, workspace_id, explore_id):
         return Explore.objects.get(id=explore_id)
     except Exception:
         logger.exception("explore listing error")
-        return (400, {"detail": "The  explore cannot be fetched."})
-
-
-@router.get("/workspaces/{workspace_id}/explores/{explore_id}/status", response={200: Json, 400: DetailSchema})
-def get_explore_status(request, workspace_id, explore_id):
-    try:
-        logger.debug("getting_explore_status")
-        explore = Explore.objects.get(id=explore_id)
-        response = {}
-        if explore.ready:
-            response["status"] = "success"
-            return json.dumps(response)
-        sync_id = explore.sync.id
-        response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latestRunStatus")
-        status = response.text
-        print(status)
-        # if status == 'stopped':
-        #     CODE for re running the sync from backend
-        #     payload = SyncStartStopSchemaIn(full_refresh=True)
-        #     response = create_new_run(request,workspace_id,sync_id,payload)
-        #     print(response)
-        #     return "sync got failed. Please re-try again"
-        if status == '"running"':
-            explore.ready = False
-            response["status"] = "running"
-            return json.dumps(response)
-        if status == '"failed"':
-            explore.ready = False
-            response["status"] = "failed"
-            return json.dumps(response)
-        explore.ready = True
-        explore.save()
-        response["status"] = "success"
-        return json.dumps(response)
-    except Exception:
-        logger.exception("get_explore_status error")
         return (400, {"detail": "The  explore cannot be fetched."})
