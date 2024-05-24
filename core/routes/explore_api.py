@@ -38,7 +38,6 @@ def get_explores(request, workspace_id):
                 explore.last_sync_succeeded_at = ""
                 continue
             explore.enabled = True
-            explore.sync_id = str(explore.sync.id)
             explore.last_sync_succeeded_at = ExploreService.get_last_sync_successful_time(explore.sync.id)
             if explore_sync_status.get('is_running') == True:
                 explore.sync_state = 'RUNNING'
