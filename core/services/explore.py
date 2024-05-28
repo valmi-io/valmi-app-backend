@@ -13,6 +13,7 @@ from decouple import config
 import requests
 from core.routes.workspace_api import create_new_run
 from core.models import Credential, Destination, OAuthApiKeys, Prompt, Source, StorageCredentials, Sync, Workspace
+from core.schemas.explore import LatestSyncInfo
 from core.schemas.prompt import Filter, TimeWindow
 from core.services.prompts import PromptService
 logger = logging.getLogger(__name__)
@@ -213,25 +214,13 @@ class ExploreService:
             raise Exception("unable to create run")
 
     @staticmethod
-    def get_last_sync_successful_time(sync_id: str) -> str:
-        try:
-            response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
-            json_string = response.content.decode('utf-8')
-            dict_data = json.loads(json_string)
-            return dict_data.get('run_end_at') if dict_data.get('found') == True else ""
-        except Exception as e:
-            logger.exception(f"Error : {e}")
-            raise Exception("unable to query activation")
-
-    @staticmethod
-    def is_sync_created_or_running(sync_id: str) -> dict:
+    def get_latest_sync_info(sync_id: str) -> LatestSyncInfo:
         try:
             response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latest_sync_info")
             json_string = response.content.decode('utf-8')
-            dict_data = json.loads(json_string)
-            logger.debug(dict_data)
-            dict_data["is_running"] = dict_data.get('status') == 'running'
-            return dict_data
+            latest_sync_info_dict = json.loads(json_string)
+            latest_sync_info = LatestSyncInfo(**latest_sync_info_dict)
+            return latest_sync_info
         except Exception as e:
             logger.exception(f"Error : {e}")
             raise Exception("unable to query activation")

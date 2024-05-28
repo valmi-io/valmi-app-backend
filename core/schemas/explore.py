@@ -1,4 +1,5 @@
-from typing import Dict
+from datetime import datetime
+from typing import Dict, Optional
 from ninja import Field, ModelSchema, Schema
 from core.models import Explore
 from core.schemas.prompt import Filter, TimeWindow
@@ -14,8 +15,8 @@ class ExploreSchemaOut(Schema):
     enabled: bool
     description: str
     workspace_id: str
-    last_sync_succeeded_at: str
-    last_sync_created_at: str
+    last_sync_succeeded_at: Optional[datetime] = None
+    last_sync_created_at: Optional[datetime] = None
     last_sync_result: str
     sync_state: str
     sync_id: str
@@ -41,3 +42,9 @@ class ExploreSchemaIn(Schema):
     schema_id: str
     time_window: TimeWindow
     filters: list[Filter]
+
+
+class LatestSyncInfo(Schema):
+    found: bool
+    status: Optional[str] = None
+    created_at: Optional[datetime] = None

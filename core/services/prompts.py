@@ -5,10 +5,10 @@ from pathlib import Path
 import requests
 
 
-from core.models import Credential, SourceAccessInfo, Sync
+from core.models import Credential
 from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
-from core.schemas.prompt import TimeWindow, Filter
+from core.schemas.prompt import LastSuccessfulSyncInfo, TimeWindow, Filter
 from decouple import config
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
@@ -55,15 +55,15 @@ class PromptService():
         return prompt.type in connector_types
 
     @staticmethod
-    def is_sync_finished(schema_id: str) -> bool:
+    def is_sync_finished(sync_id: str) -> LastSuccessfulSyncInfo:
         try:
-            source_access_info = SourceAccessInfo.objects.get(storage_credentials_id=schema_id)
-            sync = Sync.objects.get(source_id=source_access_info.source.id)
-            sync_id = sync.id
             response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
             json_string = response.content.decode('utf-8')
-            dict_data = json.loads(json_string)
-            return dict_data["found"] == True
+            logger.debug(json_string)
+            last_success_sync_dict = json.loads(json_string)
+            last_success_sync = LastSuccessfulSyncInfo(**last_success_sync_dict)
+            logger.debug(last_success_sync)
+            return last_success_sync
         except Exception as e:
             logger.exception(e)
             raise e
