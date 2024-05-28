@@ -6,16 +6,18 @@ import uuid
 from os.path import dirname, join
 from typing import List, Union
 
+import requests
+from decouple import config
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from os.path import dirname, join
-from decouple import config
-import requests
+
+from core.models import (Credential, Destination, OAuthApiKeys, Prompt, Source,
+                         StorageCredentials, Sync, Workspace)
 from core.routes.workspace_api import create_new_run
-from core.models import Credential, Destination, OAuthApiKeys, Prompt, Source, StorageCredentials, Sync, Workspace
 from core.schemas.explore import LatestSyncInfo
-from core.schemas.prompt import Filter, TimeWindow
+from core.schemas.prompt import Filter, TableInfo, TimeWindow
 from core.services.prompts import PromptService
+
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
@@ -96,8 +98,11 @@ class ExploreService:
             logger.debug(type(time_window))
             prompt = Prompt.objects.get(id=prompt_id)
             namespace = storage_credential.connector_config["namespace"]
-            table = f'{namespace}.{prompt.table}'
-            query = PromptService().build(table, time_window, filters)
+            table_info = TableInfo(
+                tableSchema = namespace,
+                table = prompt.table
+            )
+            query = PromptService().build(table_info, time_window, filters)
             # creating source cayalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
             body = {
@@ -124,7 +129,7 @@ class ExploreService:
             database = storage_credential.connector_config["database"]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = f"{database}.{namespace}.{table}"
+            ] = f"{database}.{namespace}.{prompt.table}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)

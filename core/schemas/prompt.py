@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+
 from ninja import Schema
 
 
@@ -12,6 +13,9 @@ class TimeWindow(Schema):
     label: str
     range: TimeWindowRange
 
+class TableInfo(Schema):
+    tableSchema: str
+    table: str
 
 class Filter(Schema):
     label: str
