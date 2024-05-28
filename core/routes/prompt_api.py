@@ -1,18 +1,18 @@
 import datetime
 import json
 import logging
-import os
 from typing import List
-from ninja import Router
-import psycopg2
-from pydantic import Json
-from core.models import Credential, Prompt, Source, SourceAccessInfo, StorageCredentials, Sync
-from core.schemas.prompt import PromptPreviewSchemaIn
-from core.schemas.schemas import DetailSchema, PromptByIdSchema
-from core.services.prompts import PromptService
 
-from core.models import Prompt, StorageCredentials
-from core.schemas.schemas import DetailSchema, PromptSchemaOut
+import psycopg2
+from ninja import Router
+from pydantic import Json
+
+from core.models import (Credential, Prompt, Source, SourceAccessInfo,
+                         StorageCredentials, Sync)
+from core.schemas.prompt import PromptPreviewSchemaIn, TableInfo
+from core.schemas.schemas import (DetailSchema, PromptByIdSchema,
+                                  PromptSchemaOut)
+from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -89,17 +89,23 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         sync_id = sync.id
         # checking wether sync has finished or not(from shopify to DB)
         latest_sync_info = PromptService.is_sync_finished(sync_id)
-        if latest_sync_info.found == False or latest_sync_info.status == 'running':
-            return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
+        # if latest_sync_info.found == False or latest_sync_info.status == 'running':
+        #     return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
-        table_name = f'{schema_name}.{prompt.table}'
-        query = PromptService().build(table_name, prompt_req.time_window, prompt_req.filters)
+        table_info = TableInfo(
+            tableSchema= schema_name,
+            table= prompt.table
+        )
+
+        query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
         logger.debug(query)
-        host_url = os.environ["DATA_WAREHOUSE_URL"]
+        host = storage_credentials.connector_config.get('host')
         db_password = storage_credentials.connector_config.get('password')
         db_username = storage_credentials.connector_config.get('username')
-        conn = psycopg2.connect(host=host_url, port="5432", database="dvdrental",
+        database  = storage_credentials.connector_config.get('database')
+        port = storage_credentials.connector_config.get('port')
+        conn = psycopg2.connect(host=host, port=port, database=database,
                                 user=db_username, password=db_password)
         cursor = conn.cursor()
         cursor.execute(query)

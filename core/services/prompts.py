@@ -3,13 +3,13 @@ import logging
 from pathlib import Path
 
 import requests
-
-
-from core.models import Credential
+from decouple import config
 from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
-from core.schemas.prompt import LastSuccessfulSyncInfo, TimeWindow, Filter
-from decouple import config
+from core.models import Credential
+from core.schemas.prompt import (Filter, LastSuccessfulSyncInfo, TableInfo,
+                                 TimeWindow)
+
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 
@@ -20,7 +20,7 @@ class PromptService():
         return 'prompts.liquid'
 
     @staticmethod
-    def build(table, timeWindow: TimeWindow, filters: list[Filter]) -> str:
+    def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter]) -> str:
         try:
             if isinstance(timeWindow, TimeWindow):
                 timeWindowDict = timeWindow.dict()
@@ -41,7 +41,7 @@ class PromptService():
             )
             template = env.get_template(file_name)
             filters = list(filters)
-            return template.render(table=table, timeWindow=timeWindowDict, filters=filterList)
+            return template.render(table=tableInfo.table, schema=tableInfo.tableSchema, timeWindow=timeWindowDict, filters=filterList)
         except Exception as e:
             logger.exception(e)
             raise e
