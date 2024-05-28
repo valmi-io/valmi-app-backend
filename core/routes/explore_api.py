@@ -51,8 +51,6 @@ def get_explores(request, workspace_id):
             last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
             if last_successful_sync_info.found == True:
                 explore.last_sync_succeeded_at = last_successful_sync_info.run_end_at
-            else:
-                explore.last_sync_succeeded_at = ""
         return explores
     except Exception:
         logger.exception("explores listing error")
