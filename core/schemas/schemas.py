@@ -11,8 +11,7 @@ from typing import Dict, List, Optional
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
-from core.models import Account, Connector, Credential, Destination, Explore, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
-from core.schemas.prompt import Filter, TimeWindow
+from core.models import Account, Connector, Credential, Destination, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
 
 
 def camel_to_snake(s):
@@ -87,10 +86,6 @@ class PromptSchemaOut(Schema):
     enabled: bool
 
 
-class ExploreStatusIn(Schema):
-    sync_id: str
-
-
 class ConnectorConfigSchemaIn(Schema):
     config: Dict
 
@@ -120,19 +115,6 @@ class ConnectionSchemaIn(Schema):
     source_connector_config: Dict
 
 
-class ExploreSchemaIn(Schema):
-    name: str
-    account: Dict = None
-    prompt_id: str
-    schema_id: str
-    time_window: TimeWindow
-    filters: list[Filter]
-
-
-class ExplorePreviewDataIn(Schema):
-    prompt_id: str
-
-
 class CredentialSchemaUpdateIn(Schema):
     id: UUID4
     connector_type: str
@@ -160,15 +142,6 @@ class CredentialSchema(ModelSchema):
     oauth_keys: str = Field(None, alias="connector.oauth_keys")
     mode: list = Field(None, alias="connector.mode")
     account: AccountSchema = Field(None, alias="account")
-
-
-class ExploreSchema(ModelSchema):
-    class Config(CamelSchemaConfig):
-        model = Explore
-        model_fields = ["ready", "name", "spreadsheet_url", "account", "id"]
-    account: AccountSchema = Field(None, alias="account")
-    prompt: PromptSchema = Field(None, alias="prompt")
-    workspace: WorkspaceSchema = Field(None, alias="workspace")
 
 
 class BaseSchemaIn(Schema):
@@ -215,7 +188,7 @@ class SyncSchemaInWithSourcePayload(Schema):
     name: str
     source: Dict
     account: Optional[Dict]
-    schedule: Dict
+    schedule: Optional[Dict]
     ui_state: Optional[Dict]
 
 
@@ -224,7 +197,7 @@ class SyncSchemaUpdateIn(Schema):
     name: str
     source_id: UUID4
     destination_id: UUID4
-    schedule: Dict
+    schedule: Optional[Dict]
     ui_state: Optional[Dict]
 
 
@@ -305,7 +278,3 @@ class SocialUser(Schema):
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
     user: SocialUser
-
-
-class ExploreStatusSchemaIn(Schema):
-    sync_id: str

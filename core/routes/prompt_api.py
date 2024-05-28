@@ -6,42 +6,39 @@ from typing import List
 from ninja import Router
 import psycopg2
 from pydantic import Json
-from core.models import Credential, Prompt, Source, StorageCredentials
+from core.models import Credential, Prompt, Source, SourceAccessInfo, StorageCredentials, Sync
 from core.schemas.prompt import PromptPreviewSchemaIn
-from core.schemas.schemas import DetailSchema
+from core.schemas.schemas import DetailSchema, PromptByIdSchema
 from core.services.prompts import PromptService
 
 from core.models import Prompt, StorageCredentials
-from core.schemas.schemas import DetailSchema, PromptSchema
+from core.schemas.schemas import DetailSchema, PromptSchemaOut
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.get("/workspaces/{workspace_id}/prompts", response={200: List[PromptSchema], 400: DetailSchema})
-def get_prompts(request):
+@router.get("/workspaces/{workspace_id}/prompts", response={200: List[PromptSchemaOut], 500: DetailSchema})
+def get_prompts(request, workspace_id):
     try:
         prompts = list(Prompt.objects.all().values())
         connector_ids = list(Credential.objects.values('connector_id').distinct())
         connector_types = [connector['connector_id'] for connector in connector_ids]
         for prompt in prompts:
             prompt["id"] = str(prompt["id"])
-            if prompt["type"] in connector_types:
-                prompt["enabled"] = True
-            else:
-                prompt["enabled"] = False
+            prompt["enabled"] = PromptService.is_enabled(workspace_id, prompt)
         return prompts
     except Exception as err:
         logger.exception("prompts listing error:" + err)
-        return (400, {"detail": "The list of prompts cannot be fetched."})
+        return (500, {"detail": "The list of prompts cannot be fetched."})
 
 
-@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptSchema, 400: DetailSchema})
-def get_prompts(request, workspace_id, prompt_id):
+@router.get("/workspaces/{workspace_id}/prompts/{prompt_id}", response={200: PromptByIdSchema, 400: DetailSchema})
+def get_prompt_by_id(request, workspace_id, prompt_id):
     try:
         logger.debug("listing prompts")
         prompt = Prompt.objects.get(id=prompt_id)
-        if not PromptService.is_prompt_enabled(workspace_id, prompt):
+        if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
             return 400, {"detail": detail_message}
         credential_info = Source.objects.filter(
@@ -83,9 +80,17 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSchemaIn):
     try:
         prompt = Prompt.objects.get(id=prompt_id)
-        if not PromptService.is_prompt_enabled(workspace_id, prompt):
+        # checking wether prompt is enabled or not
+        if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
             return 400, {"detail": detail_message}
+        source_access_info = SourceAccessInfo.objects.get(storage_credentials_id=prompt_req.schema_id)
+        sync = Sync.objects.get(source_id=source_access_info.source.id)
+        sync_id = sync.id
+        # checking wether sync has finished or not(from shopify to DB)
+        latest_sync_info = PromptService.is_sync_finished(sync_id)
+        if latest_sync_info.found == False or latest_sync_info.status == 'running':
+            return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_name = f'{schema_name}.{prompt.table}'

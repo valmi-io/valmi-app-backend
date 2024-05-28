@@ -13,6 +13,7 @@ from decouple import config
 import requests
 from core.routes.workspace_api import create_new_run
 from core.models import Credential, Destination, OAuthApiKeys, Prompt, Source, StorageCredentials, Sync, Workspace
+from core.schemas.explore import LatestSyncInfo
 from core.schemas.prompt import Filter, TimeWindow
 from core.services.prompts import PromptService
 logger = logging.getLogger(__name__)
@@ -211,3 +212,15 @@ class ExploreService:
         except Exception as e:
             logger.exception(f"Error creating run: {e}")
             raise Exception("unable to create run")
+
+    @staticmethod
+    def get_latest_sync_info(sync_id: str) -> LatestSyncInfo:
+        try:
+            response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/latest_sync_info")
+            json_string = response.content.decode('utf-8')
+            latest_sync_info_dict = json.loads(json_string)
+            latest_sync_info = LatestSyncInfo(**latest_sync_info_dict)
+            return latest_sync_info
+        except Exception as e:
+            logger.exception(f"Error : {e}")
+            raise Exception("unable to query activation")
