@@ -6,16 +6,18 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
-from os.path import dirname, join
 import json
-import uuid
-import requests
-import os
-from requests.auth import HTTPBasicAuth
 import logging
+import os
+import uuid
+from os.path import dirname, join
+
+import requests
+from requests.auth import HTTPBasicAuth
+
 logger = logging.getLogger(__name__)
 
-prompt_defs = json.loads(open(join(dirname(__file__), "test_prompt_def.json"), "r").read())
+prompt_defs = json.loads(open(join(dirname(__file__), "prompt_def.json"), "r").read())
 
 for prompt_def in prompt_defs["definitions"]:
     logger.debug(prompt_def)

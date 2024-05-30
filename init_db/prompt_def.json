@@ -1,110 +1,96 @@
 {
-    "definitions":[
-        {
-           
-            "name":"Inventory snapshot",
-            "description":"Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
-            "query":"select * from dbt_transformer_p0.orders_with_product_data",
-            "table":"orders_with_product_data",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-           
-            "name":"At Risk customers",
-            "description":"Top 100 customers who have not purchased from you in the last 30 days, ordered by their total purchase value.",
-            "query":"SELECT * FROM _airbyte_raw_customers",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-           
-            "name":"Cart abandonment",
-            "description":"Get a snapshot of customers who have initiated the process of making a purchase on your platform but have left before completing the transaction.",
-            "query":"SELECT * FROM _airbyte_raw_checkouts",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-           
-            "name":"Sales by Payment method",
-            "description":"Understand which payment methods your customers prefer. If a customer uses multiple payment methods for the same order, the order count and order value will be counted multiple times.",
-            "query":"SELECT * FROM _airbyte_raw_orders",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-            
-            "name":"Order export with products",
-            "description":"Receive an export of your orders with line items. Use this report to share with your fulfillment teams and identify preorder volumes.",
-            "query":"SELECT * FROM _airbyte_raw_orders",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-            
-            "name":"Average Order value",
-            "description":"Shows the average order value of all orders (excluding gift cards), divided by the total number of orders that contained at least one product other than a gift card. Order value includes taxes, shipping, and discounts before returns.",
-            "query":"SELECT * FROM _airbyte_raw_orders",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-            "name":"Orders",
-            "description":"Orders, total sales, and products sold over the specified time period. Orders include all statuses. Refunded value is removed from Total Sales on the day of the order.",
-            "query":"SELECT * FROM _airbyte_raw_orders",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-            "name":"Profit by product variant over time",
-            "description":"Review your profits by each variant over time. Use this report to identify high margin products and loss leaders. If collaborating on products on a profit share basis, use this to help calculate payouts.",
-            "query":"SELECT * FROM _airbyte_raw_products",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
-        },
-        {
-            "name":"New customer sales",
-            "description":"Sales metrics for new customers over the specified time-period.",
-            "query":"SELECT * FROM _airbyte_raw_customers",
-            "table":"orders_with_product_",
-            "parameters":{
-                "test":"test"
-            },
-            "package_id":"P0",
-            "gated":true
+  "definitions": [
+    {
+      "name": "Inventory snapshot",
+      "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
+      "table": "orders_with_product_data",
+      "spec": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "required": ["timeWindows", "sources"],
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "enum": ["123", "321"]
+          },
+          "timeWindow": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "range": {
+                "type": "object",
+                "properties": {
+                  "start": { "type": "string" },
+                  "end": { "type": "string" }
+                }
+              }
+            }
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "value": { "type": "string" },
+                "operator": { "type": "string", "enum": ["=", "!="] }
+              },
+              "required": ["label", "name", "type", "value", "operator"]
+            }
+          }
         }
-        
-    ]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
+      "name": "Abandoned customers",
+      "description": "List of users who have abandoned their cart",
+      "table": "abandon_customers",
+      "spec": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "required": ["timeWindows", "sources"],
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "enum": ["123", "321"]
+          },
+          "timeWindow": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "range": {
+                "type": "object",
+                "properties": {
+                  "start": { "type": "string" },
+                  "end": { "type": "string" }
+                }
+              }
+            }
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "value": { "type": "string" },
+                "operator": { "type": "string", "enum": ["=", "!="] }
+              },
+              "required": ["label", "name", "type", "value", "operator"]
+            }
+          }
+        }
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    }
+  ]
 }
