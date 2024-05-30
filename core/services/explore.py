@@ -77,13 +77,14 @@ class ExploreService:
             credential["status"] = "active"
             storage_credential = StorageCredentials.objects.get(id=schema_id)
             connector_config = {
-                "ssl": False,
+                "ssl": storage_credential.connector_config["ssl"],
                 "host": storage_credential.connector_config["host"],
                 "port": storage_credential.connector_config["port"],
                 "user": storage_credential.connector_config["username"],
                 "database": storage_credential.connector_config["database"],
                 "password": storage_credential.connector_config["password"],
                 "namespace": storage_credential.connector_config["namespace"],
+                "query": query
             }
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
@@ -99,26 +100,16 @@ class ExploreService:
             prompt = Prompt.objects.get(id=prompt_id)
             namespace = storage_credential.connector_config["namespace"]
             table_info = TableInfo(
-                tableSchema = namespace,
-                table = prompt.table
+                tableSchema=namespace,
+                table=prompt.table
             )
             query = PromptService().build(table_info, time_window, filters)
             # creating source cayalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
-            body = {
-                "ssl": False,
-                "host": storage_credential.connector_config["host"],
-                "port": storage_credential.connector_config["port"],
-                "user": storage_credential.connector_config["username"],
-                "database": storage_credential.connector_config["database"],
-                "password": storage_credential.connector_config["password"],
-                "namespace": storage_credential.connector_config["namespace"],
-                "query": query
-            }
             config = {
                 'docker_image': 'valmiio/source-postgres',
                 'docker_tag': 'latest',
-                'config': body
+                'config': connector_config
             }
             response = requests.post(url, json=config)
             response_json = response.json()
