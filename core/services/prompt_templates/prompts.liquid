@@ -1,20 +1,22 @@
-
 {% assign filterStr = "" %}
-{% for filter in filters %}    
-    {% capture name -%}
-        "{{ filter.name }}"
-    {%- endcapture -%}
-    {% capture value -%}
+{% for filter in filters %}
+    {% capture name %}
+        {{ filter.name }}
+    {% endcapture %}
+    {% capture value %}
         '{{ filter.value }}'
-    {%- endcapture -%}
+    {% endcapture %}
     {% assign operator = filter.operator %}
-    {% assign filterStr = filterStr| append: name | append: " " | append: operator | append: " "| append: value %}
+    {% assign filterStr = filterStr | append: name | append: " " | append: operator | append: " " | append: value %}
     {% if forloop.last == false %}
-        {% assign filterStr = filterStr| append: " and " %}
+        {% assign filterStr = filterStr | append: " and " %}
     {% endif %}
 {% endfor %}
-{% if filterStr !="" %}
+{% if filterStr != "" %}
     {% assign filterStr = filterStr | append: " and " %}
-{%  endif  %}
-
-{{query}} where {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start}}' and "updated_at" <= '{{ timeWindow.range.end }}'
+{% endif %}
+{% if timeWindow.range.start contains "now()" %}
+    {{ filterStr }} "updated_at" >= {{ timeWindow.range.start }} and "updated_at" <= {{ timeWindow.range.end }}
+{% else %}
+    {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start }}' and "updated_at" <= '{{ timeWindow.range.end }}'
+{% endif %}

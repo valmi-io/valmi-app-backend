@@ -13,9 +13,11 @@ class TimeWindow(Schema):
     label: str
     range: TimeWindowRange
 
+
 class TableInfo(Schema):
     tableSchema: str
-    table: str
+    query: str
+
 
 class Filter(Schema):
     label: str

@@ -94,8 +94,8 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_info = TableInfo(
-            tableSchema= schema_name,
-            table= prompt.table
+            tableSchema=schema_name,
+            query=prompt.query
         )
 
         query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
@@ -103,7 +103,7 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         host = storage_credentials.connector_config.get('host')
         db_password = storage_credentials.connector_config.get('password')
         db_username = storage_credentials.connector_config.get('username')
-        database  = storage_credentials.connector_config.get('database')
+        database = storage_credentials.connector_config.get('database')
         port = storage_credentials.connector_config.get('port')
         conn = psycopg2.connect(host=host, port=port, database=database,
                                 user=db_username, password=db_password)

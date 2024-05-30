@@ -82,7 +82,7 @@ class ExploreService:
             namespace = storage_credential.connector_config["namespace"]
             table_info = TableInfo(
                 tableSchema=namespace,
-                table=prompt.table
+                query=prompt.query
             )
             query = PromptService().build(table_info, time_window, filters)
             connector_config = {

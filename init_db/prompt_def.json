@@ -3,7 +3,7 @@
     {
       "name": "Inventory snapshot",
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
-      "table": "orders_with_product_data",
+      "query": "orders_with_product_data",
       "spec": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",

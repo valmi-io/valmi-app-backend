@@ -24,14 +24,14 @@ for prompt_def in prompt_defs["definitions"]:
     resp = requests.post(
         f"http://localhost:{os.environ['PORT']}/api/v1/superuser/prompts/create",
         json={
-            "id":str(uuid.uuid4()),
+            "id": str(uuid.uuid4()),
             "name": prompt_def["name"],
             "description": prompt_def["description"],
             "type": prompt_def["type"],
-            "table":prompt_def["table"],
-            "spec":prompt_def["spec"],
-            "package_id":prompt_def["package_id"],
-            "gated":prompt_def["gated"],
+            "query": prompt_def["query"],
+            "spec": prompt_def["spec"],
+            "package_id": prompt_def["package_id"],
+            "gated": prompt_def["gated"],
         },
         auth=HTTPBasicAuth(os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"]),
     )
