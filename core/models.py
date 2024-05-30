@@ -145,7 +145,7 @@ class Prompt(models.Model):
     description = models.CharField(max_length=1000, null=False, blank=False,default="aaaaaa")
     type = models.CharField(null=False, blank = False,max_length=256, default="SRC_SHOPIFY")
     spec = models.JSONField(blank=False, null=True)
-    table = models.CharField(max_length=256,null=False, blank=False,default="table_name")
+    query = models.CharField(max_length=1000,null=False, blank=False,default="query")
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
     gated = models.BooleanField(null=False, blank = False, default=True)
 

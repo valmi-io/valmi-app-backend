@@ -8,10 +8,14 @@ Author: Rajashekar Varkala @ valmi.io
 
 from datetime import datetime
 from typing import Dict, List, Optional
+
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema, Schema
 from pydantic import UUID4
-from core.models import Account, Connector, Credential, Destination, Organization, Package, Prompt, Source, Sync, Workspace, OAuthApiKeys
+
+from core.models import (Account, Connector, Credential, Destination,
+                         OAuthApiKeys, Organization, Package, Prompt, Source,
+                         Sync, Workspace)
 
 
 def camel_to_snake(s):
@@ -68,13 +72,13 @@ class PackageSchema(ModelSchema):
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "query"]
 
 
 class PromptByIdSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "table"]
+        model_fields = ["id", "name", "description", "type", "spec", "package_id", "gated", "query"]
     schemas: List[Dict]
 
 
