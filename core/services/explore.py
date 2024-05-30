@@ -76,6 +76,7 @@ class ExploreService:
             credential["account"] = account
             credential["status"] = "active"
             storage_credential = StorageCredentials.objects.get(id=schema_id)
+            query = PromptService().build(table_info, time_window, filters)
             connector_config = {
                 "ssl": storage_credential.connector_config["ssl"],
                 "host": storage_credential.connector_config["host"],
@@ -103,7 +104,6 @@ class ExploreService:
                 tableSchema=namespace,
                 table=prompt.table
             )
-            query = PromptService().build(table_info, time_window, filters)
             # creating source cayalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
             config = {
