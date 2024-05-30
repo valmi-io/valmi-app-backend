@@ -75,7 +75,15 @@ class ExploreService:
             credential["name"] = "SRC_POSTGRES"
             credential["account"] = account
             credential["status"] = "active"
+            # building query
+            logger.debug(type(time_window))
+            prompt = Prompt.objects.get(id=prompt_id)
             storage_credential = StorageCredentials.objects.get(id=schema_id)
+            namespace = storage_credential.connector_config["namespace"]
+            table_info = TableInfo(
+                tableSchema=namespace,
+                table=prompt.table
+            )
             query = PromptService().build(table_info, time_window, filters)
             connector_config = {
                 "ssl": storage_credential.connector_config["ssl"],
@@ -96,14 +104,7 @@ class ExploreService:
             # creating source object
             source["workspace"] = Workspace.objects.get(id=workspace_id)
             source["credential"] = Credential.objects.get(id=cred.id)
-            # building query
-            logger.debug(type(time_window))
-            prompt = Prompt.objects.get(id=prompt_id)
             namespace = storage_credential.connector_config["namespace"]
-            table_info = TableInfo(
-                tableSchema=namespace,
-                table=prompt.table
-            )
             # creating source cayalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
             config = {
