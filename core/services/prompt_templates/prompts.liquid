@@ -17,4 +17,8 @@
     {% assign filterStr = filterStr | append: " and " %}
 {%  endif  %}
 
-select * from "{{ schema }}"."{{ table }}" where {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start}}' and "updated_at" <= '{{ timeWindow.range.end }}'
+{% if timeWindow.range.start contains "now()" %}
+    select * from "{{ schema }}"."{{ table }}" where {{ filterStr }} "updated_at" >= {{ timeWindow.range.start }} and "updated_at" <= {{ timeWindow.range.end }}
+{% else %}
+    select * from "{{ schema }}"."{{ table }}" where {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start }}' and "updated_at" <= '{{ timeWindow.range.end }}'
+{% endif %}
