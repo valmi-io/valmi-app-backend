@@ -61,6 +61,12 @@ def get_explores(request, workspace_id):
 def create_explore(request, workspace_id, payload: ExploreSchemaIn):
     data = payload.dict()
     try:
+        try:
+            ExploreService.check_name_uniquesness(data["name"], workspace_id)
+        except Exception as err:
+            logger.exception(err)
+            message = str(err)
+            return (400, {"detail": message})
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         prompt = Prompt.objects.get(id=data["prompt_id"])
@@ -74,7 +80,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             data["account"] = account
         # create source
         source = ExploreService.create_source(
-            data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
+            data["name"], data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
        # create destination
         spreadsheet_name = f"valmi.io {prompt.name} sheet"
         destination_data = ExploreService.create_destination(spreadsheet_name, workspace_id, account)

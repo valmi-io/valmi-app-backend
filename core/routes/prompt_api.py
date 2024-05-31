@@ -99,7 +99,7 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         )
 
         query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
-        query =  query + "limit 10"
+        query = query + " limit 10"
         logger.debug(query)
         host = storage_credentials.connector_config.get('host')
         db_password = storage_credentials.connector_config.get('password')
