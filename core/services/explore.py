@@ -95,8 +95,7 @@ class ExploreService:
                 "database": storage_credential.connector_config["database"],
                 "password": storage_credential.connector_config["password"],
                 "namespace": storage_credential.connector_config["namespace"],
-                "query": query,
-                "table_name": explore_table_name
+                "query": query
             }
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
@@ -124,7 +123,7 @@ class ExploreService:
             database = storage_credential.connector_config["database"]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = f"{database}.{namespace}.{prompt.table}"
+            ] = f"{database}.{namespace}.{explore_table_name}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)
