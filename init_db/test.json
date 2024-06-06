@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["time_window"],
+  "properties": {
+    "time_window": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "custom",
+            "Last 7 days",
+            "Last 15 days",
+            "Last 30 days",
+            "Last 60 days",
+            "Last 90 days"
+          ]
+        },
+        "range": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "end": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+        "time_window": {
+            "properties": {
+                "label": {
+                    "const": "Last 7 days"
+                }
+            }
+        }
+    }
+  },
+  "then": {
+    "properties": {
+        "time_window": {
+            "properties": {
+                "range": {
+                    "properties": {
+                        "start": {
+                            "const": "now() - 7 d"
+                        },
+                        "end": {
+                            "const": "now()"
+                        }
+                    }
+                }
+            }
+        } 
+    }
+  }
+}

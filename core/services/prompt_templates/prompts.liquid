@@ -1,4 +1,4 @@
-{% assign filterStr = "" %}
+{%- assign filterStr = "" -%}
 {% for filter in filters %}
     {% capture name %}
         {{ filter.name }}
@@ -12,11 +12,11 @@
         {% assign filterStr = filterStr | append: " and " %}
     {% endif %}
 {% endfor %}
-{% if filterStr != "" %}
+{%- if filterStr != "" -%}
     {% assign filterStr = filterStr | append: " and " %}
-{% endif %}
-{% if timeWindow.range.start contains "now()" %}
+{%- endif -%}
+{%- if timeWindow.range.start contains "now()" -%}
     {{ filterStr }} "updated_at" >= {{ timeWindow.range.start }} and "updated_at" <= {{ timeWindow.range.end }}
-{% else %}
+{%- else -%}
     {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start }}' and "updated_at" <= '{{ timeWindow.range.end }}'
-{% endif %}
+{%- endif -%}
