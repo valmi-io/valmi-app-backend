@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 import json
 import logging
 from typing import List
@@ -74,6 +75,8 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
 def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
+    if isinstance(obj, Decimal):
+        return str(obj)
 
 
 @router.post("/workspaces/{workspace_id}/prompts/{prompt_id}/preview", response={200: Json, 400: DetailSchema})
@@ -94,17 +97,17 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_info = TableInfo(
-            tableSchema= schema_name,
-            table= prompt.table
+            tableSchema=schema_name,
+            query=prompt.query
         )
 
         query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
-        query =  query + "limit 10"
+        query = query + " limit 10"
         logger.debug(query)
         host = storage_credentials.connector_config.get('host')
         db_password = storage_credentials.connector_config.get('password')
         db_username = storage_credentials.connector_config.get('username')
-        database  = storage_credentials.connector_config.get('database')
+        database = storage_credentials.connector_config.get('database')
         port = storage_credentials.connector_config.get('port')
         conn = psycopg2.connect(host=host, port=port, database=database,
                                 user=db_username, password=db_password)
@@ -113,6 +116,7 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         items = [dict(zip([key[0] for key in cursor.description], row)) for row in cursor.fetchall()]
         conn.commit()
         conn.close()
+        logger.debug(items)
         return json.dumps(items, indent=4, default=custom_serializer)
     except Exception as err:
         logger.exception(f"preview fetching error:{err}")

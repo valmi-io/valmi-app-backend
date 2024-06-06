@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-
+from liquid import Template as LiquidTemplate
 import requests
 from decouple import config
 from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
@@ -41,7 +41,14 @@ class PromptService():
             )
             template = env.get_template(file_name)
             filters = list(filters)
-            return template.render(table=tableInfo.table, schema=tableInfo.tableSchema, timeWindow=timeWindowDict, filters=filterList)
+            filterList = [filter.dict() for filter in filters]
+            rendered_query = template.render(filters=filterList, timeWindow=timeWindowDict)
+            liquid_template = LiquidTemplate(tableInfo.query)
+            context = {
+                "schema": tableInfo.tableSchema,
+                "filters": rendered_query
+            }
+            return liquid_template.render(context)
         except Exception as e:
             logger.exception(e)
             raise e

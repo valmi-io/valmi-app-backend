@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import uuid
+import re
 from os.path import dirname, join
 from typing import List, Union
 
@@ -11,7 +12,7 @@ from decouple import config
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from core.models import (Credential, Destination, OAuthApiKeys, Prompt, Source,
+from core.models import (Credential, Destination, Explore, OAuthApiKeys, Prompt, Source,
                          StorageCredentials, Sync, Workspace)
 from core.routes.workspace_api import create_new_run
 from core.schemas.explore import LatestSyncInfo
@@ -48,16 +49,16 @@ class ExploreService:
             )
             spreadsheet_id = spreadsheet.get("spreadsheetId")
             # Update the sharing settings to make the spreadsheet publicly accessible
-            drive_service = build('drive', 'v3', credentials=credentials)
-            drive_service.permissions().create(
-                fileId=spreadsheet_id,
-                body={
-                    "role": "writer",
-                    "type": "anyone",
-                    "withLink": True
-                },
-                fields="id"
-            ).execute()
+            # drive_service = build('drive', 'v3', credentials=credentials)
+            # drive_service.permissions().create(
+            #     fileId=spreadsheet_id,
+            #     body={
+            #         "role": "writer",
+            #         "type": "anyone",
+            #         "withLink": True
+            #     },
+            #     fields="id"
+            # ).execute()
 
             spreadsheet_url = f"{base_spreadsheet_url}{spreadsheet_id}"
             return spreadsheet_url
@@ -66,7 +67,7 @@ class ExploreService:
             raise Exception("spreadhseet creation failed")
 
     @staticmethod
-    def create_source(prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], workspace_id: str, account: object) -> object:
+    def create_source(explore_table_name: str, prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], workspace_id: str, account: object) -> object:
         try:
             # creating source credentail
             credential = {"id": uuid.uuid4()}
@@ -82,9 +83,10 @@ class ExploreService:
             namespace = storage_credential.connector_config["namespace"]
             table_info = TableInfo(
                 tableSchema=namespace,
-                table=prompt.table
+                query=prompt.query
             )
             query = PromptService().build(table_info, time_window, filters)
+            # creating source credentials
             connector_config = {
                 "ssl": storage_credential.connector_config["ssl"],
                 "host": storage_credential.connector_config["host"],
@@ -121,7 +123,7 @@ class ExploreService:
             database = storage_credential.connector_config["database"]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = f"{database}.{namespace}.{prompt.table}"
+            ] = f"{database}.{namespace}.{explore_table_name}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)
@@ -221,3 +223,13 @@ class ExploreService:
         except Exception as e:
             logger.exception(f"Error : {e}")
             raise Exception("unable to query activation")
+
+    @staticmethod
+    def check_name_uniquesness(name: str, workspace_id: str) -> bool:
+        if Explore.objects.filter(workspace_id=workspace_id, name=name).exists():
+            raise Exception(f"The name '{name}' already exists. Please provide a different name.")
+        if re.match(r'^\d', name):
+            raise Exception(f"Explore name cannot start with a number.")
+        if re.search(r'[^a-zA-Z0-9]', name):
+            raise Exception(f"Explore name  cannot contain special characters.")
+        return True
