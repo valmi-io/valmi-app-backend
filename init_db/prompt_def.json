@@ -213,7 +213,7 @@
     {
       "name": "Sales by payment method",
       "description": "Sales by payment method",
-      "query": "SELECT transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales,  md5(row(payment_method, total_orders, total_sales)) as id  FROM {{ schema }}.orders as orders join {{ schema }}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
+      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{ schema }}.orders as orders join {{ schema }}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
       "spec": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
