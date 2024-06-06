@@ -49,16 +49,16 @@ class ExploreService:
             )
             spreadsheet_id = spreadsheet.get("spreadsheetId")
             # Update the sharing settings to make the spreadsheet publicly accessible
-            drive_service = build('drive', 'v3', credentials=credentials)
-            drive_service.permissions().create(
-                fileId=spreadsheet_id,
-                body={
-                    "role": "writer",
-                    "type": "anyone",
-                    "withLink": True
-                },
-                fields="id"
-            ).execute()
+            # drive_service = build('drive', 'v3', credentials=credentials)
+            # drive_service.permissions().create(
+            #     fileId=spreadsheet_id,
+            #     body={
+            #         "role": "writer",
+            #         "type": "anyone",
+            #         "withLink": True
+            #     },
+            #     fields="id"
+            # ).execute()
 
             spreadsheet_url = f"{base_spreadsheet_url}{spreadsheet_id}"
             return spreadsheet_url
