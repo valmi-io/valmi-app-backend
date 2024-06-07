@@ -79,7 +79,7 @@ def get_connectors_configured(request, workspace_id):
         return (400, {"detail": "The list of  connectors cannot be fetched."})
 
 
-@router.get("{workspace_id}/connectors/not-configured",
+@router.get("{workspace_id}/connectors/not_configured",
             response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors_not_configured(request, workspace_id):
 
