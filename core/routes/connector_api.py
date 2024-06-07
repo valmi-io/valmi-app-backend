@@ -53,6 +53,8 @@ def get_connectors_configured(request, workspace_id):
         connectors = Connector.objects.filter(
             oauth=True,
             oauth_keys="private",
+            mode=['etl'],
+            type__startswith='S',
             type__in=configured_connectors)
 
         src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
@@ -90,7 +92,9 @@ def get_connectors_not_configured(request, workspace_id):
 
         connectors = Connector.objects.filter(
             oauth=True,
-            oauth_keys="private"
+            oauth_keys="private",
+            mode=['etl'],
+            type__startswith='S'
         ).exclude(type__in=configured_connectors)
 
         src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
