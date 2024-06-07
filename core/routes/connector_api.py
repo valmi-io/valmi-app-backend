@@ -25,7 +25,7 @@ def get_connectors(request, workspace_id):
         src_dst_dict["DEST"] = []
         for conn in connectors:
             logger.info(f"conn{conn}")
-            conn.connected = Credential.objects.filter(workspace_id=workspace_id, connector_id=conn.type).count()
+            conn.connections = Credential.objects.filter(workspace_id=workspace_id, connector_id=conn.type).count()
             arr = conn.type.split("_")
             if arr[0] == "SRC":
                 logger.debug("inside src")

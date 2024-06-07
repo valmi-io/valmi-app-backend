@@ -17,14 +17,15 @@ class DefaultWarehouse():
             host_url = os.environ["DATA_WAREHOUSE_URL"]
             db_password = os.environ["DATA_WAREHOUSE_PASSWORD"]
             db_username = os.environ["DATA_WAREHOUSE_USERNAME"]
-            conn = psycopg2.connect(host=host_url, port="5432", database="dvdrental",
+            database = os.environ["DATA_WAREHOUSE_DB_NAME"]
+            conn = psycopg2.connect(host=host_url, port="5432", database=database,
                                     user=db_username, password=db_password)
             cursor = conn.cursor()
             logger.debug("logger in creating new creds")
             user_name = ''.join(random.choices(string.ascii_lowercase, k=17))
             password = ''.join(random.choices(string.ascii_uppercase, k=17))
             creds = {'username': user_name, 'password': password, 'namespace': user_name,
-                     'schema': user_name, 'host': 'classspace.in', 'database': 'dvdrental', 'port': 5432, 'ssl': False}
+                     'schema': user_name, 'host': host_url, 'database': database, 'port': 5432, 'ssl': False}
             credential_info = {"id": uuid.uuid4()}
             credential_info["workspace"] = Workspace.objects.get(id=workspace.id)
             credential_info["connector_config"] = creds
