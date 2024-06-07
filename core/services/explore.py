@@ -26,7 +26,7 @@ SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://w
 
 class ExploreService:
     @staticmethod
-    def create_spreadsheet(name: str, refresh_token: str) -> str:
+    def create_spreadsheet(title: str, name: str, refresh_token: str) -> str:
         logger.debug("create_spreadsheet")
         credentials_dict = {
             "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
@@ -43,7 +43,7 @@ class ExploreService:
             # Create the spreadsheet
             spreadsheet = {
                 "properties": {
-                    "title": name,
+                    "title": title,
                     },
                 "sheets": [
                  {
@@ -133,7 +133,7 @@ class ExploreService:
             database = storage_credential.connector_config["database"]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = f"{database}.{namespace}.{explore_table_name}"
+            ] = explore_table_name
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)
@@ -144,7 +144,7 @@ class ExploreService:
             raise Exception("unable to create source")
 
     @staticmethod
-    def create_destination(spreadsheet_name: str, workspace_id: str, account: object) -> List[Union[str, object]]:
+    def create_destination(spreadsheet_title: str, spreadsheet_name: str, workspace_id: str, account: object) -> List[Union[str, object]]:
         try:
             # creating destination credential
             oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id, type="GOOGLE_LOGIN")
@@ -155,7 +155,7 @@ class ExploreService:
             credential["account"] = account
             credential["status"] = "active"
             spreadsheet_url = ExploreService.create_spreadsheet(
-                spreadsheet_name, refresh_token=oauthkeys.oauth_config["refresh_token"])
+                spreadsheet_title,spreadsheet_name, refresh_token=oauthkeys.oauth_config["refresh_token"])
             connector_config = {
                 "spreadsheet_id": spreadsheet_url,
                 "credentials": {
