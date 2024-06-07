@@ -2,8 +2,8 @@ import asyncio
 import json
 import logging
 import os
-import uuid
 import re
+import uuid
 from os.path import dirname, join
 from typing import List, Union
 
@@ -12,8 +12,8 @@ from decouple import config
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from core.models import (Credential, Destination, Explore, OAuthApiKeys, Prompt, Source,
-                         StorageCredentials, Sync, Workspace)
+from core.models import (Credential, Destination, Explore, OAuthApiKeys,
+                         Prompt, Source, StorageCredentials, Sync, Workspace)
 from core.routes.workspace_api import create_new_run
 from core.schemas.explore import LatestSyncInfo
 from core.schemas.prompt import Filter, TableInfo, TimeWindow
@@ -41,7 +41,17 @@ class ExploreService:
             )
             service = build("sheets", "v4", credentials=credentials)
             # Create the spreadsheet
-            spreadsheet = {"properties": {"title": name}}
+            spreadsheet = {
+                "properties": {
+                    "title": name,
+                    },
+                "sheets": [
+                 {
+                      "properties": {
+                           "title": name
+                      }
+                 }
+            ]}
             spreadsheet = (
                 service.spreadsheets()
                 .create(body=spreadsheet, fields="spreadsheetId")
