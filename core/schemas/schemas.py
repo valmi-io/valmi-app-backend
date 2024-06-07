@@ -63,6 +63,13 @@ class ConnectorSchema(ModelSchema):
         model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys", "mode"]
 
 
+class ConnectorOutputSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = Connector
+        model_fields = ["type", "docker_image", "docker_tag", "display_name", "oauth", "oauth_keys", "mode"]
+    connected: str
+
+
 class PackageSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Package

@@ -3,9 +3,9 @@ from typing import Dict, List
 
 from ninja import Router
 
-from core.schemas.schemas import ConnectorSchema, DetailSchema
+from core.schemas.schemas import ConnectorOutputSchema, ConnectorSchema, DetailSchema
 
-from core.models import Connector, OAuthApiKeys, Workspace
+from core.models import Connector, Credential, OAuthApiKeys, Workspace
 
 router = Router()
 
@@ -13,32 +13,34 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
-def get_connectors(request):
+@router.get("{workspace_id}/connectors", response={200: Dict[str, List[ConnectorOutputSchema]], 400: DetailSchema})
+def get_connectors(request, workspace_id):
     # check for admin permissions
     try:
         logger.debug("listing connectors")
-        connectors = Connector.objects.all()
-
+        connectors = Connector.objects.filter(mode=['etl'], type__startswith='S')
         logger.info(f"connectors - {connectors}")
         src_dst_dict: Dict[str, List[ConnectorSchema]] = {}
         src_dst_dict["SRC"] = []
         src_dst_dict["DEST"] = []
         for conn in connectors:
             logger.info(f"conn{conn}")
+            conn.connected = Credential.objects.filter(workspace_id=workspace_id, connector_id=conn.type).count()
             arr = conn.type.split("_")
             if arr[0] == "SRC":
+                logger.debug("inside src")
                 src_dst_dict["SRC"].append(conn)
             elif arr[0] == "DEST":
                 src_dst_dict["DEST"].append(conn)
+        logger.debug(src_dst_dict)
         return src_dst_dict
     except Exception:
         logger.exception("connector listing error")
         return (400, {"detail": "The list of connectors cannot be fetched."})
 
 
-@router.get("{workspace_id}/configured", response={200: Dict[str, List[ConnectorSchema]],
-                                                   400: DetailSchema})
+@router.get("{workspace_id}/connectors/configured", response={200: Dict[str, List[ConnectorSchema]],
+                                                              400: DetailSchema})
 def get_connectors_configured(request, workspace_id):
 
     try:
@@ -75,7 +77,7 @@ def get_connectors_configured(request, workspace_id):
         return (400, {"detail": "The list of  connectors cannot be fetched."})
 
 
-@router.get("{workspace_id}/not-configured",
+@router.get("{workspace_id}/connectors/not-configured",
             response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors_not_configured(request, workspace_id):
 
