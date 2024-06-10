@@ -92,9 +92,9 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         source = ExploreService.create_source(
             table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
        # create destination
-        spreadsheet_name = f"valmi.io {prompt.name} sheet"
+        spreadsheet_title = f"valmi.io {prompt.name} sheet"
         destination_data = ExploreService.create_destination(
-            spreadsheet_name, data.get("sheet_url"), workspace_id, account)
+            spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
         spreadsheet_url = destination_data[0]
         destination = destination_data[1]
         # create sync
