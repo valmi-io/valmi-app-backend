@@ -282,7 +282,7 @@ class ExploreService:
             # Check permissions to see if the file is accessible
             permissions = spreadsheet_metadata.get('permissions', [])
             for permission in permissions:
-                if (permission.get('type') == 'user' and permission.get('role') == 'writer') or (permission.get('type') == 'domain' and permission.get('role') == 'writer') or (permission.get('type') == 'anyone' and permission.get('role') == 'writer'):
+                if (permission.get('type') == 'user' and permission.get('role') == 'owner') or (permission.get('type') == 'domain' and permission.get('role') == 'writer') or (permission.get('type') == 'anyone' and permission.get('role') == 'writer'):
                     return True
             return False
         except Exception as e:
