@@ -25,7 +25,7 @@ import json
 
 from opentelemetry.metrics import get_meter_provider
 # from opentelemetry import trace
-
+from django.db import connection
 from valmi_app_backend.utils import replace_values_in_json
 
 router = Router()
@@ -99,17 +99,27 @@ def create_connector(request, payload: ConnectorSchema):
 
 @router.post("/prompts/create", response={200: PromptSchema, 400: DetailSchema})
 def create_connector(request, payload: PromptSchema):
-    # check for admin permissions
     data = payload.dict()
     logger.debug(data)
     try:
         logger.debug("creating prompt")
         prompts = Prompt.objects.create(**data)
         return (200, prompts)
-    except Exception:
-        logger.exception("Prompt error")
-        return (400, {"detail": "The specific prompt cannot be created."})
-    
+    except Exception as ex:
+        logger.debug(f"prompt not created. Attempting to update.")
+        # Prompt.objects.filter(name=data['name']) will only return one item as name is unique for every prompt
+        rows_updated = Prompt.objects.filter(name=data['name']).update(**data)
+        if rows_updated == 0:
+            logger.debug(f"nothing to update")
+        elif rows_updated == 1:
+            logger.debug(f"prompt updated")
+        else:
+            logger.debug(f"something went wrong while creating/updating prompt. message: {ex}")    
+    finally:
+        if connection.queries:
+            last_query = connection.queries[-1]
+            logger.debug(f"last executed SQL: {last_query['sql']}")
+
 
 @router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
 def create_connector(request, payload: PackageSchema):
