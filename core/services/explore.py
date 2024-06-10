@@ -83,7 +83,7 @@ class ExploreService:
             credential = {"id": uuid.uuid4()}
             credential["workspace"] = Workspace.objects.get(id=workspace_id)
             credential["connector_id"] = "SRC_POSTGRES"
-            credential["name"] = "SRC_POSTGRES"
+            credential["name"] = "VALMI_ENGINE"
             credential["account"] = account
             credential["status"] = "active"
             # building query
@@ -110,7 +110,7 @@ class ExploreService:
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
             source = {
-                "name": "SRC_POSTGRES",
+                "name": "VALMI_ENGINE",
                 "id": uuid.uuid4()
             }
             # creating source object
