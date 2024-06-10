@@ -37,6 +37,7 @@ class ExploreStatusIn(Schema):
 
 class ExploreSchemaIn(Schema):
     name: str
+    sheet_url: Optional[str]
     account: Dict = None
     prompt_id: str
     schema_id: str

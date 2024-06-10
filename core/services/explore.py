@@ -107,7 +107,7 @@ class ExploreService:
             source["workspace"] = Workspace.objects.get(id=workspace_id)
             source["credential"] = Credential.objects.get(id=cred.id)
             namespace = storage_credential.connector_config["namespace"]
-            # creating source cayalog
+            # creating source catalog
             url = f"{ACTIVATION_URL}/connectors/SRC_POSTGRES/discover"
             config = {
                 'docker_image': 'valmiio/source-postgres',
@@ -134,7 +134,7 @@ class ExploreService:
             raise Exception("unable to create source")
 
     @staticmethod
-    def create_destination(spreadsheet_name: str, workspace_id: str, account: object) -> List[Union[str, object]]:
+    def create_destination(spreadsheet_name: str, sheet_url: str, workspace_id: str, account: object) -> List[Union[str, object]]:
         try:
             # creating destination credential
             oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id, type="GOOGLE_LOGIN")
@@ -144,8 +144,11 @@ class ExploreService:
             credential["name"] = "DEST_GOOGLE-SHEETS"
             credential["account"] = account
             credential["status"] = "active"
-            spreadsheet_url = ExploreService.create_spreadsheet(
-                spreadsheet_name, refresh_token=oauthkeys.oauth_config["refresh_token"])
+            if sheet_url is None:
+                spreadsheet_url = ExploreService.create_spreadsheet(
+                    spreadsheet_name, refresh_token=oauthkeys.oauth_config["refresh_token"])
+            else:
+                spreadsheet_url = sheet_url
             connector_config = {
                 "spreadsheet_id": spreadsheet_url,
                 "credentials": {
@@ -225,11 +228,53 @@ class ExploreService:
             raise Exception("unable to query activation")
 
     @staticmethod
-    def check_name_uniquesness(name: str, workspace_id: str) -> bool:
+    def validate_explore_name(name: str, workspace_id: str) -> str:
         if Explore.objects.filter(workspace_id=workspace_id, name=name).exists():
             raise Exception(f"The name '{name}' already exists. Please provide a different name.")
         if re.match(r'^\d', name):
             raise Exception(f"Explore name cannot start with a number.")
-        if re.search(r'[^a-zA-Z0-9]', name):
-            raise Exception(f"Explore name  cannot contain special characters.")
-        return True
+        name = re.sub(r'[^a-zA-Z0-9]', '_', name)
+        return name
+
+    @staticmethod
+    def extract_spreadsheet_id(sheet_url: str) -> str:
+        pattern = r"/spreadsheets/d/([a-zA-Z0-9-_]+)"
+        match = re.search(pattern, sheet_url)
+        if match:
+            return match.group(1)
+        else:
+            return None
+
+    @ staticmethod
+    # check wether the given sheet is accessible using the stored refresh token
+    def is_sheet_accessible(sheet_url: str, workspace_id: str) -> bool:
+        try:
+            oauthkeys = OAuthApiKeys.objects.get(workspace_id=workspace_id, type="GOOGLE_LOGIN")
+            credentials_dict = {
+                "client_id": os.environ["NEXTAUTH_GOOGLE_CLIENT_ID"],
+                "client_secret": os.environ["NEXTAUTH_GOOGLE_CLIENT_SECRET"],
+                "refresh_token": oauthkeys.oauth_config["refresh_token"]
+            }
+            credentials = Credentials.from_authorized_user_info(
+                credentials_dict, scopes=SPREADSHEET_SCOPES
+            )
+            drive_service = build('drive', 'v3', credentials=credentials)
+
+            spreadsheet_id = ExploreService.extract_spreadsheet_id(sheet_url)
+
+            # Check if the file exists if file does not exist it will throw an exception
+            try:
+                response = drive_service.files().get(fileId=spreadsheet_id).execute()
+            except Exception as e:
+                return False
+            spreadsheet_metadata = drive_service.files().get(fileId=spreadsheet_id, fields='id, permissions').execute()
+
+            # Check permissions to see if the file is accessible
+            permissions = spreadsheet_metadata.get('permissions', [])
+            for permission in permissions:
+                if (permission.get('type') == 'user' and permission.get('role') == 'writer') or (permission.get('type') == 'domain' and permission.get('role') == 'writer') or (permission.get('type') == 'anyone' and permission.get('role') == 'writer'):
+                    return True
+            return False
+        except Exception as e:
+            logger.exception(f"Error : {e}")
+            raise Exception(e)
