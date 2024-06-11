@@ -18,7 +18,7 @@
     {
       "name": "Abandoned customers",
       "description": "List of users who have abandoned their cart",
-      "query": "select * from {{schema}}.abandon_customers where {{filters}}",
+      "query": "select * from {{schema}}.abandon_customers  {{filters}}",
       "filters": [
         {"column": "ORDER_VALUE", "column_type": "integer"}
       ],
@@ -33,7 +33,7 @@
     {
       "name": "Average order value",
       "description": "Average order value",
-      "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders where {{filters}}",
+      "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders  {{filters}}",
       "filters": [
         {"column": "ORDER_VALUE", "column_type": "integer"}
       ],

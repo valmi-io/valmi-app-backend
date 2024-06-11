@@ -108,6 +108,8 @@ def create_connector(request, payload: PromptSchema):
     except Exception as ex:
         logger.debug(f"prompt not created. Attempting to update.")
         # Prompt.objects.filter(name=data['name']) will only return one item as name is unique for every prompt
+        data.pop('id')
+        logger.debug(f"updating with {data}")
         rows_updated = Prompt.objects.filter(name=data['name']).update(**data)
         if rows_updated == 0:
             logger.debug(f"nothing to update")
