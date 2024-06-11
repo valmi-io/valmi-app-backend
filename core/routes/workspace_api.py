@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import time
@@ -319,6 +320,12 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}
 
+# TODO: need to find nice place to do this
+
+
+async def wait_for_run(time: int):
+    await asyncio.sleep(time)
+
 
 @router.post("/workspaces/{workspace_id}/syncs/create_with_defaults", response={200: SyncSchema, 500: DetailSchema})
 def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
@@ -345,11 +352,11 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         SourceAccessInfo.objects.create(**source_access_info)
         # creating destination credential
         destination_credential_payload = CredentialSchemaIn(
-            name="default warehouse", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
+            name="VALMI_ENGINE", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
         destination_credential = create_credential(request, workspace_id, destination_credential_payload)
         # creating destination
         destination_payload = DestinationSchemaIn(
-            name="default warehouse", credential_id=destination_credential.id, catalog=catalog)
+            name="VALMI_ENGINE", credential_id=destination_credential.id, catalog=catalog)
         destination = create_destination(request, workspace_id, destination_payload)
         data["source"] = Source.objects.get(id=source.id)
         data["destination"] = Destination.objects.get(id=destination.id)
@@ -364,6 +371,9 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         data["id"] = uuid.uuid4()
         logger.debug(data)
         sync = Sync.objects.create(**data)
+        asyncio.run(wait_for_run(5))
+        payload = SyncStartStopSchemaIn(full_refresh=False)
+        response = create_new_run(request, workspace_id, sync.id, payload)
         return sync
     except Exception:
         logger.exception("Sync error")

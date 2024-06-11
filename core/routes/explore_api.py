@@ -60,13 +60,23 @@ def get_explores(request, workspace_id):
 @router.post("/workspaces/{workspace_id}/explores/create", response={200: ExploreSchema, 400: DetailSchema})
 def create_explore(request, workspace_id, payload: ExploreSchemaIn):
     data = payload.dict()
+    logger.debug(data)
     try:
         try:
-            ExploreService.check_name_uniquesness(data["name"], workspace_id)
+            table_name = ExploreService.validate_explore_name(data["name"], workspace_id)
         except Exception as err:
             logger.exception(err)
             message = str(err)
             return (400, {"detail": message})
+        # chceck if sheet_url is not emoty check for necessary permissions to write into file
+        if data["sheet_url"] is not None:
+            try:
+                if not ExploreService.is_sheet_accessible(data["sheet_url"], workspace_id):
+                    return (400, {"detail": "You dont have access or missing write access to the spreadsheet"})
+            except Exception as err:
+                logger.exception(err)
+                message = str(err)
+                return (400, {"detail": message})
         data["id"] = uuid.uuid4()
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         prompt = Prompt.objects.get(id=data["prompt_id"])
@@ -80,10 +90,11 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             data["account"] = account
         # create source
         source = ExploreService.create_source(
-            data["name"], data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
+            table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
        # create destination
         spreadsheet_title = f"valmi.io {prompt.name} sheet"
-        destination_data = ExploreService.create_destination(spreadsheet_title, data["name"], workspace_id, account)
+        destination_data = ExploreService.create_destination(
+            spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
         spreadsheet_url = destination_data[0]
         destination = destination_data[1]
         # create sync
@@ -92,6 +103,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         del data["schema_id"]
         del data["filters"]
         del data["time_window"]
+        del data["sheet_url"]
         # data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
         data["ready"] = False
