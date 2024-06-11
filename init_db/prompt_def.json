@@ -20,7 +20,7 @@
       "description": "List of users who have abandoned their cart",
       "query": "select * from {{schema}}.abandon_customers  {{filters}}",
       "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -35,7 +35,7 @@
       "description": "Average order value",
       "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders  {{filters}}",
       "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -50,7 +50,7 @@
       "description": "List of users who have abandoned their cart",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
       "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -65,7 +65,7 @@
       "description": "Sales by category",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
       "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -78,9 +78,9 @@
     {
       "name": "Sales by payment method",
       "description": "Sales by payment method",
-      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{ schema }}.orders as orders join {{ schema }}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
+      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{schema}}.orders as orders join {{schema}}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
       "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
