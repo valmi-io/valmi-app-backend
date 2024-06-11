@@ -83,6 +83,7 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSchemaIn):
     try:
         prompt = Prompt.objects.get(id=prompt_id)
+        
         # checking wether prompt is enabled or not
         if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
@@ -121,3 +122,8 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
     except Exception as err:
         logger.exception(f"preview fetching error:{err}")
         return (400, {"detail": "Data cannot be fetched."})
+    finally:
+        from django.db import connection
+        if connection.queries:
+            last_query = connection.queries[-1]
+            logger.debug(f"last executed SQL: {last_query['sql']}")

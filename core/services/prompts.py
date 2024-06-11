@@ -1,10 +1,7 @@
 import json
 import logging
-from pathlib import Path
-from liquid import Template as LiquidTemplate
 import requests
 from decouple import config
-from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
 from core.models import Credential
 from core.schemas.prompt import (Filter, LastSuccessfulSyncInfo, TableInfo,
@@ -21,37 +18,18 @@ class PromptService():
 
     @staticmethod
     def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter]) -> str:
-        try:
-            if isinstance(timeWindow, TimeWindow):
-                timeWindowDict = timeWindow.dict()
+        where_clause_conditions = " "
+        for i, filter in enumerate(filters):
+            if filter.column_type in ('integer', 'float'):
+                where_clause_conditions += f" {filter.column} {filter.operator} {filter.value} "
             else:
-                timeWindowDict = timeWindow
-            if isinstance(filters, Filter):
-                filterList = [filter.__dict__ for filter in filters]
-            else:
-                filterList = filters
-            file_name = PromptService.getTemplateFile()
-            template_parent_path = Path(__file__).parent.absolute()
-            env = Environment(
-                tolerance=Mode.STRICT,
-                undefined=StrictUndefined,
-                loader=FileSystemLoader(
-                    f"{str(template_parent_path)}/prompt_templates"
-                ),
-            )
-            template = env.get_template(file_name)
-            filters = list(filters)
-            filterList = [filter.dict() for filter in filters]
-            rendered_query = template.render(filters=filterList, timeWindow=timeWindowDict)
-            liquid_template = LiquidTemplate(tableInfo.query)
-            context = {
-                "schema": tableInfo.tableSchema,
-                "filters": rendered_query
-            }
-            return liquid_template.render(context)
-        except Exception as e:
-            logger.exception(e)
-            raise e
+                where_clause_conditions += f" {filter.column} {filter.operator} '{filter.value}' "
+            if i != len(filters)-1:
+                where_clause_conditions += " and "
+        query = tableInfo.query.replace("{{schema}}", tableInfo.tableSchema).replace("{{filters}}", where_clause_conditions)
+        logger.debug(f"prompt query built: {query}")
+        return query
+
 
     @staticmethod
     def is_enabled(workspace_id: str, prompt: object) -> bool:

@@ -4,39 +4,12 @@
       "name": "Inventory snapshot",
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
       "query": "orders_with_product_data",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "filters": [
+        {"column": "ORDER_VALUE", "column_type": "integer"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -45,40 +18,13 @@
     {
       "name": "Abandoned customers",
       "description": "List of users who have abandoned their cart",
-      "query": "select * from {{schema}}.abandon_customers where {{filters}}",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "query": "select * from {{schema}}.abandon_customers  {{filters}}",
+      "filters": [
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -87,40 +33,13 @@
     {
       "name": "Average order value",
       "description": "Average order value",
-      "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders where {{filters}}",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders  {{filters}}",
+      "filters": [
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -130,39 +49,12 @@
       "name": "Refunds by date",
       "description": "List of users who have abandoned their cart",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "filters": [
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -172,39 +64,12 @@
       "name": "Sales by category",
       "description": "Sales by category",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "filters": [
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -213,40 +78,13 @@
     {
       "name": "Sales by payment method",
       "description": "Sales by payment method",
-      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{ schema }}.orders as orders join {{ schema }}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
-      "spec": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "required": ["timeWindows"],
-        "properties": {
-          "timeWindow": {
-            "type": "object",
-            "properties": {
-              "label": { "type": "string" },
-              "range": {
-                "type": "object",
-                "properties": {
-                  "start": { "type": "string" },
-                  "end": { "type": "string" }
-                }
-              }
-            }
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": { "type": "string" },
-                "name": { "type": "string" },
-                "type": { "type": "string" },
-                "value": { "type": "string" },
-                "operator": { "type": "string", "enum": ["=", "!="] }
-              },
-              "required": ["label", "name", "type", "value", "operator"]
-            }
-          }
-        }
+      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{schema}}.orders as orders join {{schema}}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
+      "filters": [
+        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",

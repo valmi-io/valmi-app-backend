@@ -20,9 +20,9 @@ class TableInfo(Schema):
 
 
 class Filter(Schema):
-    label: str
+    column: str
+    column_type: str
     operator: str
-    name: str
     value: str
 
 
