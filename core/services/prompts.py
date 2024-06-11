@@ -20,9 +20,12 @@ class PromptService():
     def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter]) -> str:
         where_clause = "where 1=1"
         for filter in filters:
-            where_clause += f" and {filter.column} {filter.operator} {filter.value} "
-        
+            if filter.column_type in ('integer', 'float'):
+                where_clause += f" and {filter.column} {filter.operator} {filter.value} "
+            else:
+                where_clause += f" and {filter.column} {filter.operator} '{filter.value}' "
         query = tableInfo.query.replace("{{schema}}", tableInfo.tableSchema).replace("{{filters}}", where_clause)
+        logger.debug(f"prompt query built: {query}")
         return query
 
 
