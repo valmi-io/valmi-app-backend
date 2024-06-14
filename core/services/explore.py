@@ -83,7 +83,7 @@ class ExploreService:
             credential = {"id": uuid.uuid4()}
             credential["workspace"] = Workspace.objects.get(id=workspace_id)
             credential["connector_id"] = "SRC_POSTGRES"
-            credential["name"] = "VALMI_ENGINE"
+            credential["name"] = "VALMI_DATA_STORE"
             credential["account"] = account
             credential["status"] = "active"
             # building query
@@ -110,7 +110,7 @@ class ExploreService:
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
             source = {
-                "name": "VALMI_ENGINE",
+                "name": "VALMI_DATA_STORE",
                 "id": uuid.uuid4()
             }
             # creating source object
@@ -190,18 +190,18 @@ class ExploreService:
             raise Exception("unable to create destination")
 
     @staticmethod
-    def create_sync(source: object, destination: object, workspace_id: str) -> object:
+    def create_sync(name: str, source: object, destination: object, workspace_id: str) -> object:
         try:
             logger.debug("creating sync in service")
             logger.debug(source.id)
             sync_config = {
-                "name": "Warehouse to sheets",
+                "name": name,
                 "id": uuid.uuid4(),
                 "status": "active",
                 "ui_state": {}
 
             }
-            schedule = {"run_interval": 3600000}
+            schedule = {"run_interval": 86400000}
             sync_config["schedule"] = schedule
             sync_config["source"] = source
             sync_config["destination"] = destination

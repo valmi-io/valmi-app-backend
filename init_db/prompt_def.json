@@ -3,7 +3,7 @@
     {
       "name": "Inventory snapshot",
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
-      "query": "orders_with_product_data",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"column": "ORDER_VALUE", "column_type": "integer"}
       ],
@@ -18,7 +18,7 @@
     {
       "name": "Abandoned customers",
       "description": "List of users who have abandoned their cart",
-      "query": "select * from {{schema}}.abandon_customers  {{filters}}",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
@@ -33,7 +33,7 @@
     {
       "name": "Average order value",
       "description": "Average order value",
-      "query": "select avg(total_price)::NUMERIC(10,2) from {{schema}}.orders  {{filters}}",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
@@ -48,7 +48,7 @@
     {
       "name": "Refunds by date",
       "description": "List of users who have abandoned their cart",
-      "query": "select * from {{schema}}.abandon_customers where {{filters}}",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
@@ -63,7 +63,7 @@
     {
       "name": "Sales by category",
       "description": "Sales by category",
-      "query": "select * from {{schema}}.abandon_customers where {{filters}}",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
@@ -78,9 +78,33 @@
     {
       "name": "Sales by payment method",
       "description": "Sales by payment method",
-      "query": "SELECT md5(row(transactions.gateway, COUNT(*)::text, ROUND(SUM(total_price))::text)::text) as id, transactions.gateway AS Payment_Method, COUNT(*) AS Total_Orders, ROUND(SUM(total_price)) as total_sales FROM {{schema}}.orders as orders join {{schema}}.transactions as transactions on transactions.order_id = orders.id where transactions.status='SUCCESS' and transactions.kind = 'SALE' and {{filters}} GROUP BY Payment_Method ORDER BY Total_Sales DESC",
+      "query": "inventory_snapshot.sql",
       "filters": [
         {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
+      "name": "Customer Segmentation Builder",
+      "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
+      "query": "select * from {{schema}}.customer_segmentation where {{filters}}",
+      "filters": [
+        {"display_column": "email", "db_column": "customer_email", "column_type": "string"},
+        {"display_column":"phone","db_column":"customer_phone","column_type":"string"},
+        {"display_column":"city","db_column":"city","column_type":"string"},
+        {"display_column":"state","db_column":"state'","column_type":"string"},
+        {"display_column":"country","db_column":"country","column_type":"string"},
+        {"display_column":"zip","db_column":"zip","column_type":"string"},
+        {"display_column":"total_sales","db_column":"total_sales","column_type":"integer"},
+        {"display_column":"total_orders","db_column":"total_orders","column_type":"integer"},
+        {"display_column":"number_of_cancellations","db_column":"number_of_cancellations","column_type":"integer"},
+        {"display_column":"AOV","db_column":"AOV","column_type":"integer"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],

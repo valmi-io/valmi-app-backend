@@ -83,7 +83,7 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSchemaIn):
     try:
         prompt = Prompt.objects.get(id=prompt_id)
-        
+
         # checking wether prompt is enabled or not
         if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
@@ -93,8 +93,8 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         sync_id = sync.id
         # checking wether sync has finished or not(from shopify to DB)
         latest_sync_info = PromptService.is_sync_finished(sync_id)
-        # if latest_sync_info.found == False or latest_sync_info.status == 'running':
-        #     return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
+        if latest_sync_info.found == False:
+            return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_info = TableInfo(

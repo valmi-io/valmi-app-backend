@@ -24,12 +24,12 @@ class PromptService():
                 where_clause_conditions += f" {filter.column} {filter.operator} {filter.value} "
             else:
                 where_clause_conditions += f" {filter.column} {filter.operator} '{filter.value}' "
-            if i != len(filters)-1:
+            if i != len(filters) - 1:
                 where_clause_conditions += " and "
-        query = tableInfo.query.replace("{{schema}}", tableInfo.tableSchema).replace("{{filters}}", where_clause_conditions)
+        query = tableInfo.query.replace("{{schema}}", tableInfo.tableSchema).replace(
+            "{{filters}}", where_clause_conditions)
         logger.debug(f"prompt query built: {query}")
         return query
-
 
     @staticmethod
     def is_enabled(workspace_id: str, prompt: object) -> bool:
@@ -43,6 +43,7 @@ class PromptService():
     def is_sync_finished(sync_id: str) -> LastSuccessfulSyncInfo:
         try:
             response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
+            logger.debug(response)
             json_string = response.content.decode('utf-8')
             logger.debug(json_string)
             last_success_sync_dict = json.loads(json_string)

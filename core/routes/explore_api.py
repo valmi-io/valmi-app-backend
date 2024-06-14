@@ -10,7 +10,6 @@ from ninja import Router
 
 from core.models import Account, Explore, Prompt, Workspace
 from core.services.explore import ExploreService
-from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +31,7 @@ def get_explores(request, workspace_id):
             explore.sync_id = str(explore.sync.id)
             latest_sync_info = ExploreService.get_latest_sync_info(explore.sync.id)
             logger.debug(latest_sync_info)
+            # as we are using full_refresh as true in explore creation enable only if previous sync got succeded
             # checking whether run is created for explore or not
             if latest_sync_info.found == False:
                 explore.enabled = False
@@ -46,11 +46,13 @@ def get_explores(request, workspace_id):
             else:
                 explore.last_sync_result = latest_sync_info.status.upper()
                 explore.sync_state = 'IDLE'
+                if latest_sync_info.status == 'success':
+                    explore.last_sync_succeeded_at = latest_sync_info.created_at
             explore.last_sync_created_at = latest_sync_info.created_at
             # adding last successful sync info
-            last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
-            if last_successful_sync_info.found == True:
-                explore.last_sync_succeeded_at = last_successful_sync_info.run_end_at
+            # last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
+            # if last_successful_sync_info.found == True:
+            #     explore.last_sync_succeeded_at = last_successful_sync_info.run_end_at
         return explores
     except Exception:
         logger.exception("explores listing error")
@@ -97,8 +99,8 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
         spreadsheet_url = destination_data[0]
         destination = destination_data[1]
-        # create sync
-        sync = ExploreService.create_sync(source, destination, workspace_id)
+        # creating the sync
+        sync = ExploreService.create_sync(data["name"], source, destination, workspace_id)
         # creating explore
         del data["schema_id"]
         del data["filters"]
