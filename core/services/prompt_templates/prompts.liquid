@@ -1,5 +1,5 @@
 {%- assign filterStr = "" -%}
-{% for filter in filters %}
+{%- for filter in filters -%}
     {% capture name %}
         {{ filter.name }}
     {% endcapture %}
@@ -11,7 +11,7 @@
     {% if forloop.last == false %}
         {% assign filterStr = filterStr | append: " and " %}
     {% endif %}
-{% endfor %}
+{%- endfor -%}
 {%- if filterStr != "" -%}
     {% assign filterStr = filterStr | append: " and " %}
 {%- endif -%}

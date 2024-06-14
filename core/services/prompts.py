@@ -48,7 +48,12 @@ class PromptService():
                 "schema": tableInfo.tableSchema,
                 "filters": rendered_query
             }
-            return liquid_template.render(context)
+            query = liquid_template.render(context)
+            logger.debug(type(query))
+            query = query.replace("\\", "")
+            logger.debug(query)
+            logger.debug(query)
+            return query
         except Exception as e:
             logger.exception(e)
             raise e

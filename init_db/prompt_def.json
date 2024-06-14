@@ -46,15 +46,12 @@
       "gated": true
     },
     {
-      "name": "Refunds by date",
-      "description": "List of users who have abandoned their cart",
-      "query": "inventory_snapshot.sql",
+      "name": "Refunds on a daily basis",
+      "description": "Get the list of refunds on any day, filtered by the date",
+      "query": "   select md5(row(DATE(updated_at),SUM(amount :: numeric))::text) as id,DATE(o.updated_at) as date, SUM(amount :: numeric)  AS total_refund from {{schema}}.orders as o join {{schema}}.orders_refunds_transactions as ort on o.id = ort.order_id where {{filters}} group by DATE(o.updated_at)",
       "filters": [
-        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
       ],
       "operators": {
-        "string": ["=", "!=", "IN", "NOT IN"],
-        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
@@ -77,10 +74,10 @@
     },
     {
       "name": "Sales by payment method",
-      "description": "Sales by payment method",
-      "query": "inventory_snapshot.sql",
+      "description": "Get the data of overall sales by different payment methods",
+      "query": "select Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from sales_by_payment_method where {{filters}} group by Payment_Method",
       "filters": [
-        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+        {"display_column": "payment_method", "db_column": "payment_method", "column_type": "string"}
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
