@@ -16,7 +16,7 @@ from core.models import (Credential, Destination, Explore, OAuthApiKeys,
                          Prompt, Source, StorageCredentials, Sync, Workspace)
 from core.routes.workspace_api import create_new_run
 from core.schemas.explore import LatestSyncInfo
-from core.schemas.prompt import Filter, TableInfo, TimeWindow
+from core.schemas.prompt import Filter, TableInfo, TimeGrain, TimeWindow
 from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ class ExploreService:
             raise Exception("spreadhseet creation failed")
 
     @staticmethod
-    def create_source(explore_table_name: str, prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], workspace_id: str, account: object) -> object:
+    def create_source(explore_table_name: str, prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], time_grain: TimeGrain, workspace_id: str, account: object) -> object:
         try:
             # creating source credentail
             credential = {"id": uuid.uuid4()}
@@ -95,7 +95,7 @@ class ExploreService:
                 tableSchema=namespace,
                 query=prompt.query
             )
-            query = PromptService().build(table_info, time_window, filters)
+            query = PromptService().build(table_info, time_window, filters, time_grain)
             # creating source credentials
             connector_config = {
                 "ssl": storage_credential.connector_config["ssl"],
@@ -129,10 +129,11 @@ class ExploreService:
             json_file_path = join(dirname(__file__), 'source_catalog.json')
             with open(json_file_path, 'r') as openfile:
                 source_catalog = json.load(openfile)
+            database = connector_config["database"]
             source_catalog["streams"][0]["stream"] = response_json["catalog"]["streams"][0]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = explore_table_name
+            ] = f"{database}.{namespace}.{explore_table_name}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)

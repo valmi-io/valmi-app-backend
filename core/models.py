@@ -153,6 +153,7 @@ class Prompt(models.Model):
     query = models.CharField(max_length=1000,null=False, blank=False,default="query")
     package_id = models.CharField(null=False, blank = False,max_length=20,default="P0")
     gated = models.BooleanField(null=False, blank = False, default=True)
+    time_grain_enabled = models.BooleanField(null=False, blank=False, default=False)
 
 class SourceAccessInfo(models.Model):
     source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="source_access_info",primary_key=True)

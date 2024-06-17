@@ -1,7 +1,7 @@
 import datetime
-from decimal import Decimal
 import json
 import logging
+from decimal import Decimal
 from typing import List
 
 import psycopg2
@@ -10,7 +10,7 @@ from pydantic import Json
 
 from core.models import (Credential, Prompt, Source, SourceAccessInfo,
                          StorageCredentials, Sync)
-from core.schemas.prompt import PromptPreviewSchemaIn, TableInfo
+from core.schemas.prompt import PromptPreviewSchemaIn, TableInfo, TimeGrain
 from core.schemas.schemas import (DetailSchema, PromptByIdSchema,
                                   PromptSchemaOut)
 from core.services.prompts import PromptService
@@ -65,6 +65,8 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
         # Convert schemas dictionary to a list (optional)
         final_schemas = list(schemas.values())
         prompt.schemas = final_schemas
+        if prompt.time_grain_enabled:
+            prompt.time_grain = TimeGrain.members()
         logger.debug(prompt)
         return prompt
     except Exception:
@@ -102,7 +104,7 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
             query=prompt.query
         )
 
-        query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
+        query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters, prompt_req.time_grain)
         query = query + " limit 10"
         logger.debug(query)
         host = storage_credentials.connector_config.get('host')

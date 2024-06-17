@@ -16,6 +16,7 @@ from pydantic import UUID4
 from core.models import (Account, Connector, Credential, Destination,
                          OAuthApiKeys, Organization, Package, Prompt, Source,
                          Sync, Workspace)
+from core.schemas.prompt import TimeGrain
 
 
 def camel_to_snake(s):
@@ -79,13 +80,14 @@ class PackageSchema(ModelSchema):
 class PromptSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id", "name", "description", "type", "filters", "operators", "package_id", "gated", "query"]
+        model_fields = ["id", "name", "description", "type", "filters", "operators", "package_id", "gated", "query", "time_grain_enabled"]
 
 
 class PromptByIdSchema(ModelSchema):
     class Config(CamelSchemaConfig):
         model = Prompt
-        model_fields = ["id", "name", "description", "type", "filters", "operators", "package_id", "gated", "query"]
+        model_fields = ["id", "name", "description", "type", "filters", "operators", "package_id", "gated", "query", "time_grain_enabled"]
+    time_grain: List[TimeGrain] = None 
     schemas: List[Dict]
 
 
@@ -288,4 +290,5 @@ class SocialUser(Schema):
 
 class SocialAuthLoginSchema(Schema):
     account: SocialAccount
+    user: SocialUser
     user: SocialUser

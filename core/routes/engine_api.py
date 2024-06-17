@@ -6,27 +6,20 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
+import json
 import logging
 from typing import Dict, List
 
 from decouple import Csv, config
-from ninja import Router
-
-from core.schemas.schemas import ConnectorSchema, DetailSchema, PackageSchema, PromptSchema, SyncSchema
-
-from ..models import (
-    Connector,
-    Package,
-    Prompt,
-    Sync,
-    OAuthApiKeys
-)
-import json
-
-from opentelemetry.metrics import get_meter_provider
 # from opentelemetry import trace
-from django.db import connection
+from ninja import Router
+from opentelemetry.metrics import get_meter_provider
+
+from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
+                                  PromptSchema, SyncSchema)
 from valmi_app_backend.utils import replace_values_in_json
+
+from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync
 
 router = Router()
 
@@ -103,8 +96,8 @@ def create_connector(request, payload: PromptSchema):
     logger.debug(data)
     try:
         logger.debug("creating prompt")
-        prompts = Prompt.objects.create(**data)
-        return (200, prompts)
+        prompt = Prompt.objects.create(**data)
+        return (200, prompt)
     except Exception as ex:
         logger.debug(f"prompt not created. Attempting to update.")
         # Prompt.objects.filter(name=data['name']) will only return one item as name is unique for every prompt
@@ -116,11 +109,11 @@ def create_connector(request, payload: PromptSchema):
         elif rows_updated == 1:
             logger.debug(f"prompt updated")
         else:
-            logger.debug(f"something went wrong while creating/updating prompt. message: {ex}")    
-    finally:
-        if connection.queries:
-            last_query = connection.queries[-1]
-            logger.debug(f"last executed SQL: {last_query['sql']}")
+            msg = f"something went wrong while creating/updating prompt. message: {ex}"
+            logger.debug(msg)
+            return (400, {"detail": msg})
+        return (200, data)
+    
 
 
 @router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
