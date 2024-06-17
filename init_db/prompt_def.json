@@ -4,9 +4,7 @@
       "name": "Inventory snapshot",
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
       "query": "inventory_snapshot.sql",
-      "filters": [
-        {"column": "ORDER_VALUE", "column_type": "integer"}
-      ],
+      "filters": [{ "column": "ORDER_VALUE", "column_type": "integer" }],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
         "integer": ["=", ">", "<", ">=", "<=", "!="]
@@ -20,7 +18,11 @@
       "description": "List of users who have abandoned their cart",
       "query": "inventory_snapshot.sql",
       "filters": [
-        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+        {
+          "display_column": "payment_method",
+          "db_column": "transactions.gateway",
+          "column_type": "string"
+        }
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -35,7 +37,11 @@
       "description": "Average order value",
       "query": "inventory_snapshot.sql",
       "filters": [
-        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+        {
+          "display_column": "payment_method",
+          "db_column": "transactions.gateway",
+          "column_type": "string"
+        }
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -48,21 +54,24 @@
     {
       "name": "Refunds on a daily basis",
       "description": "Get the list of refunds on any day, filtered by the date",
-      "query": "   select md5(row(DATE(updated_at),SUM(amount :: numeric))::text) as id,DATE(o.updated_at) as date, SUM(amount :: numeric)  AS total_refund from {{schema}}.orders as o join {{schema}}.orders_refunds_transactions as ort on o.id = ort.order_id where {{filters}} group by DATE(o.updated_at)",
-      "filters": [
-      ],
-      "operators": {
-      },
+      "query": "select md5(row(DATE_TRUNC('{{timegrain}}',o.updated_at),SUM(amount :: numeric))::text) as id,DATE_TRUNC('{{timegrain}}',o.updated_at) as date, SUM(amount :: numeric)  AS total_refund from {{schema}}.orders as o join {{schema}}.orders_refunds_transactions as ort on o.id = ort.order_id where {{filters}} group by DATE_TRUNC('{{timegrain}}',o.updated_at) order by DATE_TRUNC('{{timegrain}}',o.updated_at)",
+      "filters": [],
+      "operators": {},
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
-      "gated": true
+      "gated": true,
+      "time_grain_enabled": true
     },
     {
       "name": "Sales by category",
       "description": "Sales by category",
       "query": "inventory_snapshot.sql",
       "filters": [
-        {"display_column": "payment_method", "db_column": "transactions.gateway", "column_type": "string"}
+        {
+          "display_column": "payment_method",
+          "db_column": "transactions.gateway",
+          "column_type": "string"
+        }
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -77,7 +86,11 @@
       "description": "Get the data of overall sales by different payment methods",
       "query": "select Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from sales_by_payment_method where {{filters}} group by Payment_Method",
       "filters": [
-        {"display_column": "payment_method", "db_column": "payment_method", "column_type": "string"}
+        {
+          "display_column": "payment_method",
+          "db_column": "payment_method",
+          "column_type": "string"
+        }
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -92,16 +105,56 @@
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
       "query": "select * from {{schema}}.customer_segmentation where {{filters}}",
       "filters": [
-        {"display_column": "email", "db_column": "customer_email", "column_type": "string"},
-        {"display_column":"phone","db_column":"customer_phone","column_type":"string"},
-        {"display_column":"city","db_column":"city","column_type":"string"},
-        {"display_column":"state","db_column":"state'","column_type":"string"},
-        {"display_column":"country","db_column":"country","column_type":"string"},
-        {"display_column":"zip","db_column":"zip","column_type":"string"},
-        {"display_column":"total_sales","db_column":"total_sales","column_type":"integer"},
-        {"display_column":"total_orders","db_column":"total_orders","column_type":"integer"},
-        {"display_column":"number_of_cancellations","db_column":"number_of_cancellations","column_type":"integer"},
-        {"display_column":"AOV","db_column":"AOV","column_type":"integer"}
+        {
+          "display_column": "email",
+          "db_column": "customer_email",
+          "column_type": "string"
+        },
+        {
+          "display_column": "phone",
+          "db_column": "customer_phone",
+          "column_type": "string"
+        },
+        {
+          "display_column": "city",
+          "db_column": "city",
+          "column_type": "string"
+        },
+        {
+          "display_column": "state",
+          "db_column": "state'",
+          "column_type": "string"
+        },
+        {
+          "display_column": "country",
+          "db_column": "country",
+          "column_type": "string"
+        },
+        {
+          "display_column": "zip",
+          "db_column": "zip",
+          "column_type": "string"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_orders",
+          "db_column": "total_orders",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "number_of_cancellations",
+          "db_column": "number_of_cancellations",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "AOV",
+          "db_column": "AOV",
+          "column_type": "integer"
+        }
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
