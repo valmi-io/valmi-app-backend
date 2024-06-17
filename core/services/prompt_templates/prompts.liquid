@@ -1,7 +1,7 @@
 {%- assign filterStr = "" -%}
 {%- for filter in filters -%}
     {% capture name %}
-        {{ filter.name }}
+        {{ filter.column }}
     {% endcapture %}
     {% capture value %}
         '{{ filter.value }}'
