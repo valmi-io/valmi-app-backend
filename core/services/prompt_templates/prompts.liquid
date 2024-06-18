@@ -15,8 +15,12 @@
 {%- if filterStr != "" -%}
     {% assign filterStr = filterStr | append: " and " %}
 {%- endif -%}
-{%- if timeWindow.range.start contains "now()" -%}
-    {{ filterStr }} "updated_at" >= {{ timeWindow.range.start }} and "updated_at" <= {{ timeWindow.range.end }}
+{%- if timeWindow.label != nil and timeWindow.range != nil -%}
+    {%- if "now()" in timeWindow.range.start -%}
+        {{ filterStr }} "updated_at" >= {{ timeWindow.range.start }} and "updated_at" <= {{ timeWindow.range.end }}
+    {%- else -%}
+        {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start }}' and "updated_at" <= '{{ timeWindow.range.end }}'
+    {%- endif -%}
 {%- else -%}
-    {{ filterStr }} "updated_at" >= '{{ timeWindow.range.start }}' and "updated_at" <= '{{ timeWindow.range.end }}'
+    {{ filterStr }} 1=1
 {%- endif -%}

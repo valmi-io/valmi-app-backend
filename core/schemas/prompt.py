@@ -11,13 +11,15 @@ class TimeWindowRange(Schema):
 
 
 class TimeWindow(Schema):
-    label: str
-    range: TimeWindowRange
+    label: Optional[str]
+    range: Optional[TimeWindowRange]
+
 
 class TimeGrain(str, Enum):
-    day =  'day'
+    day = 'day'
     week = 'week'
     month = 'month'
+
     def members():
         return TimeGrain._member_names_
 

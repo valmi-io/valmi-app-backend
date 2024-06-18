@@ -131,7 +131,8 @@
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
-      "gated": true
+      "gated": true,
+      "time_window_enabled":false
     },
 
     {
