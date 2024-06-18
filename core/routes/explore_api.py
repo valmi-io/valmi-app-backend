@@ -1,16 +1,17 @@
 import asyncio
 import logging
-from typing import List
 import uuid
+from typing import List
+
 from decouple import config
-from core.models import Account, Explore, Prompt, Workspace
-from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
-from core.schemas.explore import ExploreSchema, ExploreSchemaIn, ExploreSchemaOut
 from ninja import Router
 
 from core.models import Account, Explore, Prompt, Workspace
+from core.schemas.explore import (ExploreSchema, ExploreSchemaIn,
+                                  ExploreSchemaOut)
+from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
 from core.services.explore import ExploreService
-
+from core.services.prompts import PromptService
 logger = logging.getLogger(__name__)
 
 router = Router()
@@ -50,9 +51,9 @@ def get_explores(request, workspace_id):
                     explore.last_sync_succeeded_at = latest_sync_info.created_at
             explore.last_sync_created_at = latest_sync_info.created_at
             # adding last successful sync info
-            # last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
-            # if last_successful_sync_info.found == True:
-            #     explore.last_sync_succeeded_at = last_successful_sync_info.run_end_at
+            last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
+            if last_successful_sync_info.found == True:
+                explore.last_sync_succeeded_at = last_successful_sync_info.run_end_at
         return explores
     except Exception:
         logger.exception("explores listing error")
@@ -91,6 +92,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             account = Account.objects.create(**account_info)
             data["account"] = account
         # create source
+
         source = ExploreService.create_source(
             table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], data["time_grain"], workspace_id, account)
        # create destination
@@ -112,6 +114,7 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         data["sync"] = sync
         data["ready"] = False
         data["spreadsheet_url"] = spreadsheet_url
+        del data["time_grain"]
         explore = Explore.objects.create(**data)
         # create run
         asyncio.run(ExploreService.wait_for_run(5))
@@ -131,4 +134,5 @@ def get_explore_by_id(request, workspace_id, explore_id):
         return Explore.objects.get(id=explore_id)
     except Exception:
         logger.exception("explore listing error")
+        return (500, {"detail": "The  explore cannot be fetched."})
         return (500, {"detail": "The  explore cannot be fetched."})
