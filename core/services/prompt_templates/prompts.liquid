@@ -1,13 +1,13 @@
 {%- assign filterStr = "" -%}
 {%- for filter in filters -%}
-    {% capture name %}
-        {{ filter.name }}
+    {% capture column %}
+        {{ filter.column }}
     {% endcapture %}
     {% capture value %}
         '{{ filter.value }}'
     {% endcapture %}
     {% assign operator = filter.operator %}
-    {% assign filterStr = filterStr | append: name | append: " " | append: operator | append: " " | append: value %}
+    {% assign filterStr = filterStr | append: column | append: " " | append: operator | append: " " | append: value %}
     {% if forloop.last == false %}
         {% assign filterStr = filterStr | append: " and " %}
     {% endif %}

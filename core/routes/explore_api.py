@@ -101,11 +101,13 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         destination = destination_data[1]
         # creating the sync
         sync = ExploreService.create_sync(data["name"], source, destination, workspace_id)
+        logger.debug("After sync")
         # creating explore
         del data["schema_id"]
         del data["filters"]
         del data["time_window"]
         del data["sheet_url"]
+        del data["time_grain"]
         # data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
         data["ready"] = False

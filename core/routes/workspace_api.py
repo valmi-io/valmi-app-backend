@@ -362,7 +362,7 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         data["destination"] = Destination.objects.get(id=destination.id)
         del data["account"]
         if data["schedule"] is None:
-            schedule = {"run_interval": 3600000}
+            schedule = {"run_interval": 86400000}
             data["schedule"] = schedule
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         if data["ui_state"] is None:

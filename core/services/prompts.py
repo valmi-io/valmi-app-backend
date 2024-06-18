@@ -20,7 +20,7 @@ class PromptService():
         return 'prompts.liquid'
 
     @staticmethod
-    def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter], time_grain: str='day') -> str:
+    def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter], time_grain: str = 'day') -> str:
         try:
             if isinstance(timeWindow, TimeWindow):
                 timeWindowDict = timeWindow.dict()
@@ -50,9 +50,6 @@ class PromptService():
                 "timegrain": time_grain
             }
             query = liquid_template.render(context)
-            logger.debug(type(query))
-            query = query.replace("\\", "")
-            logger.debug(query)
             logger.debug(query)
             return query
         except Exception as e:

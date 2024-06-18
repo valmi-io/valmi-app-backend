@@ -3,8 +3,40 @@
     {
       "name": "Inventory snapshot",
       "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
-      "query": "inventory_snapshot.sql",
-      "filters": [{ "column": "ORDER_VALUE", "column_type": "integer" }],
+      "query": "select * from {{schema}}.inventory_snapshot where {{filters}}",
+      "filters": [
+        {
+          "display_column": "product_title",
+          "db_column": "product_title",
+          "column_type": "string"
+        },
+        {
+          "display_column": "variant_title",
+          "db_column": "variant_title",
+          "column_type": "string"
+        },
+        {
+          "display_column": "product_type",
+          "db_column": "product_type",
+          "column_type": "string"
+        },
+        {
+          "display_column": "sku",
+          "db_column": "sku",
+          "column_type": "string"
+        },
+        {
+          "display_column": "price",
+          "db_column": "price",
+          "column_type": "string"
+        },
+        {
+          "display_column": "cost",
+          "db_column": "cost",
+          "column_type": "string"
+        }
+
+      ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
         "integer": ["=", ">", "<", ">=", "<=", "!="]
@@ -16,12 +48,32 @@
     {
       "name": "Abandoned customers",
       "description": "List of users who have abandoned their cart",
-      "query": "inventory_snapshot.sql",
+      "query": "select * from {{schema}}.abandon_customers where {{filters}}",
       "filters": [
         {
-          "display_column": "payment_method",
-          "db_column": "transactions.gateway",
+          "display_column": "name",
+          "db_column": "name",
           "column_type": "string"
+        },
+        {
+          "display_column": "email",
+          "db_column": "email",
+          "column_type": "string"
+        },
+        {
+          "display_column": "phone",
+          "db_column": "phone",
+          "column_type": "string"
+        },
+        {
+          "display_column": "cart_value",
+          "db_column": "cart_value",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "no_of_items_in_cart",
+          "db_column": "no_of_items_in_cart",
+          "column_type": "integer"
         }
       ],
       "operators": {
@@ -32,6 +84,56 @@
       "package_id": "P0",
       "gated": true
     },
+    {
+      "name": "At risk customers",
+      "description": "Know your customers who haven’t bought anything in the recent past and need a reminder or two",
+      "query": "select * from {{schema}}.at_risk_customers where {{filters}}",
+      "filters": [
+        {
+          "display_column": "first_name",
+          "db_column": "first_name",
+          "column_type": "string"
+        },
+        {
+          "display_column": "last_name",
+          "db_column": "last_name",
+          "column_type": "string"
+        },
+        {
+          "display_column": "phone_number",
+          "db_column": "phone_number",
+          "column_type": "string"
+        },
+        {
+          "display_column": "total_orders",
+          "db_column": "total_orders",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "email",
+          "db_column": "email",
+          "column_type": "string"
+        },
+        {
+          "display_column": "average_order_value",
+          "db_column": "average_order_value",
+          "column_type": "integer"
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+
     {
       "name": "Average order value",
       "description": "Average order value",
@@ -51,6 +153,7 @@
       "package_id": "P0",
       "gated": true
     },
+
     {
       "name": "Refunds on a daily basis",
       "description": "Get the list of refunds on any day, filtered by the date",

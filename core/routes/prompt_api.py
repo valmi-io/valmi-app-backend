@@ -77,6 +77,8 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
 def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
+    if isinstance(obj, datetime.date):
+        return obj.isoformat()
     if isinstance(obj, Decimal):
         return str(obj)
 
