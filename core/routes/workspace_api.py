@@ -338,12 +338,12 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
             stream["destination_sync_mode"] = "append_dedup"
         # creating source credential
         source_credential_payload = CredentialSchemaIn(
-            name="shopify", account=data["account"], connector_type=data["source"]["type"],
+            name=data["name"], account=data["account"], connector_type=data["source"]["type"],
             connector_config=data["source"]["config"])
         source_credential = create_credential(request, workspace_id, source_credential_payload)
         # creating source
         source_payload = SourceSchemaIn(
-            name="shopify", credential_id=source_credential.id, catalog=catalog)
+            name=data["name"], credential_id=source_credential.id, catalog=catalog)
         source = create_source(request, workspace_id, source_payload)
         workspace = Workspace.objects.get(id=workspace_id)
         # creating default warehouse

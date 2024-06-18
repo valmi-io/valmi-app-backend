@@ -308,7 +308,7 @@
     },
     {
       "name": "Order export with products",
-      "description": "Get the data of overall sales by different payment methods",
+      "description": "Get the information of all the orders along with the list of items that have been placed via these orders",
       "query": "select * from {{schema}}.order_export_with_products where {{filters}}",
       "filters": [
         {
@@ -392,7 +392,7 @@
     },
     {
       "name": "New customer sales",
-      "description": "Get the data of overall sales by different payment methods",
+      "description": "Get the Sales information of new customers in a specific time period",
       "query": "select * from {{schema}}.new_customer_sales where {{filters}}",
       "filters": [
         {

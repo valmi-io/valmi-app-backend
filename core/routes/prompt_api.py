@@ -52,14 +52,16 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
             if source_access_info := info.source_access_info.first():
                 storage_id = source_access_info.storage_credentials.id
                 if storage_id not in schemas:
+                    logger.debug(info.credential.name)
                     schema = {
                         "id": str(storage_id),
                         "name": source_access_info.storage_credentials.connector_config["schema"],
                         "sources": [],
                     }
                     schemas[storage_id] = schema
+                    formatted_output = info.credential.created_at.strftime('%B %d %Y %H:%M')
                 schemas[storage_id]["sources"].append({
-                    "name": f"{info.credential.name}${info.credential.created_at}",
+                    "name": f"{info.credential.name}@{formatted_output}",
                     "id": str(info.id),
                 })
         # Convert schemas dictionary to a list (optional)
