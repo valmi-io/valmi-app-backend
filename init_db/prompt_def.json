@@ -138,21 +138,15 @@
     {
       "name": "Average order value",
       "description": "Average order value",
-      "query": "inventory_snapshot.sql",
+      "query": "select avg(total_price)::NUMERIC(10,2), DATE_TRUNC('{{timegrain}}',o.updated_at) from {{schema}}.orders as o group by DATE_TRUNC('{{timegrain}}',o.updated_at) order by DATE_TRUNC('{{timegrain}}',o.updated_at)",
       "filters": [
-        {
-          "display_column": "payment_method",
-          "db_column": "transactions.gateway",
-          "column_type": "string"
-        }
       ],
       "operators": {
-        "string": ["=", "!=", "IN", "NOT IN"],
-        "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
-      "gated": true
+      "gated": true,
+      "time_grain_enabled":true
     },
 
     {
@@ -222,7 +216,7 @@
     },
     {
       "name": "Sales by category",
-      "description": "Sales by category",
+      "description": "Get a report of the total sales, filtered by the category",
       "query": "select * from {{schema}}.sales_by_category where {{filters}}",
       "filters": [
         {
