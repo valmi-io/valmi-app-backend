@@ -167,6 +167,60 @@
       "time_grain_enabled": true
     },
     {
+      "name": "Gross sales",
+      "description": "Get the list of refunds on any day, filtered by the date",
+      "query": "select * from {{schema}}.gross_sales where {{filters}}",
+      "filters": [
+        {
+          "display_column": "orders",
+          "db_column": "orders",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "grosss_sales",
+          "db_column": "grosss_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "discounts",
+          "db_column": "discounts",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "net_sales",
+          "db_column": "net_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "tax",
+          "db_column": "tax",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "shipping_price",
+          "db_column": "shipping_price",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "refund",
+          "db_column": "refund",
+          "column_type": "integer"
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
       "name": "Sales by category",
       "description": "Sales by category",
       "query": "select * from {{schema}}.sales_by_category where {{filters}}",
