@@ -114,7 +114,6 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
         data["sync"] = sync
         data["ready"] = False
         data["spreadsheet_url"] = spreadsheet_url
-        del data["time_grain"]
         explore = Explore.objects.create(**data)
         # create run
         asyncio.run(ExploreService.wait_for_run(5))
