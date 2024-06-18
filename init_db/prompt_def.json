@@ -86,7 +86,7 @@
     },
     {
       "name": "At risk customers",
-      "description": "Know your customers who haven’t bought anything in the recent past and need a reminder or two",
+      "description": "Know your customers who haven’t bought anything in the past 90 days and need a reminder or two",
       "query": "select * from {{schema}}.at_risk_customers where {{filters}}",
       "filters": [
         {
@@ -168,12 +168,22 @@
     {
       "name": "Sales by category",
       "description": "Sales by category",
-      "query": "inventory_snapshot.sql",
+      "query": "select * from {{schema}}.sales_by_category where {{filters}}",
       "filters": [
         {
-          "display_column": "payment_method",
-          "db_column": "transactions.gateway",
+          "display_column": "category",
+          "db_column": "category",
           "column_type": "string"
+        },
+        {
+          "display_column": "quantity_sold",
+          "db_column": "quantity_sold",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
         }
       ],
       "operators": {
@@ -187,12 +197,41 @@
     {
       "name": "Sales by payment method",
       "description": "Get the data of overall sales by different payment methods",
-      "query": "select Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from sales_by_payment_method where {{filters}} group by Payment_Method",
+      "query": "select Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from {{schema}}.sales_by_payment_method where {{filters}} group by Payment_Method",
       "filters": [
         {
           "display_column": "payment_method",
           "db_column": "payment_method",
           "column_type": "string"
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
+      "name": "Orders by date",
+      "description": "Get the data of overall sales by different payment methods",
+      "query": "select * from {{schema}}.orders_by_date where {{filters}}",
+      "filters": [
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_orders",
+          "db_column": "total_orders",
+          "column_type": "integer"
         }
       ],
       "operators": {
@@ -225,7 +264,7 @@
         },
         {
           "display_column": "state",
-          "db_column": "state'",
+          "db_column": "state",
           "column_type": "string"
         },
         {
@@ -256,6 +295,119 @@
         {
           "display_column": "AOV",
           "db_column": "AOV",
+          "column_type": "integer"
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
+      "name": "Order export with products",
+      "description": "Get the data of overall sales by different payment methods",
+      "query": "select * from {{schema}}.order_export_with_products where {{filters}}",
+      "filters": [
+        {
+          "display_column": "name",
+          "db_column": "name",
+          "column_type": "string"
+        },
+        {
+          "display_column": "fulfillment_status",
+          "db_column": "fulfillment_status",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "fulfillment_status",
+          "db_column": "fulfillment_status",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "email",
+          "db_column": "email",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "phone",
+          "db_column": "phone",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "shipping_name",
+          "db_column": "shipping_name",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "address",
+          "db_column": "address",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "shipping_city",
+          "db_column": "shipping_city",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "shipping_state",
+          "db_column": "shipping_state",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "shipping_country",
+          "db_column": "shipping_country",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "shipping_zip",
+          "db_column": "shipping_zip",
+          "column_type": "integer" 
+        },
+        {
+          "display_column": "quantity",
+          "db_column": "quantity",
+          "column_type": "integer" 
+        },
+        {
+          "display_column": "product_title",
+          "db_column": "product_title",
+          "column_type": "string" 
+        },
+        {
+          "display_column": "sku",
+          "db_column": "sku",
+          "column_type": "string" 
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_SHOPIFY",
+      "package_id": "P0",
+      "gated": true
+    },
+    {
+      "name": "New customer sales",
+      "description": "Get the data of overall sales by different payment methods",
+      "query": "select * from {{schema}}.new_customer_sales where {{filters}}",
+      "filters": [
+        {
+          "display_column": "new_customers",
+          "db_column": "new_customers",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "new_customer_sales",
+          "db_column": "new_customer_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_customers",
+          "db_column": "total_customers",
           "column_type": "integer"
         }
       ],
