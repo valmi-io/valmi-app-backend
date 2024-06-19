@@ -138,7 +138,7 @@
     {
       "name": "Average order value",
       "description": "Average order value",
-      "query": "select avg(total_price)::NUMERIC(10,2), DATE_TRUNC('{{timegrain}}',o.updated_at) from {{schema}}.orders as o group by DATE_TRUNC('{{timegrain}}',o.updated_at) order by DATE_TRUNC('{{timegrain}}',o.updated_at)",
+      "query": "select md5(row(DATE_TRUNC('{{timegrain}}', o.updated_at))::text) as id, avg(total_price)::NUMERIC(10,2) as average_total_price, DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE as truncated_date from {{schema}}.orders as o group by DATE_TRUNC('{{timegrain}}', o.updated_at) order by DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE ",
       "filters": [
       ],
       "operators": {
