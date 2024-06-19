@@ -48,7 +48,12 @@ class PromptService():
             logger.debug(timeWindowDict)
             template = env.get_template(file_name)
             filters = list(filters)
-            filterList = [filter.dict() for filter in filters]
+            logger.debug('*' * 80)
+            logger.debug(type(filters))
+            # if isinstance(filters, dict):
+            #     pass
+            # else:
+            #     filterList = [filter.dict() for filter in filters]
             rendered_query = template.render(filters=filterList, timeWindow=timeWindowDict)
             liquid_template = LiquidTemplate(tableInfo.query)
             context = {

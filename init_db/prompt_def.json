@@ -146,7 +146,8 @@
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
       "gated": true,
-      "time_grain_enabled":true
+      "time_grain_enabled":true,
+      "time_window_enabled":false
     },
 
     {
@@ -158,7 +159,8 @@
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
       "gated": true,
-      "time_grain_enabled": true
+      "time_grain_enabled": true,
+      "time_window_enabled":false
     },
     {
       "name": "Gross sales",
