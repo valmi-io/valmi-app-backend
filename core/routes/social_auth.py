@@ -31,7 +31,7 @@ def generate_key():
 
 
 # TODO response for bad request, 400
-@router.post("/login", response={200: Json,400:DetailSchema})
+@router.post("/login", response={200: Json, 400: DetailSchema})
 def login(request, payload: SocialAuthLoginSchema):
 
     req = payload.dict()
@@ -41,7 +41,7 @@ def login(request, payload: SocialAuthLoginSchema):
     account = req["account"]
 
     email = user_data["email"]
-    
+
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
@@ -57,23 +57,53 @@ def login(request, payload: SocialAuthLoginSchema):
         workspace.save()
         user.save()
         user.organizations.add(org)
-        oauth = OAuthApiKeys(workspace=workspace, type='GOOGLE_LOGIN', id=uuid.uuid4())
-        oauth.oauth_config = {
-            "access_token": account["access_token"],
-            "refresh_token": account["refresh_token"],
-            "expires_at": account["expires_at"]
-        }
-        oauth.save()
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     try:
+        user = User.objects.get(id=user.id)
         result = urlparse(os.environ["DATABASE_URL"])
         username = result.username
         password = result.password
         database = result.path[1:]
         hostname = result.hostname
         port = result.port
-        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port,database=database)
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port, database=database)
+        cursor = conn.cursor()
+        query = ("select organization_id from core_user_organizations where user_id = {user_id}").format(
+            user_id=user.id)
+        cursor.execute(query)
+        result = cursor.fetchone()
+        logger.debug(result)
+        conn.close()
+        workspace = Workspace.objects.get(organization_id=result)
+        logger.debug(workspace.id)
+        oauth = OAuthApiKeys.objects.filter(workspace=workspace.id, type='GOOGLE_LOGIN').first()
+        if oauth:
+            oauth.oauth_config = {
+                "access_token": account["access_token"],
+                "refresh_token": account["refresh_token"],
+                "expires_at": account["expires_at"]
+            }
+            oauth.save()
+        else:
+            oauth = OAuthApiKeys(
+                workspace=workspace,
+                type='GOOGLE_LOGIN',
+                id=uuid.uuid4(),
+                oauth_config={
+                    "access_token": account["access_token"],
+                    "refresh_token": account["refresh_token"],
+                    "expires_at": account["expires_at"]
+                }
+            )
+            oauth.save()
+        result = urlparse(os.environ["DATABASE_URL"])
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        port = result.port
+        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port, database=database)
         cursor = conn.cursor()
         query = """
             SELECT
@@ -122,13 +152,13 @@ def login(request, payload: SocialAuthLoginSchema):
                 "core_organization"."status"
             ) AS subquery;
         """
-        cursor.execute(query,(user_id,))
+        cursor.execute(query, (user_id,))
         result = cursor.fetchone()
         cursor.close()
         conn.close()
-        response = {    
+        response = {
             "auth_token": token.key,
-            "organizations":result
+            "organizations": result
         }
         logger.debug(response)
         return json.dumps(response)
