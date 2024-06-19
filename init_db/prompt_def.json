@@ -2,7 +2,7 @@
   "definitions": [
     {
       "name": "Inventory snapshot",
-      "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
+      "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by products and variants",
       "query": "select * from {{schema}}.inventory_snapshot where {{filters}}",
       "filters": [
         {
@@ -47,7 +47,7 @@
     },
     {
       "name": "Abandoned customers",
-      "description": "List of users who have abandoned their cart",
+      "description": "Get a list of customers who’ve left their shopping carts unattended after adding items",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
       "filters": [
         {
@@ -86,7 +86,7 @@
     },
     {
       "name": "At risk customers",
-      "description": "Know your customers who haven’t bought anything in the past 90 days and need a reminder or two",
+      "description": "Know your customers who haven’t bought anything in the last 90 days and need a reminder or two",
       "query": "select * from {{schema}}.at_risk_customers where {{filters}}",
       "filters": [
         {
@@ -137,7 +137,7 @@
 
     {
       "name": "Average order value",
-      "description": "Average order value",
+      "description": "Get the average value (in currency terms) of all the orders placed in a time period",
       "query": "select md5(row(DATE_TRUNC('{{timegrain}}', o.updated_at))::text) as id, avg(total_price)::NUMERIC(10,2) as average_total_price, DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE as truncated_date from {{schema}}.orders as o group by DATE_TRUNC('{{timegrain}}', o.updated_at) order by DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE ",
       "filters": [
       ],
@@ -164,7 +164,7 @@
     },
     {
       "name": "Gross sales",
-      "description": "Get the list of refunds on any day, filtered by the date",
+      "description": "Get the overall picture of all the items sold in a time-frame. This includes parameters like the discounts, taxes, refunds etc",
       "query": "select * from {{schema}}.gross_sales where {{filters}}",
       "filters": [
         {
@@ -266,7 +266,7 @@
     },
     {
       "name": "Orders by date",
-      "description": "Get the data of overall sales by different payment methods",
+      "description": "Get the total information of orders placed on a given date",
       "query": "select * from {{schema}}.orders_by_date where {{filters}}",
       "filters": [
         {
@@ -295,7 +295,7 @@
     },
     {
       "name": "Customer Segmentation Builder",
-      "description": "Get a snapshot of your active inventory quantity, cost, and total value. Results are grouped by product- and variant-title, archived and draft product variants are ignored.",
+      "description": "Get to know your customers up and close; filter the customer data based on different demographics and/or sales information; observe this data change over time",
       "query": "select * from {{schema}}.customer_segmentation where {{filters}}",
       "filters": [
         {
@@ -358,7 +358,7 @@
       "gated": true
     },
     {
-      "name": "Order export with products",
+      "name": "Orders export with products",
       "description": "Get the information of all the orders along with the list of items that have been placed via these orders",
       "query": "select * from {{schema}}.order_export_with_products where {{filters}}",
       "filters": [
