@@ -1,0 +1,14 @@
+{
+    "definitions":[
+        {
+            "name":"P0",
+            "scopes":["read_all_orders","read_assigned_fulfillment_orders","read_checkouts","read_cart_transforms","read_checkout_branding_settings","read_content","read_customer_merge","read_customers","read_customer_payment_methods","read_discounts","read_draft_orders","read_gift_cards","read_fulfillments","read_gift_cards","read_inventory","read_products","read_locales","read_locations","read_orders","read_users","read_order_edits","read_customer_events","read_privacy_settings","read_validations","read_translations","read_fulfillments","read_store_credit_accounts","read_store_credit_account_transactions","read_shopify_payments_payouts","read_shopify_payments_disputes","read_shipping","read_resource_feedbacks","read_purchase_options"],
+            "gated":true
+        },
+        {
+            "name":"P1",
+            "scopes":["orders","products"],
+            "gated":true
+        }
+    ]
+}

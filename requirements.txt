@@ -21,3 +21,6 @@ opentelemetry-instrumentation-django
 opentelemetry-exporter-otlp
 opentelemetry-instrumentation-logging
 requests
+google.oauth
+google-api-python-client
+python-liquid==1.12.1

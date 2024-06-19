@@ -1,0 +1,11 @@
+{
+    "streams": [
+        {
+            "id_key": "id",
+            "stream": {
+            },
+            "sync_mode": "full_refresh",
+            "destination_sync_mode": "append"
+        }
+    ]
+}

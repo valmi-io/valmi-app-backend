@@ -9,14 +9,16 @@ Author: Rajashekar Varkala @ valmi.io
 import binascii
 import os
 import uuid
-
+import logging
 from django.contrib.auth import authenticate, get_user_model
 from django.db import connection, transaction
+import psycopg2
 from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
 from decouple import config
 from djoser.conf import settings
-
-from .models import Organization, Workspace, ValmiUserIDJitsuApiToken
+logger = logging.getLogger(__name__)
+from .models import Organization, StorageCredentials, Workspace, ValmiUserIDJitsuApiToken
+from .services import warehouse_credentials
 import hashlib
 
 User = get_user_model()
@@ -66,6 +68,22 @@ class CustomerUserCreateSerializer(UserCreateSerializer):
             workspace.save()
             user.save()
             user.organizations.add(org)
+            host_url = os.environ["DATA_WAREHOUSE_URL"]
+            db_password = os.environ["DATA_WAREHOUSE_PASSWORD"]
+            db_username = os.environ["DATA_WAREHOUSE_USERNAME"]
+            conn = psycopg2.connect(host=host_url,port="5432",database="dvdrental",user=db_username,password=db_password)
+            cursor = conn.cursor()
+            logger.debug("logger in serializers")
+
+            create_new_cred = True
+            try:
+                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace.id)
+                create_new_cred = False
+            except Exception:
+                create_new_cred = True
+            if create_new_cred:
+                logger.debug("logger in creating new creds")
+                warehouse_credentials.DefaultWarehouse.create(workspace)
 
             if config("ENABLE_JITSU", default=False, cast=bool):
                 self.patch_jitsu_user(user, workspace)

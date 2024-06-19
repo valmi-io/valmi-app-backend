@@ -11,7 +11,8 @@
                 "AUTH_FACEBOOK_CLIENT_SECRET": {
                     "type": "string",
                     "description": "Facebook client secret",
-                    "title":"Client Secret"
+                    "title":"Client Secret",
+                    "format":"password"
 
                 }
             },
@@ -34,7 +35,8 @@
                 "AUTH_GOOGLE_CLIENT_SECRET": {
                     "type": "string",
                     "description": "Google client secret",
-                    "title":"Client Secret"
+                    "title":"Client Secret",
+                    "format":"password"
                 }
             },
             "required": [
@@ -56,13 +58,15 @@
                 "AUTH_GOOGLE_CLIENT_SECRET": {
                     "type": "string",
                     "description": "Google client secret",
-                    "title":"Client Secret"
+                    "title":"Client Secret",
+                    "format":"password"
 
                 },
                 "AUTH_GOOGLE_DEVELOPER_TOKEN": {
                     "type": "string",
                     "description": "Google developer token",
-                    "title":"Developer Token"
+                    "title":"Developer Token",
+                    "format":"password"
                 }
             },
             "required": [
@@ -84,7 +88,8 @@
                 "AUTH_SLACK_CLIENT_SECRET": {
                     "type": "string",
                     "description": "Slack client secret",
-                    "title":"Client Secret"
+                    "title":"Client Secret",
+                    "format":"password"
 
                 }
             },
@@ -107,13 +112,37 @@
                 "AUTH_HUBSPOT_CLIENT_SECRET": {
                     "type": "string",
                     "description": "Hubspot client secret",
-                    "title":"Client Secret"
+                    "title":"Client Secret",
+                    "format":"password"
 
                 }
             },
             "required": [
                 "AUTH_HUBSPOT_CLIENT_ID",
                 "AUTH_HUBSPOT_CLIENT_SECRET"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "SRC_SHOPIFY": {
+            "type": "object",
+            "properties": {
+                "AUTH_SHOPIFY_CLIENT_ID": {
+                    "type": "string",
+                    "description": "Shopify client id",
+                    "title":"Client Id"
+                },
+                "AUTH_SHOPIFY_CLIENT_SECRET": {
+                    "type": "string",
+                    "description": "Shopify client secret",
+                    "title":"Client Secret",
+                    "format":"password"
+
+                }
+            },
+            "required": [
+                "AUTH_SHOPIFY_CLIENT_ID",
+                "AUTH_SHOPIFY_CLIENT_SECRET"
             ],
             "additionalProperties": false,
             "$schema": "http://json-schema.org/draft-07/schema#"

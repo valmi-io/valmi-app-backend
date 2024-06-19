@@ -51,4 +51,6 @@ echo "from django.contrib.auth import get_user_model;\
 #init the database
 sleep 3
 python /workspace/init_db/connector_init.py
+python /workspace/init_db/prompt_init.py
+python /workspace/init_db/package_init.py
 wait

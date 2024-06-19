@@ -2,66 +2,13 @@
   "definitions": [
     {
       "type": "SRC",
-      "unique_name": "POSTGRES",
-      "docker_image": "valmiio/source-postgres",
+      "unique_name": "SHOPIFY",
+      "docker_image": "valmiio/source-shopify",
       "docker_tag": "latest",
-      "display_name": "Postgres",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "SRC",
-      "unique_name": "REDSHIFT",
-      "docker_image": "valmiio/source-redshift",
-      "docker_tag": "latest",
-      "display_name": "Redshift",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "SRC",
-      "unique_name": "SNOWFLAKE",
-      "docker_image": "valmiio/source-snowflake",
-      "docker_tag": "latest",
-      "display_name": "Snowflake",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "WEBHOOK",
-      "docker_image": "valmiio/destination-webhook",
-      "docker_tag": "latest",
-      "display_name": "Webhook",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "GOOGLE-SHEETS",
-      "docker_image": "valmiio/destination-google-sheets",
-      "docker_tag": "latest",
-      "display_name": "Google Sheets",
+      "display_name": "Shopify",
       "oauth": "True",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "GOOGLE-ADS",
-      "docker_image": "valmiio/destination-google-ads",
-      "docker_tag": "latest",
-      "display_name": "Google Ads",
-      "oauth": "True",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "CUSTOMER-IO",
-      "docker_image": "valmiio/destination-customer-io",
-      "docker_tag": "latest",
-      "display_name": "Customer.io",
-      "oauth": "False",
-      "oauth_keys":"private"
+      "oauth_keys":"private",
+      "mode":["etl"]
     },
     {
       "type": "DEST",
@@ -70,52 +17,38 @@
       "docker_tag": "latest",
       "display_name": "Facebook Ads",
       "oauth": "True",
-      "oauth_keys":"private"
+      "oauth_keys":"private",
+      "mode":["etl"]
     },
     {
       "type": "DEST",
-      "unique_name": "SLACK",
-      "docker_image": "valmiio/destination-slack",
+      "unique_name": "POSTGRES-DEST",
+      "docker_image": "valmiio/destination-postgres",
+      "docker_tag": "dev",
+      "display_name": "Dest Postgres",
+      "oauth": "False",
+      "oauth_keys":"private",
+      "mode":["etl"]
+    },
+    {
+      "type": "SRC",
+      "unique_name": "POSTGRES",
+      "docker_image": "valmiio/source-postgres",
       "docker_tag": "latest",
-      "display_name": "Slack",
+      "display_name": "Postgres",
+      "oauth": "False",
+      "oauth_keys":"private",
+      "mode":["retl"]
+    },
+    {
+      "type": "DEST",
+      "unique_name": "GOOGLE-SHEETS",
+      "docker_image": "valmiio/destination-google-sheets",
+      "docker_tag": "latest",
+      "display_name": "Google Sheets",
       "oauth": "True",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "HUBSPOT",
-      "docker_image": "valmiio/destination-hubspot",
-      "docker_tag": "latest",
-      "display_name": "Hubspot",
-      "oauth": "True",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "Stripe",
-      "docker_image": "valmiio/destination-stripe",
-      "docker_tag": "latest",
-      "display_name": "Stripe",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "Gong",
-      "docker_image": "valmiio/destination-gong",
-      "docker_tag": "latest",
-      "display_name": "Gong",
-      "oauth": "False",
-      "oauth_keys":"private"
-    },
-    {
-      "type": "DEST",
-      "unique_name": "ANDROID-PUSH-NOTIFICATIONS",
-      "docker_image": "valmiio/destination-android-push-notifications",
-      "docker_tag": "latest",
-      "display_name": "Android Push Notifications",
-      "oauth": "False",
-      "oauth_keys":"private"
+      "oauth_keys":"private",
+      "mode":["retl"]
     }
   ]
 }

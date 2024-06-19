@@ -7,14 +7,12 @@ Author: Rajashekar Varkala @ valmi.io
 """
 
 import uuid
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-
 from enum import Enum
 
+from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -32,6 +30,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
     organizations = models.ManyToManyField(to="Organization", related_name="users", blank=True)
+    meta = models.JSONField(default=dict)
 
     def __str__(self):
         return f"{self.email} - {self.first_name} {self.last_name} - {self.organizations.all()}"
@@ -40,7 +39,6 @@ class User(AbstractUser):
 User._meta.get_field("email")._unique = True
 User._meta.get_field("email").blank = False
 User._meta.get_field("email").null = False
-User = get_user_model()
 
 
 class Organization(models.Model):
@@ -81,6 +79,12 @@ class Credential(models.Model):
 
     def __str__(self):
         return f"{self.connector}: {self.connector_config} : {self.workspace}: {self.id} : {self.name}"
+
+
+class StorageCredentials(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="storage_credentials")
+    connector_config = models.JSONField(blank=False, null=False)
 
 
 class Source(models.Model):
@@ -128,6 +132,37 @@ class Connector(models.Model):
     status = models.CharField(max_length=256, null=False, blank=False, default="active")
     oauth = models.BooleanField(default=False)
     oauth_keys = models.CharField(max_length=64, choices=OAuthKeys.choices(), default=OAuthKeys.PRIVATE.value)
+    mode = ArrayField(models.CharField(max_length=64), blank=True, default=list)
+
+
+class Package(models.Model):
+    name = models.CharField(primary_key=True, max_length=256, null=False, blank=False)
+    scopes = ArrayField(models.CharField(max_length=64), blank=True, default=list)
+    gated = models.BooleanField(null=False, blank=False, default=True)
+
+
+class Prompt(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False, unique=True)
+    description = models.CharField(max_length=1000, null=False, blank=False, default="aaaaaa")
+    type = models.CharField(null=False, blank=False, max_length=256, default="SRC_SHOPIFY")
+    # spec = models.JSONField(blank=False, null=True)
+    filters = models.JSONField(default=dict)
+    operators = models.JSONField(default={
+        'string': ["=", "!=", "IN", "NOT IN"],
+        'integer': ["=", ">", "<", ">=", "<=", "!="]
+    })
+    query = models.CharField(max_length=1000, null=False, blank=False, default="query")
+    package_id = models.CharField(null=False, blank=False, max_length=20, default="P0")
+    gated = models.BooleanField(null=False, blank=False, default=True)
+    time_grain_enabled = models.BooleanField(null=False, blank=False, default=False)
+    time_window_enabled = models.BooleanField(null=False, blank=False, default=True)
+
+
+class SourceAccessInfo(models.Model):
+    source = models.ForeignKey(to=Source, on_delete=models.CASCADE, related_name="source_access_info", primary_key=True)
+    storage_credentials = models.ForeignKey(
+        to=StorageCredentials, on_delete=models.CASCADE, related_name="source_access_info")
 
 
 class Account(models.Model):
@@ -137,6 +172,19 @@ class Account(models.Model):
     profile = models.TextField(blank=False, null=True)
     meta_data = models.JSONField(blank=False, null=True)
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="accounts")
+
+
+class Explore(models.Model):
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    name = models.CharField(max_length=256, null=False, blank=False, default="aaaaaa")
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="explore_workspace")
+    prompt = models.ForeignKey(to=Prompt, on_delete=models.CASCADE, related_name="explore_prompt")
+    sync = models.ForeignKey(to=Sync, on_delete=models.CASCADE, related_name="explore_sync")
+    ready = models.BooleanField(null=False, blank=False, default=False)
+    account = models.ForeignKey(to=Account, on_delete=models.CASCADE, related_name="explore_account")
+    spreadsheet_url = models.URLField(null=True, blank=True, default="https://example.com")
 
 
 class ValmiUserIDJitsuApiToken(models.Model):

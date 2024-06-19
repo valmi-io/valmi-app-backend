@@ -6,25 +6,20 @@ Author: Rajashekar Varkala @ valmi.io
 
 """
 
+import json
 import logging
 from typing import Dict, List
 
 from decouple import Csv, config
-from ninja import Router
-
-from core.schemas import ConnectorSchema, DetailSchema, SyncSchema
-
-from .models import (
-    Connector,
-    Sync,
-    OAuthApiKeys
-)
-import json
-
-from opentelemetry.metrics import get_meter_provider
 # from opentelemetry import trace
+from ninja import Router
+from opentelemetry.metrics import get_meter_provider
 
+from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
+                                  PromptSchema, SyncSchema)
 from valmi_app_backend.utils import replace_values_in_json
+
+from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync
 
 router = Router()
 
@@ -95,6 +90,45 @@ def create_connector(request, payload: ConnectorSchema):
         logger.exception("Connector error")
         return (400, {"detail": "The specific connector cannot be created."})
 
+@router.post("/prompts/create", response={200: PromptSchema, 400: DetailSchema})
+def create_connector(request, payload: PromptSchema):
+    data = payload.dict()
+    logger.debug(data)
+    try:
+        logger.debug("creating prompt")
+        prompt = Prompt.objects.create(**data)
+        return (200, prompt)
+    except Exception as ex:
+        logger.debug(f"prompt not created. Attempting to update.")
+        # Prompt.objects.filter(name=data['name']) will only return one item as name is unique for every prompt
+        data.pop('id')
+        logger.debug(f"updating with {data}")
+        rows_updated = Prompt.objects.filter(name=data['name']).update(**data)
+        if rows_updated == 0:
+            logger.debug(f"nothing to update")
+        elif rows_updated == 1:
+            logger.debug(f"prompt updated")
+        else:
+            msg = f"something went wrong while creating/updating prompt. message: {ex}"
+            logger.debug(msg)
+            return (400, {"detail": msg})
+        return (200, data)
+    
+
+
+@router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
+def create_connector(request, payload: PackageSchema):
+    # check for admin permissions
+    logger.info("logging package schema")
+    data = payload.dict()
+    logger.debug(data)
+    try:
+        logger.debug("creating package")
+        package = Package.objects.create(**data)
+        return (200, package)
+    except Exception:
+        logger.exception("Package error")
+        return (400, {"detail": "The specific package cannot be created."})
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors(request):
