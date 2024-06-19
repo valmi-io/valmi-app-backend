@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import Dict, Optional
+
 from ninja import Field, ModelSchema, Schema
+
 from core.models import Explore
-from core.schemas.prompt import Filter, TimeWindow
-from core.schemas.schemas import AccountSchema, CamelSchemaConfig, PromptSchema, WorkspaceSchema
+from core.schemas.prompt import Filter, TimeGrain, TimeWindow
+from core.schemas.schemas import (AccountSchema, CamelSchemaConfig,
+                                  PromptSchema, WorkspaceSchema)
 
 
 class ExploreSchemaOut(Schema):
@@ -43,9 +46,13 @@ class ExploreSchemaIn(Schema):
     schema_id: str
     time_window: TimeWindow
     filters: list[Filter]
+    time_grain: Optional[TimeGrain] = None
 
 
 class LatestSyncInfo(Schema):
+    found: bool
+    status: Optional[str] = None
+    created_at: Optional[datetime] = None
     found: bool
     status: Optional[str] = None
     created_at: Optional[datetime] = None

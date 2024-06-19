@@ -16,7 +16,7 @@ from core.models import (Credential, Destination, Explore, OAuthApiKeys,
                          Prompt, Source, StorageCredentials, Sync, Workspace)
 from core.routes.workspace_api import create_new_run
 from core.schemas.explore import LatestSyncInfo
-from core.schemas.prompt import Filter, TableInfo, TimeWindow
+from core.schemas.prompt import Filter, TableInfo, TimeGrain, TimeWindow
 from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
@@ -77,13 +77,13 @@ class ExploreService:
             raise Exception("spreadhseet creation failed")
 
     @staticmethod
-    def create_source(explore_table_name: str, prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], workspace_id: str, account: object) -> object:
+    def create_source(explore_table_name: str, prompt_id: str, schema_id: str, time_window: TimeWindow, filters: list[Filter], time_grain: TimeGrain, workspace_id: str, account: object) -> object:
         try:
             # creating source credentail
             credential = {"id": uuid.uuid4()}
             credential["workspace"] = Workspace.objects.get(id=workspace_id)
             credential["connector_id"] = "SRC_POSTGRES"
-            credential["name"] = "VALMI_ENGINE"
+            credential["name"] = "VALMI_DATA_STORE"
             credential["account"] = account
             credential["status"] = "active"
             # building query
@@ -95,7 +95,7 @@ class ExploreService:
                 tableSchema=namespace,
                 query=prompt.query
             )
-            query = PromptService().build(table_info, time_window, filters)
+            query = PromptService().build(table_info, time_window, filters, time_grain)
             # creating source credentials
             connector_config = {
                 "ssl": storage_credential.connector_config["ssl"],
@@ -110,7 +110,7 @@ class ExploreService:
             credential["connector_config"] = connector_config
             cred = Credential.objects.create(**credential)
             source = {
-                "name": "VALMI_ENGINE",
+                "name": "VALMI_DATA_STORE",
                 "id": uuid.uuid4()
             }
             # creating source object
@@ -129,10 +129,11 @@ class ExploreService:
             json_file_path = join(dirname(__file__), 'source_catalog.json')
             with open(json_file_path, 'r') as openfile:
                 source_catalog = json.load(openfile)
+            database = connector_config["database"]
             source_catalog["streams"][0]["stream"] = response_json["catalog"]["streams"][0]
             source_catalog["streams"][0]["stream"][
                 "name"
-            ] = explore_table_name
+            ] = f"{database}.{namespace}.{explore_table_name}"
             source["catalog"] = source_catalog
             source["status"] = "active"
             logger.debug(source_catalog)
@@ -190,18 +191,18 @@ class ExploreService:
             raise Exception("unable to create destination")
 
     @staticmethod
-    def create_sync(source: object, destination: object, workspace_id: str) -> object:
+    def create_sync(name: str, source: object, destination: object, workspace_id: str) -> object:
         try:
             logger.debug("creating sync in service")
             logger.debug(source.id)
             sync_config = {
-                "name": "Warehouse to sheets",
+                "name": name,
                 "id": uuid.uuid4(),
                 "status": "active",
                 "ui_state": {}
 
             }
-            schedule = {"run_interval": 3600000}
+            schedule = {"run_interval": 86400000}
             sync_config["schedule"] = schedule
             sync_config["source"] = source
             sync_config["destination"] = destination

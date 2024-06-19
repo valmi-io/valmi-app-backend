@@ -1,17 +1,17 @@
 import asyncio
 import logging
-from typing import List
 import uuid
+from typing import List
+
 from decouple import config
-from core.models import Account, Explore, Prompt, Workspace
-from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
-from core.schemas.explore import ExploreSchema, ExploreSchemaIn, ExploreSchemaOut
 from ninja import Router
 
 from core.models import Account, Explore, Prompt, Workspace
+from core.schemas.explore import (ExploreSchema, ExploreSchemaIn,
+                                  ExploreSchemaOut)
+from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
 from core.services.explore import ExploreService
 from core.services.prompts import PromptService
-
 logger = logging.getLogger(__name__)
 
 router = Router()
@@ -32,6 +32,7 @@ def get_explores(request, workspace_id):
             explore.sync_id = str(explore.sync.id)
             latest_sync_info = ExploreService.get_latest_sync_info(explore.sync.id)
             logger.debug(latest_sync_info)
+            # as we are using full_refresh as true in explore creation enable only if previous sync got succeded
             # checking whether run is created for explore or not
             if latest_sync_info.found == False:
                 explore.enabled = False
@@ -46,6 +47,8 @@ def get_explores(request, workspace_id):
             else:
                 explore.last_sync_result = latest_sync_info.status.upper()
                 explore.sync_state = 'IDLE'
+                if latest_sync_info.status == 'success':
+                    explore.last_sync_succeeded_at = latest_sync_info.created_at
             explore.last_sync_created_at = latest_sync_info.created_at
             # adding last successful sync info
             last_successful_sync_info = PromptService.is_sync_finished(explore.sync.id)
@@ -89,21 +92,24 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
             account = Account.objects.create(**account_info)
             data["account"] = account
         # create source
+
         source = ExploreService.create_source(
-            table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], workspace_id, account)
+            table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], data["time_grain"], workspace_id, account)
        # create destination
         spreadsheet_title = f"valmi.io {prompt.name} sheet"
         destination_data = ExploreService.create_destination(
             spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
         spreadsheet_url = destination_data[0]
         destination = destination_data[1]
-        # create sync
-        sync = ExploreService.create_sync(source, destination, workspace_id)
+        # creating the sync
+        sync = ExploreService.create_sync(data["name"], source, destination, workspace_id)
+        logger.debug("After sync")
         # creating explore
         del data["schema_id"]
         del data["filters"]
         del data["time_window"]
         del data["sheet_url"]
+        del data["time_grain"]
         # data["name"] = f"valmiio {prompt.name}"
         data["sync"] = sync
         data["ready"] = False
@@ -127,4 +133,5 @@ def get_explore_by_id(request, workspace_id, explore_id):
         return Explore.objects.get(id=explore_id)
     except Exception:
         logger.exception("explore listing error")
+        return (500, {"detail": "The  explore cannot be fetched."})
         return (500, {"detail": "The  explore cannot be fetched."})

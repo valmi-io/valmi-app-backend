@@ -1,7 +1,7 @@
 import datetime
-from decimal import Decimal
 import json
 import logging
+from decimal import Decimal
 from typing import List
 
 import psycopg2
@@ -10,7 +10,7 @@ from pydantic import Json
 
 from core.models import (Credential, Prompt, Source, SourceAccessInfo,
                          StorageCredentials, Sync)
-from core.schemas.prompt import PromptPreviewSchemaIn, TableInfo
+from core.schemas.prompt import PromptPreviewSchemaIn, TableInfo, TimeGrain
 from core.schemas.schemas import (DetailSchema, PromptByIdSchema,
                                   PromptSchemaOut)
 from core.services.prompts import PromptService
@@ -52,19 +52,23 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
             if source_access_info := info.source_access_info.first():
                 storage_id = source_access_info.storage_credentials.id
                 if storage_id not in schemas:
+                    logger.debug(info.credential.name)
                     schema = {
                         "id": str(storage_id),
                         "name": source_access_info.storage_credentials.connector_config["schema"],
                         "sources": [],
                     }
                     schemas[storage_id] = schema
+                    formatted_output = info.credential.created_at.strftime('%B %d %Y %H:%M')
                 schemas[storage_id]["sources"].append({
-                    "name": f"{info.credential.name}${info.credential.created_at}",
+                    "name": f"{info.credential.name}@{formatted_output}",
                     "id": str(info.id),
                 })
         # Convert schemas dictionary to a list (optional)
         final_schemas = list(schemas.values())
         prompt.schemas = final_schemas
+        if prompt.time_grain_enabled:
+            prompt.time_grain = TimeGrain.members()
         logger.debug(prompt)
         return prompt
     except Exception:
@@ -75,6 +79,8 @@ def get_prompt_by_id(request, workspace_id, prompt_id):
 def custom_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
+    if isinstance(obj, datetime.date):
+        return obj.isoformat()
     if isinstance(obj, Decimal):
         return str(obj)
 
@@ -83,7 +89,7 @@ def custom_serializer(obj):
 def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSchemaIn):
     try:
         prompt = Prompt.objects.get(id=prompt_id)
-        
+
         # checking wether prompt is enabled or not
         if not PromptService.is_enabled(workspace_id, prompt):
             detail_message = f"The prompt is not enabled. Please add '{prompt.type}' connector"
@@ -93,8 +99,8 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
         sync_id = sync.id
         # checking wether sync has finished or not(from shopify to DB)
         latest_sync_info = PromptService.is_sync_finished(sync_id)
-        # if latest_sync_info.found == False or latest_sync_info.status == 'running':
-        #     return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
+        if latest_sync_info.found == False:
+            return 400, {"detail": "The sync is not finished. Please wait for the sync to finish."}
         storage_credentials = StorageCredentials.objects.get(id=prompt_req.schema_id)
         schema_name = storage_credentials.connector_config["schema"]
         table_info = TableInfo(
@@ -102,7 +108,7 @@ def preview_data(request, workspace_id, prompt_id, prompt_req: PromptPreviewSche
             query=prompt.query
         )
 
-        query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters)
+        query = PromptService().build(table_info, prompt_req.time_window, prompt_req.filters, prompt_req.time_grain)
         query = query + " limit 10"
         logger.debug(query)
         host = storage_credentials.connector_config.get('host')

@@ -309,7 +309,7 @@ def create_sync(request, workspace_id, payload: SyncSchemaIn):
         del data["destination_id"]
         schedule = {}
         if len(data["schedule"]) == 0:
-            schedule["run_interval"] = 3600000
+            schedule["run_interval"] = 86400000
             data["schedule"] = schedule
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         data["id"] = uuid.uuid4()
@@ -338,12 +338,12 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
             stream["destination_sync_mode"] = "append_dedup"
         # creating source credential
         source_credential_payload = CredentialSchemaIn(
-            name="shopify", account=data["account"], connector_type=data["source"]["type"],
+            name=data["name"], account=data["account"], connector_type=data["source"]["type"],
             connector_config=data["source"]["config"])
         source_credential = create_credential(request, workspace_id, source_credential_payload)
         # creating source
         source_payload = SourceSchemaIn(
-            name="shopify", credential_id=source_credential.id, catalog=catalog)
+            name=data["name"], credential_id=source_credential.id, catalog=catalog)
         source = create_source(request, workspace_id, source_payload)
         workspace = Workspace.objects.get(id=workspace_id)
         # creating default warehouse
@@ -352,17 +352,17 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         SourceAccessInfo.objects.create(**source_access_info)
         # creating destination credential
         destination_credential_payload = CredentialSchemaIn(
-            name="VALMI_ENGINE", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
+            name="VALMI_DATA_STORE", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
         destination_credential = create_credential(request, workspace_id, destination_credential_payload)
         # creating destination
         destination_payload = DestinationSchemaIn(
-            name="VALMI_ENGINE", credential_id=destination_credential.id, catalog=catalog)
+            name="VALMI_DATA_STORE", credential_id=destination_credential.id, catalog=catalog)
         destination = create_destination(request, workspace_id, destination_payload)
         data["source"] = Source.objects.get(id=source.id)
         data["destination"] = Destination.objects.get(id=destination.id)
         del data["account"]
         if data["schedule"] is None:
-            schedule = {"run_interval": 3600000}
+            schedule = {"run_interval": 86400000}
             data["schedule"] = schedule
         data["workspace"] = Workspace.objects.get(id=workspace_id)
         if data["ui_state"] is None:

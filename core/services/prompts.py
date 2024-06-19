@@ -1,7 +1,10 @@
 import json
 import logging
+from pathlib import Path
+from liquid import Template as LiquidTemplate
 import requests
 from decouple import config
+from liquid import Environment, FileSystemLoader, Mode, StrictUndefined
 
 from core.models import Credential
 from core.schemas.prompt import (Filter, LastSuccessfulSyncInfo, TableInfo,
@@ -17,19 +20,58 @@ class PromptService():
         return 'prompts.liquid'
 
     @staticmethod
-    def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter]) -> str:
-        where_clause_conditions = " "
-        for i, filter in enumerate(filters):
-            if filter.column_type in ('integer', 'float'):
-                where_clause_conditions += f" {filter.column} {filter.operator} {filter.value} "
+    def build(tableInfo: TableInfo, timeWindow: TimeWindow, filters: list[Filter], time_grain: str = 'day') -> str:
+        try:
+            if isinstance(timeWindow, TimeWindow):
+                timeWindowDict = timeWindow.dict()
             else:
-                where_clause_conditions += f" {filter.column} {filter.operator} '{filter.value}' "
-            if i != len(filters)-1:
-                where_clause_conditions += " and "
-        query = tableInfo.query.replace("{{schema}}", tableInfo.tableSchema).replace("{{filters}}", where_clause_conditions)
-        logger.debug(f"prompt query built: {query}")
-        return query
-
+                timeWindowDict = timeWindow
+            if isinstance(filters, Filter):
+                filterList = [filter.__dict__ for filter in filters]
+            else:
+                filterList = filters
+            file_name = PromptService.getTemplateFile()
+            template_parent_path = Path(__file__).parent.absolute()
+            env = Environment(
+                tolerance=Mode.STRICT,
+                undefined=StrictUndefined,
+                loader=FileSystemLoader(
+                    f"{str(template_parent_path)}/prompt_templates"
+                ),
+            )
+            # HACK : This neeeds to be done nicely
+            logger.debug(timeWindowDict)
+            if 'label' not in timeWindowDict or timeWindowDict['label'] is None:
+                logger.debug("in none")
+                timeWindowDict['label'] = 'notimeWindow'
+                # timeWindow.range = TimeWindowRange(start="empty", end="empty")
+            logger.debug(timeWindowDict)
+            template = env.get_template(file_name)
+            filters = list(filters)
+            logger.debug('*' * 80)
+            logger.debug(type(filters))
+            # if isinstance(filters, dict):
+            #     pass
+            # else:
+            #     filterList = [filter.dict() for filter in filters]
+            # HACK: do nicely
+            try:
+                filterList = [filter.dict() for filter in filters]
+            except:
+                filterList = filters
+            rendered_query = template.render(filters=filterList, timeWindow=timeWindowDict)
+            liquid_template = LiquidTemplate(tableInfo.query)
+            context = {
+                "schema": tableInfo.tableSchema,
+                "filters": rendered_query,
+                "timegrain": time_grain
+            }
+            query = liquid_template.render(context)
+            logger.debug(query)
+            return query
+        except Exception as e:
+            logger.exception(e)
+            raise e
 
     @staticmethod
     def is_enabled(workspace_id: str, prompt: object) -> bool:
@@ -43,6 +85,7 @@ class PromptService():
     def is_sync_finished(sync_id: str) -> LastSuccessfulSyncInfo:
         try:
             response = requests.get(f"{ACTIVATION_URL}/syncs/{sync_id}/last_successful_sync")
+            logger.debug(response)
             json_string = response.content.decode('utf-8')
             logger.debug(json_string)
             last_success_sync_dict = json.loads(json_string)
