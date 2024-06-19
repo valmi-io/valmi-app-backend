@@ -142,7 +142,7 @@ api = NinjaAPI(
     urls_namespace="public_api",
 )
 
-api.add_router("/auth/social", social_api_router)
+api.add_router("/v1/auth/social", social_api_router)
 
 api.add_router("v1/", router, auth=[AuthBearer(), BasicAuth()])
 router.add_router("superuser/", superuser_api_router, auth=[BasicAuth()])
