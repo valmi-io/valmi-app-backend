@@ -39,6 +39,13 @@ class PromptService():
                     f"{str(template_parent_path)}/prompt_templates"
                 ),
             )
+            # HACK : This neeeds to be done nicely
+            logger.debug(timeWindowDict)
+            if 'label' not in timeWindowDict or timeWindowDict['label'] is None:
+                logger.debug("in none")
+                timeWindowDict['label'] = 'notimeWindow'
+                # timeWindow.range = TimeWindowRange(start="empty", end="empty")
+            logger.debug(timeWindowDict)
             template = env.get_template(file_name)
             filters = list(filters)
             filterList = [filter.dict() for filter in filters]
