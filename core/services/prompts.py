@@ -54,6 +54,11 @@ class PromptService():
             #     pass
             # else:
             #     filterList = [filter.dict() for filter in filters]
+            # HACK: do nicely
+            try:
+                filterList = [filter.dict() for filter in filters]
+            except:
+                filterList = filters
             rendered_query = template.render(filters=filterList, timeWindow=timeWindowDict)
             liquid_template = LiquidTemplate(tableInfo.query)
             context = {
