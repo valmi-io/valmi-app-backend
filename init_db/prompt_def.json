@@ -248,7 +248,7 @@
     {
       "name": "Sales by payment method",
       "description": "Get the data of overall sales by different payment methods",
-      "query": "select Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from {{schema}}.sales_by_payment_method where {{filters}} group by Payment_Method",
+      "query": "select md5(row(Payment_Method)::text) as id,Payment_Method, count(*) as Total_Orders, round(sum(total_price)) as Total_Sales from {{schema}}.sales_by_payment_method where {{filters}} group by Payment_Method",
       "filters": [
         {
           "display_column": "payment_method",
