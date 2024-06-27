@@ -11,8 +11,17 @@ from ninja import Router, Schema
 from pydantic import Json
 from rest_framework.authtoken.models import Token
 
-from core.models import OAuthApiKeys, Organization, User, Workspace
+from core.models import OAuthApiKeys, StorageCredentials, Organization, User, Workspace, ValmiUserIDJitsuApiToken
 from core.schemas.schemas import DetailSchema, SocialAuthLoginSchema
+from core.services import warehouse_credentials
+
+from django.db import connection, transaction
+
+import hashlib
+
+
+from decouple import config
+
 
 router = Router()
 
@@ -28,6 +37,28 @@ class AuthToken(Schema):
 
 def generate_key():
     return binascii.hexlify(os.urandom(20)).decode()
+
+
+def patch_jitsu_user(user, workspace):
+    jitsu_defaultSeed = "dea42a58-acf4-45af-85bb-e77e94bd5025"
+    with connection.cursor() as cursor:
+        with transaction.atomic():
+            cursor.execute('INSERT INTO "jitsu"."Workspace" ( id, name ) VALUES ( %s, %s ) ',
+                           [str(workspace.id), workspace.name])
+            cursor.execute('INSERT INTO "jitsu"."UserProfile" (id, name, email, "loginProvider", "externalId") VALUES (%s, %s, %s, %s, %s) ',
+                           [str(user.id), user.username, user.email, "valmi", str(user.id)])
+            cursor.execute('INSERT INTO "jitsu"."WorkspaceAccess" ("workspaceId", "userId") VALUES ( %s, %s) ',
+                           [str(workspace.id), str(user.id)])
+            apiKeyId = generate_key()
+            apiKeySecret = generate_key()
+            randomSeed = generate_key()
+            hash = randomSeed + "." + \
+                hashlib.sha512((apiKeySecret + randomSeed + jitsu_defaultSeed).encode('utf-8')).hexdigest()
+            cursor.execute('INSERT INTO "jitsu"."UserApiToken" (id, hint, hash, "userId") VALUES ( %s, %s, %s, %s)',
+                           [apiKeyId, apiKeySecret[0:3] + '*' + apiKeySecret[-3:], hash, str(user.id)])
+
+            # store jitsu apitoken for valmi user
+            ValmiUserIDJitsuApiToken.objects.create(user=user, api_token=apiKeyId + ":" + apiKeySecret)
 
 
 # TODO response for bad request, 400
@@ -57,6 +88,7 @@ def login(request, payload: SocialAuthLoginSchema):
         workspace.save()
         user.save()
         user.organizations.add(org)
+
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     try:
@@ -97,6 +129,22 @@ def login(request, payload: SocialAuthLoginSchema):
                 }
             )
             oauth.save()
+
+            # create jitsu user
+
+            create_new_cred = True
+            try:
+                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace.id)
+                create_new_cred = False
+            except Exception:
+                create_new_cred = True
+            if create_new_cred:
+                logger.debug("logger in creating new creds")
+                warehouse_credentials.DefaultWarehouse.create(workspace)
+
+            if config("ENABLE_JITSU", default=False, cast=bool):
+                patch_jitsu_user(user, workspace)
+
         result = urlparse(os.environ["DATABASE_URL"])
         username = result.username
         password = result.password
