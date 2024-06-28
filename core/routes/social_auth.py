@@ -95,6 +95,7 @@ def login(request, payload: SocialAuthLoginSchema):
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     try:
+        user = User.objects.get(id=user.id)
         result = urlparse(os.environ["DATABASE_URL"])
         username = result.username
         password = result.password
