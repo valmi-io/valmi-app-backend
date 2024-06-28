@@ -11,9 +11,8 @@ from ninja import Router, Schema
 from pydantic import Json
 from rest_framework.authtoken.models import Token
 
-from core.models import OAuthApiKeys, StorageCredentials, Organization, User, Workspace, ValmiUserIDJitsuApiToken
+from core.models import OAuthApiKeys, Organization, User, Workspace, ValmiUserIDJitsuApiToken
 from core.schemas.schemas import DetailSchema, SocialAuthLoginSchema
-from core.services import warehouse_credentials
 
 from django.db import connection, transaction
 
@@ -75,6 +74,8 @@ def login(request, payload: SocialAuthLoginSchema):
 
     try:
         user = User.objects.get(email=email)
+        # this function creates oauth token if not exists for an existing user else updates , creates new jitsu token if not exists
+        manage_oauth_and_jitsu_tokens(user, account)
     except User.DoesNotExist:
         user = User()
         user.email = user_data["email"]
@@ -88,63 +89,12 @@ def login(request, payload: SocialAuthLoginSchema):
         workspace.save()
         user.save()
         user.organizations.add(org)
+        if config("ENABLE_JITSU", default=False, cast=bool):
+            patch_jitsu_user(user, workspace)
 
     token, _ = Token.objects.get_or_create(user=user)
     user_id = user.id
     try:
-        user = User.objects.get(id=user.id)
-        result = urlparse(os.environ["DATABASE_URL"])
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        port = result.port
-        conn = psycopg2.connect(user=username, password=password, host=hostname, port=port, database=database)
-        cursor = conn.cursor()
-        query = ("select organization_id from core_user_organizations where user_id = {user_id}").format(
-            user_id=user.id)
-        cursor.execute(query)
-        result = cursor.fetchone()
-        logger.debug(result)
-        conn.close()
-        workspace = Workspace.objects.get(organization_id=result)
-        logger.debug(workspace.id)
-        oauth = OAuthApiKeys.objects.filter(workspace=workspace.id, type='GOOGLE_LOGIN').first()
-        if oauth:
-            oauth.oauth_config = {
-                "access_token": account["access_token"],
-                "refresh_token": account["refresh_token"],
-                "expires_at": account["expires_at"]
-            }
-            oauth.save()
-        else:
-            oauth = OAuthApiKeys(
-                workspace=workspace,
-                type='GOOGLE_LOGIN',
-                id=uuid.uuid4(),
-                oauth_config={
-                    "access_token": account["access_token"],
-                    "refresh_token": account["refresh_token"],
-                    "expires_at": account["expires_at"]
-                }
-            )
-            oauth.save()
-
-            # create jitsu user
-
-            create_new_cred = True
-            try:
-                do_id_exists = StorageCredentials.objects.get(workspace_id=workspace.id)
-                create_new_cred = False
-            except Exception:
-                create_new_cred = True
-            if create_new_cred:
-                logger.debug("logger in creating new creds")
-                warehouse_credentials.DefaultWarehouse.create(workspace)
-
-            if config("ENABLE_JITSU", default=False, cast=bool):
-                patch_jitsu_user(user, workspace)
-
         result = urlparse(os.environ["DATABASE_URL"])
         username = result.username
         password = result.password
@@ -212,3 +162,46 @@ def login(request, payload: SocialAuthLoginSchema):
         return json.dumps(response)
     except Exception as e:
         return (400, {"detail": e.message})
+
+
+def manage_oauth_and_jitsu_tokens(user, account):
+    result = urlparse(os.environ["DATABASE_URL"])
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
+    conn = psycopg2.connect(user=username, password=password, host=hostname, port=port, database=database)
+    cursor = conn.cursor()
+    query = ("select organization_id from core_user_organizations where user_id = {user_id}").format(
+        user_id=user.id)
+    cursor.execute(query)
+    result = cursor.fetchone()
+    logger.debug(result)
+    conn.close()
+    workspace = Workspace.objects.get(organization_id=result)
+    logger.debug(workspace.id)
+    oauth = OAuthApiKeys.objects.filter(workspace=workspace.id, type='GOOGLE_LOGIN').first()
+    if oauth:
+        oauth.oauth_config = {
+            "access_token": account["access_token"],
+            "refresh_token": account["refresh_token"],
+            "expires_at": account["expires_at"]
+        }
+        oauth.save()
+    else:
+        oauth = OAuthApiKeys(
+            workspace=workspace,
+            type='GOOGLE_LOGIN',
+            id=uuid.uuid4(),
+            oauth_config={
+                "access_token": account["access_token"],
+                "refresh_token": account["refresh_token"],
+                "expires_at": account["expires_at"]
+            }
+        )
+        oauth.save()
+    jitsu_token_exists = ValmiUserIDJitsuApiToken.objects.filter(user_id=user.id)
+    if not jitsu_token_exists.exists():
+        if config("ENABLE_JITSU", default=False, cast=bool):
+            patch_jitsu_user(user, workspace)
