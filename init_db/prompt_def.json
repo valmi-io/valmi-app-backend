@@ -294,6 +294,36 @@
       "gated": true
     },
     {
+      "name": "Traffic Sources",
+      "description": "Get the total information of orders placed on a given date",
+      "query": "select * from {{schema}}.traffic_sources",
+      "filters": [
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_sales",
+          "db_column": "total_sales",
+          "column_type": "integer"
+        },
+        {
+          "display_column": "total_orders",
+          "db_column": "total_orders",
+          "column_type": "integer"
+        }
+      ],
+      "operators": {
+        "string": ["=", "!=", "IN", "NOT IN"],
+        "integer": ["=", ">", "<", ">=", "<=", "!="]
+      },
+      "type": "SRC_GOOGLE_ANALYTICS",
+      "package_id": "P0",
+      "gated": true,
+      "time_window_enabled":false
+    },
+    {
       "name": "Customer Segmentation Builder",
       "description": "Get to know your customers up and close; filter the customer data based on different demographics and/or sales information; observe this data change over time",
       "query": "select * from {{schema}}.customer_segmentation where {{filters}}",
