@@ -136,6 +136,14 @@ class ExploreService:
             ] = f"{database}.{namespace}.{explore_table_name}"
             source["catalog"] = source_catalog
             source["status"] = "active"
+            # for Google analytics to work need to replace id with uuid in source catalog
+            streams = source_catalog.get('streams', [])
+            for stream in streams:
+                stream_name = stream.get('stream', {}).get('name')
+                properties = stream.get('stream', {}).get('json_schema', {}).get('properties', {})
+                if 'id' not in properties:
+                    stream['id_key'] = "uuid"
+                    logger.debug(f"The stream '{stream_name}' contains 'id' field.")
             logger.debug(source_catalog)
             result = Source.objects.create(**source)
             return result

@@ -333,7 +333,10 @@ def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
         data = payload.dict()
         catalog = data["source"]["catalog"]
         for stream in catalog["streams"]:
-            primary_key = [["id"]]
+            if 'source_defined_primary_key' in stream['stream']:
+                primary_key = stream['stream']['source_defined_primary_key']
+            else:
+                primary_key = [["uuid"]]
             stream["primary_key"] = primary_key
             stream["destination_sync_mode"] = "append_dedup"
         # creating source credential
