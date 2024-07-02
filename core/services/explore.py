@@ -21,7 +21,7 @@ from core.services.prompts import PromptService
 
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
-SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 
 class ExploreService:
