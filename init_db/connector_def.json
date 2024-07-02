@@ -7,8 +7,8 @@
       "docker_tag": "latest",
       "display_name": "Shopify",
       "oauth": "True",
-      "oauth_keys":"private",
-      "mode":["etl"]
+      "oauth_keys": "private",
+      "mode": ["etl"]
     },
     {
       "type": "DEST",
@@ -17,8 +17,8 @@
       "docker_tag": "latest",
       "display_name": "Facebook Ads",
       "oauth": "True",
-      "oauth_keys":"private",
-      "mode":["etl"]
+      "oauth_keys": "private",
+      "mode": ["etl"]
     },
     {
       "type": "DEST",
@@ -27,8 +27,8 @@
       "docker_tag": "dev",
       "display_name": "Dest Postgres",
       "oauth": "False",
-      "oauth_keys":"private",
-      "mode":["etl"]
+      "oauth_keys": "private",
+      "mode": ["etl"]
     },
     {
       "type": "SRC",
@@ -37,18 +37,18 @@
       "docker_tag": "latest",
       "display_name": "Postgres",
       "oauth": "True",
-      "oauth_keys":"private",
-      "mode":["retl"]
+      "oauth_keys": "private",
+      "mode": ["retl"]
     },
     {
       "type": "SRC",
-      "unique_name": "GOOGLE_ANALYTICS",
+      "unique_name": "GOOGLE-ANALYTICS",
       "docker_image": "valmiio/source-google-analytics-data-api",
       "docker_tag": "latest",
       "display_name": "Google Analytics 4 (GA4)",
       "oauth": "True",
-      "oauth_keys":"private",
-      "mode":["etl"]
+      "oauth_keys": "private",
+      "mode": ["etl"]
     },
     {
       "type": "DEST",
@@ -57,8 +57,8 @@
       "docker_tag": "latest",
       "display_name": "Google Sheets",
       "oauth": "True",
-      "oauth_keys":"private",
-      "mode":["retl"]
+      "oauth_keys": "private",
+      "mode": ["retl"]
     }
   ]
 }

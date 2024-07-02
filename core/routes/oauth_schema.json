@@ -1,151 +1,147 @@
 {
-    "schema": {
-        "DEST_FACEBOOK-ADS": {
-            "type": "object",
-            "properties": {
-                "AUTH_FACEBOOK_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Facebook client id",
-                    "title":"Client Id"
-                },
-                "AUTH_FACEBOOK_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Facebook client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-
-                }
-            },
-            "required": [
-                "AUTH_FACEBOOK_CLIENT_ID",
-                "AUTH_FACEBOOK_CLIENT_SECRET"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
+  "schema": {
+    "DEST_FACEBOOK-ADS": {
+      "type": "object",
+      "properties": {
+        "AUTH_FACEBOOK_CLIENT_ID": {
+          "type": "string",
+          "description": "Facebook client id",
+          "title": "Client Id"
         },
-        "DEST_GOOGLE-SHEETS": {
-            "type": "object",
-            "properties": {
-                "AUTH_GOOGLE_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Google client id",
-                    "title":"Client Id"
-
-                },
-                "AUTH_GOOGLE_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Google client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-                }
-            },
-            "required": [
-                "AUTH_GOOGLE_CLIENT_ID",
-                "AUTH_GOOGLE_CLIENT_SECRET"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "DEST_GOOGLE-ADS": {
-            "type": "object",
-            "properties": {
-                "AUTH_GOOGLE_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Google client id",
-                    "title":"Client Id"
-
-                },
-                "AUTH_GOOGLE_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Google client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-
-                },
-                "AUTH_GOOGLE_DEVELOPER_TOKEN": {
-                    "type": "string",
-                    "description": "Google developer token",
-                    "title":"Developer Token",
-                    "format":"password"
-                }
-            },
-            "required": [
-                "AUTH_GOOGLE_CLIENT_ID",
-                "AUTH_GOOGLE_CLIENT_SECRET",
-                "AUTH_GOOGLE_DEVELOPER_TOKEN"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "DEST_SLACK": {
-            "type": "object",
-            "properties": {
-                "AUTH_SLACK_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Slack client id",
-                    "title":"Client Id"
-                },
-                "AUTH_SLACK_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Slack client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-
-                }
-            },
-            "required": [
-                "AUTH_SLACK_CLIENT_ID",
-                "AUTH_SLACK_CLIENT_SECRET"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "DEST_HUBSPOT": {
-            "type": "object",
-            "properties": {
-                "AUTH_HUBSPOT_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Hubspot client id",
-                    "title":"Client Id"
-
-                },
-                "AUTH_HUBSPOT_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Hubspot client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-
-                }
-            },
-            "required": [
-                "AUTH_HUBSPOT_CLIENT_ID",
-                "AUTH_HUBSPOT_CLIENT_SECRET"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "SRC_SHOPIFY": {
-            "type": "object",
-            "properties": {
-                "AUTH_SHOPIFY_CLIENT_ID": {
-                    "type": "string",
-                    "description": "Shopify client id",
-                    "title":"Client Id"
-                },
-                "AUTH_SHOPIFY_CLIENT_SECRET": {
-                    "type": "string",
-                    "description": "Shopify client secret",
-                    "title":"Client Secret",
-                    "format":"password"
-
-                }
-            },
-            "required": [
-                "AUTH_SHOPIFY_CLIENT_ID",
-                "AUTH_SHOPIFY_CLIENT_SECRET"
-            ],
-            "additionalProperties": false,
-            "$schema": "http://json-schema.org/draft-07/schema#"
+        "AUTH_FACEBOOK_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Facebook client secret",
+          "title": "Client Secret",
+          "format": "password"
         }
+      },
+      "required": ["AUTH_FACEBOOK_CLIENT_ID", "AUTH_FACEBOOK_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "DEST_GOOGLE-SHEETS": {
+      "type": "object",
+      "properties": {
+        "AUTH_GOOGLE_CLIENT_ID": {
+          "type": "string",
+          "description": "Google client id",
+          "title": "Client Id"
+        },
+        "AUTH_GOOGLE_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Google client secret",
+          "title": "Client Secret",
+          "format": "password"
+        }
+      },
+      "required": ["AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "DEST_GOOGLE-ADS": {
+      "type": "object",
+      "properties": {
+        "AUTH_GOOGLE_CLIENT_ID": {
+          "type": "string",
+          "description": "Google client id",
+          "title": "Client Id"
+        },
+        "AUTH_GOOGLE_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Google client secret",
+          "title": "Client Secret",
+          "format": "password"
+        },
+        "AUTH_GOOGLE_DEVELOPER_TOKEN": {
+          "type": "string",
+          "description": "Google developer token",
+          "title": "Developer Token",
+          "format": "password"
+        }
+      },
+      "required": [
+        "AUTH_GOOGLE_CLIENT_ID",
+        "AUTH_GOOGLE_CLIENT_SECRET",
+        "AUTH_GOOGLE_DEVELOPER_TOKEN"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "DEST_SLACK": {
+      "type": "object",
+      "properties": {
+        "AUTH_SLACK_CLIENT_ID": {
+          "type": "string",
+          "description": "Slack client id",
+          "title": "Client Id"
+        },
+        "AUTH_SLACK_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Slack client secret",
+          "title": "Client Secret",
+          "format": "password"
+        }
+      },
+      "required": ["AUTH_SLACK_CLIENT_ID", "AUTH_SLACK_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "DEST_HUBSPOT": {
+      "type": "object",
+      "properties": {
+        "AUTH_HUBSPOT_CLIENT_ID": {
+          "type": "string",
+          "description": "Hubspot client id",
+          "title": "Client Id"
+        },
+        "AUTH_HUBSPOT_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Hubspot client secret",
+          "title": "Client Secret",
+          "format": "password"
+        }
+      },
+      "required": ["AUTH_HUBSPOT_CLIENT_ID", "AUTH_HUBSPOT_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SRC_SHOPIFY": {
+      "type": "object",
+      "properties": {
+        "AUTH_SHOPIFY_CLIENT_ID": {
+          "type": "string",
+          "description": "Shopify client id",
+          "title": "Client Id"
+        },
+        "AUTH_SHOPIFY_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Shopify client secret",
+          "title": "Client Secret",
+          "format": "password"
+        }
+      },
+      "required": ["AUTH_SHOPIFY_CLIENT_ID", "AUTH_SHOPIFY_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SRC_GOOGLE-ANALYTICS": {
+      "type": "object",
+      "properties": {
+        "AUTH_GOOGLE_CLIENT_ID": {
+          "type": "string",
+          "description": "Google client id",
+          "title": "Client Id"
+        },
+        "AUTH_GOOGLE_CLIENT_SECRET": {
+          "type": "string",
+          "description": "Google client secret",
+          "title": "Client Secret",
+          "format": "password"
+        }
+      },
+      "required": ["AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
     }
+  }
 }
