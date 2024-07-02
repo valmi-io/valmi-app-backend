@@ -45,7 +45,7 @@
       "unique_name": "GOOGLE_ANALYTICS",
       "docker_image": "valmiio/source-google-analytics-data-api",
       "docker_tag": "latest",
-      "display_name": "Google Analytics",
+      "display_name": "Google Analytics 4 (GA4)",
       "oauth": "True",
       "oauth_keys":"private",
       "mode":["etl"]
