@@ -35,7 +35,6 @@
           "db_column": "cost",
           "column_type": "string"
         }
-
       ],
       "operators": {
         "string": ["=", "!=", "IN", "NOT IN"],
@@ -132,22 +131,20 @@
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
       "gated": true,
-      "time_window_enabled":false
+      "time_window_enabled": false
     },
 
     {
       "name": "Average order value",
       "description": "Get the average value (in currency terms) of all the orders placed in a time period",
       "query": "select md5(row(DATE_TRUNC('{{timegrain}}', o.updated_at))::text) as id, avg(total_price)::NUMERIC(10,2) as average_total_price, DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE as truncated_date from {{schema}}.orders as o group by DATE_TRUNC('{{timegrain}}', o.updated_at) order by DATE_TRUNC('{{timegrain}}', o.updated_at)::DATE ",
-      "filters": [
-      ],
-      "operators": {
-      },
+      "filters": [],
+      "operators": {},
       "type": "SRC_SHOPIFY",
       "package_id": "P0",
       "gated": true,
-      "time_grain_enabled":true,
-      "time_window_enabled":false
+      "time_grain_enabled": true,
+      "time_window_enabled": false
     },
 
     {
@@ -160,7 +157,7 @@
       "package_id": "P0",
       "gated": true,
       "time_grain_enabled": true,
-      "time_window_enabled":false
+      "time_window_enabled": false
     },
     {
       "name": "Gross sales",
@@ -318,10 +315,10 @@
         "string": ["=", "!=", "IN", "NOT IN"],
         "integer": ["=", ">", "<", ">=", "<=", "!="]
       },
-      "type": "SRC_GOOGLE_ANALYTICS",
+      "type": "SRC_GOOGLE-ANALYTICS",
       "package_id": "P0",
       "gated": true,
-      "time_window_enabled":false
+      "time_window_enabled": false
     },
     {
       "name": "Customer Segmentation Builder",
@@ -400,67 +397,67 @@
         {
           "display_column": "fulfillment_status",
           "db_column": "fulfillment_status",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "fulfillment_status",
           "db_column": "fulfillment_status",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "email",
           "db_column": "email",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "phone",
           "db_column": "phone",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "shipping_name",
           "db_column": "shipping_name",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "address",
           "db_column": "address",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "shipping_city",
           "db_column": "shipping_city",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "shipping_state",
           "db_column": "shipping_state",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "shipping_country",
           "db_column": "shipping_country",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "shipping_zip",
           "db_column": "shipping_zip",
-          "column_type": "integer" 
+          "column_type": "integer"
         },
         {
           "display_column": "quantity",
           "db_column": "quantity",
-          "column_type": "integer" 
+          "column_type": "integer"
         },
         {
           "display_column": "product_title",
           "db_column": "product_title",
-          "column_type": "string" 
+          "column_type": "string"
         },
         {
           "display_column": "sku",
           "db_column": "sku",
-          "column_type": "string" 
+          "column_type": "string"
         }
       ],
       "operators": {
