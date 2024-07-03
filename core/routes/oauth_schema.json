@@ -127,19 +127,19 @@
     "SRC_GOOGLE-ANALYTICS": {
       "type": "object",
       "properties": {
-        "AUTH_GOOGLE_CLIENT_ID": {
+        "AUTH_GOOGLE_ANALYTICS_CLIENT_ID": {
           "type": "string",
-          "description": "Google client id",
+          "description": "Google analytics 4 client id",
           "title": "Client Id"
         },
-        "AUTH_GOOGLE_CLIENT_SECRET": {
+        "AUTH_GOOGLE_ANALYTICS_CLIENT_SECRET": {
           "type": "string",
-          "description": "Google client secret",
+          "description": "Google analytics client secret",
           "title": "Client Secret",
           "format": "password"
         }
       },
-      "required": ["AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET"],
+      "required": ["AUTH_GOOGLE_ANALYTICS_CLIENT_ID", "AUTH_GOOGLE_ANALYTICS_CLIENT_SECRET"],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     }
