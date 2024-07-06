@@ -46,7 +46,7 @@
       "gated": true
     },
     {
-      "name": "Abandoned customers",
+      "name": "Abandoned carts",
       "description": "Get a list of customers who’ve left their shopping carts unattended after adding items",
       "query": "select * from {{schema}}.abandon_customers where {{filters}}",
       "filters": [
