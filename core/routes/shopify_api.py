@@ -1,9 +1,8 @@
-import json
 import logging
 
 from ninja import Router
 from pydantic import Json
-
+import requests
 
 router = Router()
 
@@ -11,7 +10,9 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/products/{product_id}/recommendations", response={200: Json, 500: Json})
+@router.get("/products/{product_id}/recommendations", response={200: dict, 500: Json})
 def get_prompts(request, product_id):
-
-    return json.dumps({"hi": "hello"})
+    response = requests.get(
+        f'https://thebleulabel.myshopify.com/recommendations/products.json?product_id={product_id}&intent=related')
+    logger.debug(response)
+    return response.json()
