@@ -27,6 +27,7 @@ from core.routes.prompt_api import router as prompt_api_router
 from core.routes.social_auth import router as social_api_router
 from core.routes.stream_api import router as stream_api_router
 from core.routes.workspace_api import router as workspace_api_router
+from core.routes.shopify_api import router as shopify_api_router
 from valmi_app_backend.utils import BearerAuthentication
 
 from core.models import User
@@ -154,3 +155,4 @@ router.add_router("", workspace_api_router, tags=["workspaces"])
 router.add_router("", prompt_api_router, tags=["prompts"])
 router.add_router("", explore_api_router, tags=["explores"])
 router.add_router("", connector_api_router, tags=["connectors"])
+router.add_router("", shopify_api_router, tags=["shopify"])
