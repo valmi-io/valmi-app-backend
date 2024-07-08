@@ -22,6 +22,7 @@ from core.services.prompts import PromptService
 logger = logging.getLogger(__name__)
 ACTIVATION_URL = config("ACTIVATION_SERVER")
 SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SPREADSHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 
 class ExploreService:
@@ -58,18 +59,6 @@ class ExploreService:
                 .execute()
             )
             spreadsheet_id = spreadsheet.get("spreadsheetId")
-            # Update the sharing settings to make the spreadsheet publicly accessible
-            # drive_service = build('drive', 'v3', credentials=credentials)
-            # drive_service.permissions().create(
-            #     fileId=spreadsheet_id,
-            #     body={
-            #         "role": "writer",
-            #         "type": "anyone",
-            #         "withLink": True
-            #     },
-            #     fields="id"
-            # ).execute()
-
             spreadsheet_url = f"{base_spreadsheet_url}{spreadsheet_id}"
             return spreadsheet_url
         except Exception as e:
@@ -251,7 +240,7 @@ class ExploreService:
         if Explore.objects.filter(workspace_id=workspace_id, name=name).exists():
             raise Exception(f"The name '{name}' already exists. Please provide a different name.")
         if name.strip() == '':
-            raise Exception("Explore name cannot be empty.")
+            raise Exception("Explore name cannot only whitespaces.")
         if Prompt.objects.filter(name__iexact=name).exists():
             raise Exception(f"The name '{name}' is a reserved prompt.")
         if re.match(r'^\d', name):
