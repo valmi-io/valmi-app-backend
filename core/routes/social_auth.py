@@ -1,11 +1,11 @@
 
 import binascii
-import json
 import logging
 import os
 import uuid
 from urllib.parse import urlparse
 
+from django.http import JsonResponse
 import psycopg2
 from ninja import Router, Schema
 from pydantic import Json
@@ -121,12 +121,15 @@ def login(request, payload: SocialAuthLoginSchema):
 
             organizations.append(org_data)
 
-        response = {
+        result_data = {
             "auth_token": token.key,
             "organizations": organizations
         }
-        logger.debug(response)
-        return json.dumps(response)
+        response = JsonResponse(result_data)
+        response.set_cookie('token', token.key, max_age=None, secure=True, httponly=True, samesite='Strict')
+        logger.debug("*" * 80)
+        logger.debug(response.cookies)
+        return response
     except Exception as e:
         return (400, {"detail": e.message})
 
