@@ -35,6 +35,7 @@ from core.schemas.schemas import (
 from core.services.warehouse_credentials import DefaultWarehouse
 from core.models import Account, Connector, Credential, Destination, Source, SourceAccessInfo, StorageCredentials, Sync, Workspace, OAuthApiKeys
 from valmi_app_backend.utils import replace_values_in_json
+from django.db import transaction
 router = Router()
 
 # Get an instance of a logger
@@ -330,54 +331,55 @@ async def wait_for_run(time: int):
 @router.post("/workspaces/{workspace_id}/syncs/create_with_defaults", response={200: SyncSchema, 500: DetailSchema})
 def create_sync(request, workspace_id, payload: SyncSchemaInWithSourcePayload):
     try:
-        data = payload.dict()
-        catalog = data["source"]["catalog"]
-        for stream in catalog["streams"]:
-            if 'source_defined_primary_key' in stream['stream']:
-                primary_key = stream['stream']['source_defined_primary_key']
-            else:
-                primary_key = [["uuid"]]
-            stream["primary_key"] = primary_key
-            stream["destination_sync_mode"] = "append_dedup"
-        # creating source credential
-        source_credential_payload = CredentialSchemaIn(
-            name=data["name"], account=data["account"], connector_type=data["source"]["type"],
-            connector_config=data["source"]["config"])
-        source_credential = create_credential(request, workspace_id, source_credential_payload)
-        # creating source
-        source_payload = SourceSchemaIn(
-            name=data["name"], credential_id=source_credential.id, catalog=catalog)
-        source = create_source(request, workspace_id, source_payload)
-        workspace = Workspace.objects.get(id=workspace_id)
-        # creating default warehouse
-        storage_credentials = DefaultWarehouse.create(workspace)
-        source_access_info = {"source": source, "storage_credentials": storage_credentials}
-        SourceAccessInfo.objects.create(**source_access_info)
-        # creating destination credential
-        destination_credential_payload = CredentialSchemaIn(
-            name="VALMI_DATA_STORE", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
-        destination_credential = create_credential(request, workspace_id, destination_credential_payload)
-        # creating destination
-        destination_payload = DestinationSchemaIn(
-            name="VALMI_DATA_STORE", credential_id=destination_credential.id, catalog=catalog)
-        destination = create_destination(request, workspace_id, destination_payload)
-        data["source"] = Source.objects.get(id=source.id)
-        data["destination"] = Destination.objects.get(id=destination.id)
-        del data["account"]
-        if data["schedule"] is None:
-            schedule = {"run_interval": 86400000}
-            data["schedule"] = schedule
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
-        if data["ui_state"] is None:
-            ui_state = {}
-            data["ui_state"] = ui_state
-        data["id"] = uuid.uuid4()
-        logger.debug(data)
-        sync = Sync.objects.create(**data)
-        asyncio.run(wait_for_run(5))
-        payload = SyncStartStopSchemaIn(full_refresh=False)
-        response = create_new_run(request, workspace_id, sync.id, payload)
-        return sync
+        with transaction.atomic():
+            data = payload.dict()
+            catalog = data["source"]["catalog"]
+            for stream in catalog["streams"]:
+                if 'source_defined_primary_key' in stream['stream']:
+                    primary_key = stream['stream']['source_defined_primary_key']
+                else:
+                    primary_key = [["uuid"]]
+                stream["primary_key"] = primary_key
+                stream["destination_sync_mode"] = "append_dedup"
+            # creating source credential
+            source_credential_payload = CredentialSchemaIn(
+                name=data["name"], account=data["account"], connector_type=data["source"]["type"],
+                connector_config=data["source"]["config"])
+            source_credential = create_credential(request, workspace_id, source_credential_payload)
+            # creating source
+            source_payload = SourceSchemaIn(
+                name=data["name"], credential_id=source_credential.id, catalog=catalog)
+            source = create_source(request, workspace_id, source_payload)
+            workspace = Workspace.objects.get(id=workspace_id)
+            # creating default warehouse
+            storage_credentials = DefaultWarehouse.create(workspace)
+            source_access_info = {"source": source, "storage_credentials": storage_credentials}
+            SourceAccessInfo.objects.create(**source_access_info)
+            # creating destination credential
+            destination_credential_payload = CredentialSchemaIn(
+                name="VALMI_DATA_STORE", account=data["account"], connector_type="DEST_POSTGRES-DEST", connector_config=storage_credentials.connector_config)
+            destination_credential = create_credential(request, workspace_id, destination_credential_payload)
+            # creating destination
+            destination_payload = DestinationSchemaIn(
+                name="VALMI_DATA_STORE", credential_id=destination_credential.id, catalog=catalog)
+            destination = create_destination(request, workspace_id, destination_payload)
+            data["source"] = Source.objects.get(id=source.id)
+            data["destination"] = Destination.objects.get(id=destination.id)
+            del data["account"]
+            if data["schedule"] is None:
+                schedule = {"run_interval": 86400000}
+                data["schedule"] = schedule
+            data["workspace"] = Workspace.objects.get(id=workspace_id)
+            if data["ui_state"] is None:
+                ui_state = {}
+                data["ui_state"] = ui_state
+            data["id"] = uuid.uuid4()
+            logger.debug(data)
+            sync = Sync.objects.create(**data)
+            asyncio.run(wait_for_run(5))
+            payload = SyncStartStopSchemaIn(full_refresh=False)
+            response = create_new_run(request, workspace_id, sync.id, payload)
+            return sync
     except Exception:
         logger.exception("Sync error")
         return {"detail": "The specific sync cannot be created."}

@@ -12,6 +12,7 @@ from core.schemas.explore import (ExploreSchema, ExploreSchemaIn,
 from core.schemas.schemas import DetailSchema, SyncStartStopSchemaIn
 from core.services.explore import ExploreService
 from core.services.prompts import PromptService
+from django.db import transaction
 logger = logging.getLogger(__name__)
 
 router = Router()
@@ -65,62 +66,63 @@ def create_explore(request, workspace_id, payload: ExploreSchemaIn):
     data = payload.dict()
     logger.debug(data)
     try:
-        try:
-            table_name = ExploreService.validate_explore_name(data["name"], workspace_id)
-        except Exception as err:
-            logger.exception(err)
-            message = str(err)
-            return (400, {"detail": message})
-        # chceck if sheet_url is not emoty check for necessary permissions to write into file
-        if data["sheet_url"] is not None:
+        with transaction.atomic():
             try:
-                if not ExploreService.is_sheet_accessible(data["sheet_url"], workspace_id):
-                    return (400, {"detail": "You dont have access or missing write access to the spreadsheet"})
+                table_name = ExploreService.validate_explore_name(data["name"], workspace_id)
             except Exception as err:
                 logger.exception(err)
                 message = str(err)
                 return (400, {"detail": message})
-        data["id"] = uuid.uuid4()
-        data["workspace"] = Workspace.objects.get(id=workspace_id)
-        prompt = Prompt.objects.get(id=data["prompt_id"])
-        data["prompt"] = prompt
-        account_info = data.pop("account", None)
-        account = {}
-        if account_info and len(account_info) > 0:
-            account_info["id"] = uuid.uuid4()
-            account_info["workspace"] = data["workspace"]
-            account = Account.objects.create(**account_info)
-            data["account"] = account
-        # create source
+            # chceck if sheet_url is not emoty check for necessary permissions to write into file
+            if data["sheet_url"] is not None:
+                try:
+                    if not ExploreService.is_sheet_accessible(data["sheet_url"], workspace_id):
+                        return (400, {"detail": "You dont have access or missing write access to the spreadsheet"})
+                except Exception as err:
+                    logger.exception(err)
+                    message = str(err)
+                    return (400, {"detail": message})
+            data["id"] = uuid.uuid4()
+            data["workspace"] = Workspace.objects.get(id=workspace_id)
+            prompt = Prompt.objects.get(id=data["prompt_id"])
+            data["prompt"] = prompt
+            account_info = data.pop("account", None)
+            account = {}
+            if account_info and len(account_info) > 0:
+                account_info["id"] = uuid.uuid4()
+                account_info["workspace"] = data["workspace"]
+                account = Account.objects.create(**account_info)
+                data["account"] = account
+            # create source
 
-        source = ExploreService.create_source(
-            table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], data["time_grain"], workspace_id, account)
-       # create destination
-        spreadsheet_title = f"valmi.io {prompt.name} sheet"
-        destination_data = ExploreService.create_destination(
-            spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
-        spreadsheet_url = destination_data[0]
-        destination = destination_data[1]
-        # creating the sync
-        sync = ExploreService.create_sync(data["name"], source, destination, workspace_id)
-        logger.debug("After sync")
-        # creating explore
-        del data["schema_id"]
-        del data["filters"]
-        del data["time_window"]
-        del data["sheet_url"]
-        del data["time_grain"]
-        # data["name"] = f"valmiio {prompt.name}"
-        data["sync"] = sync
-        data["ready"] = False
-        data["spreadsheet_url"] = spreadsheet_url
-        explore = Explore.objects.create(**data)
-        # create run
-        asyncio.run(ExploreService.wait_for_run(5))
-        payload = SyncStartStopSchemaIn(full_refresh=False)
-        response = ExploreService.create_run(request, workspace_id, sync.id, payload)
-        logger.debug(response)
-        return explore
+            source = ExploreService.create_source(
+                table_name, data["prompt_id"], data["schema_id"], data["time_window"], data["filters"], data["time_grain"], workspace_id, account)
+        # create destination
+            spreadsheet_title = f"valmi.io {prompt.name} sheet"
+            destination_data = ExploreService.create_destination(
+                spreadsheet_title, data["name"], data["sheet_url"], workspace_id, account)
+            spreadsheet_url = destination_data[0]
+            destination = destination_data[1]
+            # creating the sync
+            sync = ExploreService.create_sync(data["name"], source, destination, workspace_id)
+            logger.debug("After sync")
+            # creating explore
+            del data["schema_id"]
+            del data["filters"]
+            del data["time_window"]
+            del data["sheet_url"]
+            del data["time_grain"]
+            # data["name"] = f"valmiio {prompt.name}"
+            data["sync"] = sync
+            data["ready"] = False
+            data["spreadsheet_url"] = spreadsheet_url
+            explore = Explore.objects.create(**data)
+            # create run
+            asyncio.run(ExploreService.wait_for_run(5))
+            payload = SyncStartStopSchemaIn(full_refresh=False)
+            response = ExploreService.create_run(request, workspace_id, sync.id, payload)
+            logger.debug(response)
+            return explore
     except Exception as e:
         logger.exception(e)
         return (400, {"detail": "The specific explore cannot be created."})
