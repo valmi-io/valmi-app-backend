@@ -71,7 +71,6 @@ def login(request, payload: SocialAuthLoginSchema):
     account = req["account"]
 
     email = user_data["email"]
-
     try:
         user = User.objects.get(email=email)
         # this function creates oauth token if not exists for an existing user else updates , creates new jitsu token if not exists
