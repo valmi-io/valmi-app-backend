@@ -208,6 +208,6 @@ class OAuthApiKeys(models.Model):
             models.UniqueConstraint(fields=['workspace', 'type'], name='unique_oauth_keys')
         ]
 
-class LuaIfttt(models.Model):
+class Ifttt(models.Model):
     store_id = models.CharField(primary_key=True)
-    lua_code = models.CharField(default="")
+    code = models.CharField(default="")
