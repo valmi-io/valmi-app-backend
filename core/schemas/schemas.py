@@ -295,5 +295,11 @@ class SocialAuthLoginSchema(Schema):
     user: SocialUser
     user: SocialUser
 
-class IftttSchema(Schema):
+class IftttCodeSchema(Schema):
+    ifttt_code: str
+
+class IftttCodesSchema(Schema):
     ifttt_codes: Dict
+
+class IftttPayloadSchema(Schema):
+    code: str

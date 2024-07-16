@@ -1,28 +1,29 @@
 from ninja import Router
-from pydantic import Json
-
-from core.models import Ifttt
+from core.models import Ifttt, Workspace
+from core.schemas.schemas import DetailSchema, IftttCodeSchema, SuccessSchema, IftttPayloadSchema
 
 router = Router()
 
-@router.get("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: Json, 500: Json})
+
+@router.get("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: IftttCodeSchema, 500: DetailSchema})
 def get_ifttt(request, workspace_id: str, store_id: str):
     try:
         ifttt_code = Ifttt.objects.get(workspace=workspace_id, store_id=store_id).code
         return 200, {"ifttt_code": ifttt_code}
     except Ifttt.DoesNotExist:
-        return 500, {"error": "ifttt code not found"}
+        return 500, {"detail": "IFTTT code not found"}
 
-@router.post("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: Json, 500: Json})
-def set_ifttt(request, workspace_id: str, store_id: str, payload: dict):
+
+@router.post("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: SuccessSchema, 422: DetailSchema, 500: DetailSchema})
+def set_ifttt(request, workspace_id: str, store_id: str, payload: IftttPayloadSchema):
     try:
-        ifttt_code = payload.get("code")
-        if ifttt_code is None:
-            return 500, {"error": "No ifttt_code provided"}
+        ifttt_code = payload.code
+        if not ifttt_code.strip():
+            return 422, {"detail": "No IFTTT code provided"}
         ifttt_entry, created = Ifttt.objects.update_or_create(
             store_id=store_id,
-            defaults={"code": ifttt_code, "workspace": workspace_id}
+            defaults={"code": ifttt_code, "workspace": Workspace.objects.get(id=workspace_id)}
         )
-        return 200, {"message": "ifttt code set successfully"}
+        return 200, {"status": "IFTTT code set successfully"}
     except Exception as e:
-        return 500, {"error": str(e)}
+        return 500, {"detail": str(e)}
