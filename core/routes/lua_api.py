@@ -30,7 +30,8 @@ def set_lua(request, workspace_id: str, store_id: str, payload: dict):
 @router.get("/workspaces/{workspace_id}/api/lua", response={200: Json, 500: Json})
 def get_all_lua(request, workspace_id: str):
     try:
-        lua_codes = list(LuaIfttt.objects.values_list('lua_code', flat=True))
-        return 200, {"lua_codes": lua_codes}
+        lua_codes = LuaIfttt.objects.values('store_id', 'lua_code')
+        lua_codes_dict = {entry['store_id']: entry['lua_code'] for entry in lua_codes}
+        return 200, {"lua_codes": lua_codes_dict}
     except Exception as e:
         return 500, {"error": str(e)}
