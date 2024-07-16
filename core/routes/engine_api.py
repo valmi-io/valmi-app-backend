@@ -16,10 +16,10 @@ from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
 from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
-                                  PromptSchema, SyncSchema)
+                                  PromptSchema, SyncSchema, IftttSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
-from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync
+from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt
 
 router = Router()
 
@@ -149,3 +149,14 @@ def get_connectors(request):
     except Exception:
         logger.exception("connector listing error")
         return (400, {"detail": "The list of connectors cannot be fetched."})
+
+
+@router.get("/ifttts", response={200: IftttSchema, 400: DetailSchema})
+def get_ifttts(request):
+    try:
+        ifttt_codes = Ifttt.objects.values('store_id', 'code')
+        ifttt_codes_dict = {entry['store_id']: entry['code'] for entry in ifttt_codes}
+        return 200, {"ifttt_codes": ifttt_codes_dict}
+    except Exception as e:
+        logger.exception("ifttt listing error")
+        return (400, {"detail": "The list of ifttt's for all stores cannot be fetched."})
