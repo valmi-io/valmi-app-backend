@@ -207,3 +207,11 @@ class OAuthApiKeys(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['workspace', 'type'], name='unique_oauth_keys')
         ]
+
+
+class ChannelTokens(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="channel_tokens")
+    write_key = models.CharField(max_length=256, null=False, blank=False)
+    link_id = models.CharField(max_length=256, null=False, blank=False)
+    store_id = models.CharField(max_length=256, null=False, blank=False)
