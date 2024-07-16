@@ -210,5 +210,5 @@ class OAuthApiKeys(models.Model):
 
 class Ifttt(models.Model):
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="ifttts")
-    store_id = models.CharField(primary_key=True)
-    code = models.CharField(default="")
+    store_id = models.CharField(primary_key=True, max_length=256)
+    code = models.CharField(default="", max_length=32768)
