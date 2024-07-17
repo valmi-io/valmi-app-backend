@@ -177,7 +177,7 @@ def get_ifttts(request):
 def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
     try:
         topics_list = list(ChannelTopics.objects.all().filter(channel__in=payload.channel_in).exclude(channel__in=payload.channel_not_in).values(
-            'write_key', 'channel', 'link_id', 'store_id'
+            'write_key', 'channel', 'link_id', 'storefront'
         ))
         # remove hard coding later 
         topics_list = [
