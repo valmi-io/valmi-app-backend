@@ -16,10 +16,10 @@ from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
 from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
-                                  PromptSchema, SyncSchema, IftttCodesSchema)
+                                  PromptSchema, SyncSchema, IftttCodesSchema, ChannelTopicsPayloadSchema, ChannelTopicsResponseSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
-from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt
+from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt, ChannelTopics
 
 router = Router()
 
@@ -160,3 +160,30 @@ def get_ifttts(request):
     except Exception as e:
         logger.exception("ifttt listing error")
         return (400, {"detail": "The list of ifttt's for all stores cannot be fetched."})
+
+
+@router.post("/channeltopics", response={200: ChannelTopicsResponseSchema, 400: DetailSchema})
+def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
+    try:
+        topics_list = list(ChannelTopics.objects.all().filter(channel_type__in=payload.channel_in).exclude(channel_type__in=payload.channel_not_in).values())
+        # remove hard coding later 
+        topics_list = [
+            {
+                'id': "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                'write_key': "w1",
+                'channel_type': "chatbox",
+                'link_id': "link1",
+                'store_id': "store1"
+            },
+            {
+                'id': "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab",
+                'write_key': "w2",
+                'channel_type': "chatbox",
+                'link_id': "link2",
+                'store_id': "store2"
+            }
+        ]
+        return 200, {"topics_list": topics_list}
+    except Exception as e:
+        logger.exception("channel topics listing error")
+        return (400, {"detail": "The list of channel_topic's cannot be fetched."}) 

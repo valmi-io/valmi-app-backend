@@ -303,3 +303,10 @@ class IftttCodesSchema(Schema):
 
 class IftttPayloadSchema(Schema):
     code: str
+
+class ChannelTopicsPayloadSchema(Schema):
+    channel_in: List[str]
+    channel_not_in: List[str]
+
+class ChannelTopicsResponseSchema(Schema):
+    topics_list: List[Dict]

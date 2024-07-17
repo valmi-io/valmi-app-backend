@@ -18,8 +18,6 @@ def get_ifttt(request, workspace_id: str, store_id: str):
 def set_ifttt(request, workspace_id: str, store_id: str, payload: IftttPayloadSchema):
     try:
         ifttt_code = payload.code
-        if not ifttt_code.strip():
-            return 422, {"detail": "No IFTTT code provided"}
         ifttt_entry, created = Ifttt.objects.update_or_create(
             store_id=store_id,
             defaults={"code": ifttt_code, "workspace": Workspace.objects.get(id=workspace_id)}

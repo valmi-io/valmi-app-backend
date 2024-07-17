@@ -212,3 +212,10 @@ class Ifttt(models.Model):
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="ifttts")
     store_id = models.CharField(primary_key=True, max_length=256)
     code = models.CharField(default="", max_length=32768)
+
+class ChannelTopics(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+    write_key = models.CharField(max_length=256, null=False, blank=False)
+    channel_type = models.CharField(max_length=32, default="chatbox")
+    link_id = models.CharField(max_length=256, null=False, blank=False)
+    store_id = models.CharField(max_length=256, null=False, blank=False)
