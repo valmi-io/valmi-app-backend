@@ -154,7 +154,7 @@ def get_connectors(request):
 @router.get("/ifttts", response={200: List, 400: DetailSchema})
 def get_ifttts(request):
     try:
-        ifttt_codes = Ifttt.objects.values('store_id', 'code')
+        ifttt_codes = Ifttt.objects.values()
         # remove hardcoding later 
         ifttt_codes = [
             {
