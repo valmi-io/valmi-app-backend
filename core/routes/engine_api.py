@@ -16,7 +16,7 @@ from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
 from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
-                                  PromptSchema, SyncSchema, IftttCodesSchema, ChannelTopicsPayloadSchema, ChannelTopicsResponseSchema)
+                                  PromptSchema, SyncSchema, IftttCodesResponseSchema, ChannelTopicsPayloadSchema, ChannelTopicsResponseSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
 from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt, ChannelTopics
@@ -151,7 +151,7 @@ def get_connectors(request):
         return (400, {"detail": "The list of connectors cannot be fetched."})
 
 
-@router.get("/ifttts", response={200: IftttCodesSchema, 400: DetailSchema})
+@router.get("/ifttts", response={200: IftttCodesResponseSchema, 400: DetailSchema})
 def get_ifttts(request):
     try:
         ifttt_codes = Ifttt.objects.values('store_id', 'code')
@@ -178,7 +178,7 @@ def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
             {
                 'id': "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab",
                 'write_key': "w2",
-                'channel_type': "chatbox",
+                'channel_type': "whatsapp",
                 'link_id': "link2",
                 'store_id': "store2"
             }

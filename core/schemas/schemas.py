@@ -295,14 +295,14 @@ class SocialAuthLoginSchema(Schema):
     user: SocialUser
     user: SocialUser
 
-class IftttCodeSchema(Schema):
-    ifttt_code: str
-
-class IftttCodesSchema(Schema):
-    ifttt_codes: Dict
-
 class IftttPayloadSchema(Schema):
     code: str
+    
+class IftttCodeResponseSchema(Schema):
+    ifttt_code: str
+
+class IftttCodesResponseSchema(Schema):
+    ifttt_codes: Dict
 
 class ChannelTopicsPayloadSchema(Schema):
     channel_in: List[str]
