@@ -209,20 +209,20 @@ class OAuthApiKeys(models.Model):
         ]
 
 class Storefront(models.Model):
-    platform = models.CharField(max_length=256, null=False, blank=False) #shopify, woo-commerce, etc.
-    id = models.CharField(max_length=256, primary_key=True) # unique id generated for each store
+    platform = models.CharField(max_length=256, null=False, blank=False)
+    id = models.CharField(max_length=256, primary_key=True)
 
 
 class WorkspaceStorefront(models.Model):
-    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE) # workspace of user
-    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE) # connected to StoreRegistry
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE)
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE)
 
 class Ifttt(models.Model):
-    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE) # connected to StoreRegistry
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE)
     code = models.CharField(default="", max_length=32768)
 
 class ChannelTopics(models.Model):
     write_key = models.CharField(max_length=256, null=False, blank=False)
     channel = models.CharField(max_length=32, default="chatbox")
     link_id = models.CharField(max_length=256, null=False, blank=False)
-    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE, default='dummy-store-front') # connected to StoreRegistry
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE, default='dummy-store-front')

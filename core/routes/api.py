@@ -27,6 +27,7 @@ from core.routes.prompt_api import router as prompt_api_router
 from core.routes.social_auth import router as social_api_router
 from core.routes.stream_api import router as stream_api_router
 from core.routes.workspace_api import router as workspace_api_router
+from core.routes.storefront_api import router as storefront_api_router
 from core.routes.ifttt_api import router as ifttt_api_router
 from valmi_app_backend.utils import BearerAuthentication
 
@@ -156,3 +157,4 @@ router.add_router("", prompt_api_router, tags=["prompts"])
 router.add_router("", explore_api_router, tags=["explores"])
 router.add_router("", connector_api_router, tags=["connectors"])
 router.add_router("", ifttt_api_router, tags=["ifttts"])
+router.add_router("", storefront_api_router, tags=["storefront_api_routers"])
