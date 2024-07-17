@@ -16,7 +16,7 @@ from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
 from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
-                                  PromptSchema, SyncSchema, IftttCodesResponseSchema, ChannelTopicsPayloadSchema, ChannelTopicsResponseSchema)
+                                  PromptSchema, SyncSchema, ChannelTopicsPayloadSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
 from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt, ChannelTopics
@@ -151,39 +151,50 @@ def get_connectors(request):
         return (400, {"detail": "The list of connectors cannot be fetched."})
 
 
-@router.get("/ifttts", response={200: IftttCodesResponseSchema, 400: DetailSchema})
+@router.get("/ifttts", response={200: List, 400: DetailSchema})
 def get_ifttts(request):
     try:
         ifttt_codes = Ifttt.objects.values('store_id', 'code')
-        ifttt_codes_dict = {entry['store_id']: entry['code'] for entry in ifttt_codes}
-        return 200, {"ifttt_codes": ifttt_codes_dict}
+        # remove hardcoding later 
+        ifttt_codes = [
+            {
+                'store_id': 'sh_1234',
+                'code': 'print("hello world")'
+            },
+            {
+                'store_id': 'sh_56789',
+                'code': 'print("hello valmi")'
+            },
+            
+        ]
+        return 200, ifttt_codes
     except Exception as e:
         logger.exception("ifttt listing error")
         return (400, {"detail": "The list of ifttt's for all stores cannot be fetched."})
 
 
-@router.post("/channeltopics", response={200: ChannelTopicsResponseSchema, 400: DetailSchema})
+@router.post("/channeltopics", response={200: List, 400: DetailSchema})
 def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
     try:
-        topics_list = list(ChannelTopics.objects.all().filter(channel_type__in=payload.channel_in).exclude(channel_type__in=payload.channel_not_in).values())
+        topics_list = list(ChannelTopics.objects.all().filter(channel__in=payload.channel_in).exclude(channel__in=payload.channel_not_in).values(
+            'write_key', 'channel', 'link_id', 'store_id'
+        ))
         # remove hard coding later 
         topics_list = [
             {
-                'id': "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 'write_key': "w1",
                 'channel_type': "chatbox",
                 'link_id': "link1",
                 'store_id': "store1"
             },
             {
-                'id': "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab",
                 'write_key': "w2",
                 'channel_type': "whatsapp",
                 'link_id': "link2",
                 'store_id': "store2"
             }
         ]
-        return 200, {"topics_list": topics_list}
+        return 200, topics_list
     except Exception as e:
         logger.exception("channel topics listing error")
         return (400, {"detail": "The list of channel_topic's cannot be fetched."}) 

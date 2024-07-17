@@ -216,6 +216,6 @@ class Ifttt(models.Model):
 class ChannelTopics(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
     write_key = models.CharField(max_length=256, null=False, blank=False)
-    channel_type = models.CharField(max_length=32, default="chatbox")
+    channel = models.CharField(max_length=32, default="chatbox")
     link_id = models.CharField(max_length=256, null=False, blank=False)
     store_id = models.CharField(max_length=256, null=False, blank=False)

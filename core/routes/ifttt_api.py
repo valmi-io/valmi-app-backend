@@ -1,15 +1,15 @@
 from ninja import Router
 from core.models import Ifttt, Workspace
-from core.schemas.schemas import DetailSchema, IftttCodeResponseSchema, SuccessSchema, IftttPayloadSchema
+from core.schemas.schemas import DetailSchema, SuccessSchema, IftttPayloadSchema
 
 router = Router()
 
 
-@router.get("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: IftttCodeResponseSchema, 500: DetailSchema})
+@router.get("/workspaces/{workspace_id}/ifttt/{store_id}", response={200: str, 500: DetailSchema})
 def get_ifttt(request, workspace_id: str, store_id: str):
     try:
         ifttt_code = Ifttt.objects.get(workspace=workspace_id, store_id=store_id).code
-        return 200, {"ifttt_code": ifttt_code}
+        return 200, ifttt_code
     except Ifttt.DoesNotExist:
         return 500, {"detail": "IFTTT code not found"}
 
