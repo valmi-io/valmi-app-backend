@@ -192,6 +192,7 @@ class ValmiUserIDJitsuApiToken(models.Model):
     api_token = models.CharField(max_length=256, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="jitsuapitoken", default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
 
 
 class OAuthApiKeys(models.Model):
@@ -226,3 +227,4 @@ class ChannelTopics(models.Model):
     channel = models.CharField(max_length=32, default="chatbox")
     link_id = models.CharField(max_length=256, null=False, blank=False)
     storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE, default='dummy-store-front')
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="channeltopics")
