@@ -8,6 +8,7 @@ Author: Rajashekar Varkala @ valmi.io
 
 import json
 import logging
+from uuid import UUID
 
 import requests
 from ninja import Router
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_bearer_header(bearer_token):
-    return {"Authorization": f"Bearer {bearer_token}"} if bearer_token else {}
+    return {"Authorization": f"Bearer {bearer_token}"}
 
 
 # Object Schema Definitions
@@ -97,11 +98,12 @@ def schema_obj(request, workspace_id, type):
 # CRUD for objects
 @router.get("/workspaces/{workspace_id}/config/{type}", response={200: Json, 500: Json})
 def get_objs(request, workspace_id, type):
-    authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
+    auth_key = ValmiUserIDJitsuApiToken.objects.get(workspace_id=workspace_id).api_token
+    url = f"http://host.docker.internal:3000/api/{workspace_id}/config/{type}"
     response = requests.get(
-        f"{config('STREAM_API_URL')}/api/{workspace_id}/config/{type}",
+        url,
         timeout=SHORT_TIMEOUT,
-        headers=get_bearer_header(authObject.api_token),
+        headers=get_bearer_header(auth_key),
     )
 
     try:
@@ -117,14 +119,25 @@ def get_objs(request, workspace_id, type):
 
 @router.post("/workspaces/{workspace_id}/config/{type}", response={200: Json, 500: Json})
 def create_obj(request, workspace_id, type, payload: GenericJsonSchema):
-    authObject = ValmiUserIDJitsuApiToken.objects.get(user=request.user)
-    response = requests.post(
-        f"{config('STREAM_API_URL')}/api/{workspace_id}/config/{type}",
-        timeout=SHORT_TIMEOUT,
-        headers=get_bearer_header(authObject.api_token),
-        json=payload.dict(),
-    )
+    if isinstance(payload, dict):
+        data = payload
+    else:
+        data = payload.dict()
+    for key, value in data.items():
+        if isinstance(value, UUID):
+            data[key] = str(value)
 
+    auth_key = ValmiUserIDJitsuApiToken.objects.get(workspace_id=workspace_id).api_token
+    logger.debug(auth_key)
+    auth_key_with_bearer = get_bearer_header(auth_key)
+    url = f"http://host.docker.internal:3000/api/{workspace_id}/config/{type}"
+    logger.debug(url)
+    response = requests.post(
+        url,
+        timeout=SHORT_TIMEOUT,
+        headers=auth_key_with_bearer,
+        json=data,
+    )
     try:
         response.raise_for_status()
     except requests.exceptions.HTTPError:

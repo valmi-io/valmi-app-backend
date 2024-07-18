@@ -192,6 +192,7 @@ class ValmiUserIDJitsuApiToken(models.Model):
     api_token = models.CharField(max_length=256, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="jitsuapitoken")
 
 
 class OAuthApiKeys(models.Model):
@@ -208,14 +209,17 @@ class OAuthApiKeys(models.Model):
             models.UniqueConstraint(fields=['workspace', 'type'], name='unique_oauth_keys')
         ]
 
+
 class Ifttt(models.Model):
     workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="ifttts")
     store_id = models.CharField(primary_key=True, max_length=256)
     code = models.CharField(default="", max_length=32768)
 
+
 class ChannelTopics(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
-    write_key = models.CharField(max_length=256, null=False, blank=False)
-    channel_type = models.CharField(max_length=32, default="chatbox")
-    link_id = models.CharField(max_length=256, null=False, blank=False)
-    store_id = models.CharField(max_length=256, null=False, blank=False)
+    write_key = models.CharField(max_length=9999, null=False, blank=False)
+    channel_type = models.CharField(max_length=9999, default="chatbox")
+    link_id = models.CharField(max_length=9999, null=False, blank=False)
+    store_id = models.CharField(max_length=9999, null=False, blank=False)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="channeltopics")

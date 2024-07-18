@@ -14,11 +14,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ChannelTopics',
             fields=[
-                ('id', models.UUIDField(default=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), editable=False, primary_key=True, serialize=False)),
-                ('write_key', models.CharField(max_length=256)),
+                ('id', models.UUIDField(default=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+                 editable=False, primary_key=True, serialize=False)),
+                ('write_key', models.CharField(max_length=1024)),
                 ('channel_type', models.CharField(default='chatbox', max_length=32)),
-                ('link_id', models.CharField(max_length=256)),
-                ('store_id', models.CharField(max_length=256)),
+                ('link_id', models.CharField(max_length=1024)),
+                ('store_id', models.CharField(max_length=1024)),
             ],
         ),
     ]
