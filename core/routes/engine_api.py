@@ -15,7 +15,7 @@ from decouple import Csv, config
 from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
-from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
+from core.schemas.schemas import (ChannelTopicsSchema, ConnectorSchema, DetailSchema, PackageSchema,
                                   PromptSchema, SyncSchema, ChannelTopicsPayloadSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
@@ -90,8 +90,9 @@ def create_connector(request, payload: ConnectorSchema):
         logger.exception("Connector error")
         return (400, {"detail": "The specific connector cannot be created."})
 
+
 @router.post("/prompts/create", response={200: PromptSchema, 400: DetailSchema})
-def create_connector(request, payload: PromptSchema):
+def create_prompt(request, payload: PromptSchema):
     data = payload.dict()
     logger.debug(data)
     try:
@@ -113,11 +114,10 @@ def create_connector(request, payload: PromptSchema):
             logger.debug(msg)
             return (400, {"detail": msg})
         return (200, data)
-    
 
 
 @router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
-def create_connector(request, payload: PackageSchema):
+def create_package(request, payload: PackageSchema):
     # check for admin permissions
     logger.info("logging package schema")
     data = payload.dict()
@@ -129,6 +129,7 @@ def create_connector(request, payload: PackageSchema):
     except Exception:
         logger.exception("Package error")
         return (400, {"detail": "The specific package cannot be created."})
+
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors(request):
@@ -155,7 +156,7 @@ def get_connectors(request):
 def get_ifttts(request):
     try:
         ifttt_codes = Ifttt.objects.values()
-        # remove hardcoding later 
+        # remove hardcoding later
         ifttt_codes = [
             {
                 'store_id': 'sh_1234',
@@ -165,7 +166,7 @@ def get_ifttts(request):
                 'store_id': 'sh_56789',
                 'code': 'print("hello valmi")'
             },
-            
+
         ]
         return 200, ifttt_codes
     except Exception as e:
@@ -173,28 +174,11 @@ def get_ifttts(request):
         return (400, {"detail": "The list of ifttt's for all stores cannot be fetched."})
 
 
-@router.post("/channeltopics", response={200: List, 400: DetailSchema})
+@router.post("/channeltopics", response={200: List[ChannelTopicsSchema], 400: DetailSchema})
 def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
     try:
-        topics_list = list(ChannelTopics.objects.all().filter(channel__in=payload.channel_in).exclude(channel__in=payload.channel_not_in).values(
-            'write_key', 'channel', 'link_id', 'storefront'
-        ))
-        # remove hard coding later 
-        topics_list = [
-            {
-                'write_key': "w1",
-                'channel_type': "chatbox",
-                'link_id': "link1",
-                'store_id': "store1"
-            },
-            {
-                'write_key': "w2",
-                'channel_type': "whatsapp",
-                'link_id': "link2",
-                'store_id': "store2"
-            }
-        ]
-        return 200, topics_list
+        topics_list = list(ChannelTopics.objects.all().filter(channel__in=payload.channel_in))
+        return (200, topics_list)
     except Exception as e:
         logger.exception("channel topics listing error")
-        return (400, {"detail": "The list of channel_topic's cannot be fetched."}) 
+        return (400, {"detail": "The list of channel_topic's cannot be fetched."})
