@@ -22,12 +22,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='valmiuseridjitsuapitoken',
             name='workspace',
-            field=models.ForeignKey(default=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), on_delete=django.db.models.deletion.CASCADE, related_name='jitsuapitoken', to='core.workspace'),
+            field=models.ForeignKey(default=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+                                    on_delete=django.db.models.deletion.CASCADE, related_name='jitsuapitoken', to='core.workspace'),
         ),
         migrations.CreateModel(
             name='WorkspaceStorefront',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('storefront', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.storefront')),
                 ('workspace', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.workspace')),
             ],
@@ -47,8 +47,10 @@ class Migration(migrations.Migration):
                 ('write_key', models.CharField(max_length=256)),
                 ('channel', models.CharField(default='chatbox', max_length=32)),
                 ('link_id', models.CharField(max_length=256)),
-                ('storefront', models.ForeignKey(default='dummy-store-front', on_delete=django.db.models.deletion.CASCADE, to='core.storefront')),
-                ('workspace', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='channeltopics', to='core.workspace')),
+                ('storefront', models.ForeignKey(default='dummy-store-front',
+                 on_delete=django.db.models.deletion.CASCADE, to='core.storefront')),
+                ('workspace', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='channeltopics', to='core.workspace')),
             ],
         ),
     ]

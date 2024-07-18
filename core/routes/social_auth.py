@@ -11,7 +11,7 @@ from ninja import Router, Schema
 from pydantic import Json
 from rest_framework.authtoken.models import Token
 
-from core.models import OAuthApiKeys, Organization, User, Workspace, ValmiUserIDJitsuApiToken, ChannelTopics
+from core.models import OAuthApiKeys, Organization, Storefront, User, Workspace, ValmiUserIDJitsuApiToken, ChannelTopics, WorkspaceStorefront
 from core.routes.stream_api import create_obj, get_objs
 from core.schemas.schemas import DetailSchema, SocialAuthLoginSchema
 
@@ -119,12 +119,21 @@ def login(request, payload: SocialAuthLoginSchema):
         if config("ENABLE_JITSU", default=False, cast=bool):
             patch_jitsu_user(user, workspace)
         link_response = create_channel_topics(request, user, workspace.id)
+        store_front_payload = {
+            "platform": "shopify",
+            "id": "chitumalla-store"
+        }
+        store_front = Storefront.objects.create(**store_front_payload)
+        workspace_storefront_payload = {
+            "workspace": workspace,
+            "storefront": store_front
+        }
+        workspace_storefront = WorkspaceStorefront.objects.create(**workspace_storefront_payload)
         channel_topic = {
             "write_key": link_response[0],
             "link_id": link_response[1],
-            "id": str(uuid.uuid4()),
             "channel": "chatbox",
-            "storefront": "chitumalla-store",
+            "storefront": store_front,
             "workspace": workspace
         }
         ChannelTopics.objects.create(**channel_topic)
@@ -194,7 +203,8 @@ def manage_oauth_and_jitsu_tokens(user, account, workspace):
     if not jitsu_token_exists.exists():
         if config("ENABLE_JITSU", default=False, cast=bool):
             patch_jitsu_user(user, workspace)
-            
+
+
 def generate_write_key() -> Dict[str, str]:
     id = str(uuid.uuid4())
     buffer = uuid.uuid4().bytes
