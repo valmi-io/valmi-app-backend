@@ -15,7 +15,7 @@ from pydantic import UUID4
 
 from core.models import (Account, Connector, Credential, Destination,
                          OAuthApiKeys, Organization, Package, Prompt, Source,
-                         Sync, Workspace)
+                         Sync, Workspace, ChannelTopics)
 from core.schemas.prompt import TimeGrain
 
 
@@ -294,3 +294,18 @@ class SocialAuthLoginSchema(Schema):
     account: SocialAccount
     user: SocialUser
     user: SocialUser
+
+
+class IftttPayloadSchema(Schema):
+    code: str
+
+
+class ChannelTopicsPayloadSchema(Schema):
+    channel_in: List[str]
+    channel_not_in: List[str]
+
+
+class ChannelTopicsSchema(ModelSchema):
+    class Config(CamelSchemaConfig):
+        model = ChannelTopics
+        model_fields = ["write_key", "channel", "link_id", "storefront", "workspace", "id"]

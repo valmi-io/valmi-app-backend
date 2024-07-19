@@ -192,6 +192,8 @@ class ValmiUserIDJitsuApiToken(models.Model):
     api_token = models.CharField(max_length=256, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE,
+                                  related_name="jitsuapitoken", default=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
 
 
 class OAuthApiKeys(models.Model):
@@ -207,3 +209,26 @@ class OAuthApiKeys(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['workspace', 'type'], name='unique_oauth_keys')
         ]
+
+
+class Storefront(models.Model):
+    platform = models.CharField(max_length=256, null=False, blank=False)
+    id = models.CharField(max_length=256, primary_key=True)
+
+
+class WorkspaceStorefront(models.Model):
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE)
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE)
+
+
+class Ifttt(models.Model):
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE)
+    code = models.CharField(default="", max_length=32768)
+
+
+class ChannelTopics(models.Model):
+    write_key = models.CharField(max_length=256, null=False, blank=False)
+    channel = models.CharField(max_length=32, default="chatbox")
+    link_id = models.CharField(max_length=256, null=False, blank=False)
+    storefront = models.ForeignKey(to=Storefront, on_delete=models.CASCADE, default='dummy-store-front')
+    workspace = models.ForeignKey(to=Workspace, on_delete=models.CASCADE, related_name="channeltopics")

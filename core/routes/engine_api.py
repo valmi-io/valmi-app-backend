@@ -15,11 +15,11 @@ from decouple import Csv, config
 from ninja import Router
 from opentelemetry.metrics import get_meter_provider
 
-from core.schemas.schemas import (ConnectorSchema, DetailSchema, PackageSchema,
-                                  PromptSchema, SyncSchema)
+from core.schemas.schemas import (ChannelTopicsSchema, ConnectorSchema, DetailSchema, PackageSchema,
+                                  PromptSchema, SyncSchema, ChannelTopicsPayloadSchema)
 from valmi_app_backend.utils import replace_values_in_json
 
-from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync
+from ..models import Connector, OAuthApiKeys, Package, Prompt, Sync, Ifttt, ChannelTopics
 
 router = Router()
 
@@ -90,8 +90,9 @@ def create_connector(request, payload: ConnectorSchema):
         logger.exception("Connector error")
         return (400, {"detail": "The specific connector cannot be created."})
 
+
 @router.post("/prompts/create", response={200: PromptSchema, 400: DetailSchema})
-def create_connector(request, payload: PromptSchema):
+def create_prompt(request, payload: PromptSchema):
     data = payload.dict()
     logger.debug(data)
     try:
@@ -113,11 +114,10 @@ def create_connector(request, payload: PromptSchema):
             logger.debug(msg)
             return (400, {"detail": msg})
         return (200, data)
-    
 
 
 @router.post("/packages/create", response={200: PackageSchema, 400: DetailSchema})
-def create_connector(request, payload: PackageSchema):
+def create_package(request, payload: PackageSchema):
     # check for admin permissions
     logger.info("logging package schema")
     data = payload.dict()
@@ -129,6 +129,7 @@ def create_connector(request, payload: PackageSchema):
     except Exception:
         logger.exception("Package error")
         return (400, {"detail": "The specific package cannot be created."})
+
 
 @router.get("/connectors/", response={200: Dict[str, List[ConnectorSchema]], 400: DetailSchema})
 def get_connectors(request):
@@ -149,3 +150,35 @@ def get_connectors(request):
     except Exception:
         logger.exception("connector listing error")
         return (400, {"detail": "The list of connectors cannot be fetched."})
+
+
+@router.get("/ifttts", response={200: List, 400: DetailSchema})
+def get_ifttts(request):
+    try:
+        ifttt_codes = Ifttt.objects.values()
+        # remove hardcoding later
+        ifttt_codes = [
+            {
+                'store_id': 'sh_1234',
+                'code': 'print("hello world")'
+            },
+            {
+                'store_id': 'sh_56789',
+                'code': 'print("hello valmi")'
+            },
+
+        ]
+        return 200, ifttt_codes
+    except Exception as e:
+        logger.exception("ifttt listing error")
+        return (400, {"detail": "The list of ifttt's for all stores cannot be fetched."})
+
+
+@router.post("/channeltopics", response={200: List[ChannelTopicsSchema], 400: DetailSchema})
+def get_channel_topics(request, payload: ChannelTopicsPayloadSchema):
+    try:
+        topics_list = list(ChannelTopics.objects.all().filter(channel__in=payload.channel_in))
+        return (200, topics_list)
+    except Exception as e:
+        logger.exception("channel topics listing error")
+        return (400, {"detail": "The list of channel_topic's cannot be fetched."})
