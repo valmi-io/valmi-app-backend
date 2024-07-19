@@ -144,3 +144,4 @@ bin/python
 bin/python3
 bin/python3.9
 pyvenv.cfg
+app-backend/bin/*
