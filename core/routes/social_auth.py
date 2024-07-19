@@ -13,8 +13,6 @@ from core.models import Organization, User, Workspace
 from core.schemas.schemas import DetailSchema, SocialAuthLoginSchema
 from core.services.user import UserService
 
-from decouple import config
-
 
 router = Router()
 
@@ -65,15 +63,14 @@ def login(request, payload: SocialAuthLoginSchema):
         user.meta = user_data['meta']
         user.password = UserService.generate_key()
         user.save(force_insert=True)
-        org = Organization(name="Default Organization", id=uuid.uuid4())
+        org = Organization(name=f"{user.username} Organization", id=uuid.uuid4())
         org.save()
-        workspace = Workspace(name="Default Workspace", id=uuid.uuid4(), organization=org)
+        workspace = Workspace(name=f"{user.username} Workspace", id=uuid.uuid4(), organization=org)
         workspace.save()
         user.save()
         user.organizations.add(org)
-        if config("ENABLE_JITSU", default=False, cast=bool):
-            # if jitsu enabled create jitsu account as well for new userss
-            UserService.patch_jitsu_user(user, workspace)
+        # this below function creates oauth token for an new user else updates if user exists, creates new jitsu token if not exists
+        UserService.manage_oauth_and_jitsu_tokens(user, account, workspace)
         # create the channle topics for new users
         UserService.create_channel_topics(request, user, workspace.id)
 
