@@ -152,7 +152,7 @@ class UserService():
         channel_topic = {
             "write_key": concated_public_key,
             "link_id": response["id"],
-            "channel": "chatbox",
+            "channel": source_name,
             "storefront": store_front,
             "workspace": workspace
         }
