@@ -2,10 +2,12 @@ import binascii
 import hashlib
 import json
 import os
+import random
+import string
 from typing import Dict
 import uuid
 from core.models import ChannelTopics, OAuthApiKeys, Storefront, ValmiUserIDJitsuApiToken, Workspace, WorkspaceStorefront
-from core.routes.stream_api import create_obj, get_objs
+from core.routes.stream_api import create_obj
 import logging
 from django.db import connection
 from decouple import config
@@ -76,16 +78,13 @@ class UserService():
                 UserService.patch_jitsu_user(user, workspace)
 
     @staticmethod
-    def create_channel_topics(request, user, workspace_id) -> None:
-        channel_topic = ChannelTopics.objects.filter(workspace_id=workspace_id, channel="chatbox").first()
-        if channel_topic:
-            return []
-        # creating the jitsu source stream chatbot
+    def create_jitsu_link(request: object, source_name: str, destination_name: str, destination_type: str, workspace_id: str, store_front: object) -> None:
+        # creating the jitsu source
         source = {
             "id": str(uuid.uuid4()),
             "type": "stream",
             "workspaceId": str(workspace_id),
-            "name": "chatbot",
+            "name": source_name,
             "domains": []
         }
         publicKeys = []
@@ -97,43 +96,81 @@ class UserService():
         privateKeys.append(privatekey)
         logger.debug(f"{privatekey['id']}:{privatekey['plaintext']}")
         source["privateKeys"] = privateKeys
+        logger.debug(f"{privatekey['id']}:{privatekey['plaintext']}")
         concated_public_key = f"{publickey['id']}:{publickey['plaintext']}"
         config_type = "stream"
-        create_obj(request, workspace_id, config_type, source)
-        # creating jitsu destination bulker dev null
+        response_str = create_obj(request, workspace_id, config_type, source)
+        json_string = response_str.content.decode('utf-8')
+        response = json.loads(json_string)
+        logger.debug(type(response))
+        logger.debug(response)
+        source_id = response['id']
+        # creating jitsu destination
         config_type = "destination"
         destination = {
             "id": str(uuid.uuid4()),
             "type": "destination",
             "workspaceId": str(workspace_id),
-            "destinationType": "bulkerdevnull",
-            "name": "destination-chatbot"
+            "destinationType": destination_type,
+            "name": destination_name
         }
-        create_obj(request, workspace_id, config_type, destination)
-        # obtaining the sources and destinations created in workspace
-        sources_json = get_objs(request, workspace_id, "stream")
-        sources = json.loads(sources_json)
-        destinations_json = get_objs(request, workspace_id, "destination")
-        destinations = json.loads(destinations_json)
-        # creating the link between the source and destination for chatbot
+        config_type = "destination"
+        if destination_type == "postgres":
+            destination["host"] = os.environ["DATA_WAREHOUSE_URL"]
+            destination["port"] = 5432
+            destination["sslMode"] = "disable"
+            destination["database"] = "test"
+            destination["username"] = os.environ["DATA_WAREHOUSE_USERNAME"]
+            destination["password"] = os.environ["DATA_WAREHOUSE_PASSWORD"]
+            destination["defaultSchema"] = "public"
+        response_str = create_obj(request, workspace_id, config_type, destination)
+        json_string = response_str.content.decode('utf-8')
+        response = json.loads(json_string)
+        logger.debug(type(response))
+        logger.debug(response)
+        destination_id = response['id']
         link = {
-            "fromId": sources["objects"][0]["id"],
-            "toId": destinations["objects"][0]["id"],
+            "fromId": source_id,
+            "toId": destination_id,
             "type": "push",
             "workspaceId": str(workspace_id)
         }
-        data = {
-            "mode": "batch"
-        }
+        if destination_type == "postgres":
+            data = {
+                "mode": "stream"
+            }
+        else:
+            data = {
+                "mode": "batch"
+            }
         link["data"] = data
         config_type = "link"
-        link_json = create_obj(request, workspace_id, config_type, link)
-        link_response = json.loads(link_json)
-        # creating the channel topics for chatbot source in valmi
+        response_str = create_obj(request, workspace_id, config_type, link)
+        json_string = response_str.content.decode('utf-8')
+        response = json.loads(json_string)
         workspace = Workspace.objects.get(id=workspace_id)
+        channel_topic = {
+            "write_key": concated_public_key,
+            "link_id": response["id"],
+            "channel": "chatbox",
+            "storefront": store_front,
+            "workspace": workspace
+        }
+        ChannelTopics.objects.create(**channel_topic)
+
+    @staticmethod
+    def create_channel_topics(request, user, workspace_id) -> None:
+        # TODO: need to change this query should be on storefront id
+        channel_topic = ChannelTopics.objects.filter(workspace_id=workspace_id, channel="chatbox").first()
+        if channel_topic:
+            return []
+        workspace = Workspace.objects.get(id=workspace_id)
+        # TODO: using some random name as store name
+        characters = string.ascii_letters + string.digits
+        random_string = ''.join(random.choice(characters) for _ in range(10))
         store_front_payload = {
             "platform": "shopify",
-            "id": "chitumalla-store"
+            "id": random_string
         }
         store_front = Storefront.objects.create(**store_front_payload)
         workspace_storefront_payload = {
@@ -141,11 +178,9 @@ class UserService():
             "storefront": store_front
         }
         workspace_storefront = WorkspaceStorefront.objects.create(**workspace_storefront_payload)
-        channel_topic = {
-            "write_key": concated_public_key,
-            "link_id": link_response["id"],
-            "channel": "chatbox",
-            "storefront": store_front,
-            "workspace": workspace
-        }
-        ChannelTopics.objects.create(**channel_topic)
+        UserService.create_jitsu_link(request, "chatbox", "destination-chatbox",
+                                      "bulkerdevnull", workspace_id, store_front)
+        UserService.create_jitsu_link(request, "processor", "processor",
+                                      "bulkerdevnull", workspace_id, store_front)
+        UserService.create_jitsu_link(request, "postgres", "destination-postgres",
+                                      "postgres", workspace_id, store_front)
