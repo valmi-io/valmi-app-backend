@@ -98,6 +98,7 @@ class UserService():
         source["privateKeys"] = privateKeys
         logger.debug(f"{privatekey['id']}:{privatekey['plaintext']}")
         concated_public_key = f"{publickey['id']}:{publickey['plaintext']}"
+        concated_private_key = f"{privatekey['id']}:{privatekey['plaintext']}"
         config_type = "stream"
         response_str = create_obj(request, workspace_id, config_type, source)
         json_string = response_str.content.decode('utf-8')
@@ -119,10 +120,10 @@ class UserService():
             destination["host"] = os.environ["DATA_WAREHOUSE_URL"]
             destination["port"] = 5432
             destination["sslMode"] = "disable"
-            destination["database"] = "test"
+            destination["database"] = os.environ["DATA_WAREHOUSE_DB_NAME"]
             destination["username"] = os.environ["DATA_WAREHOUSE_USERNAME"]
             destination["password"] = os.environ["DATA_WAREHOUSE_PASSWORD"]
-            destination["defaultSchema"] = "public"
+            destination["defaultSchema"] = "pfyzyzmcchgeyxtbt"
         response_str = create_obj(request, workspace_id, config_type, destination)
         json_string = response_str.content.decode('utf-8')
         response = json.loads(json_string)
@@ -150,7 +151,7 @@ class UserService():
         response = json.loads(json_string)
         workspace = Workspace.objects.get(id=workspace_id)
         channel_topic = {
-            "write_key": concated_public_key,
+            "write_key": concated_private_key,
             "link_id": response["id"],
             "channel": source_name,
             "storefront": store_front,
