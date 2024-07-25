@@ -146,7 +146,7 @@ def create_obj(request, workspace_id, type, payload: GenericJsonSchema):
         except Exception as e:
             raise e
 
-    return response.text
+    return response
 
 
 @router.put("/workspaces/{workspace_id}/config/{type}/{id}", response={200: Json, 500: Json})
